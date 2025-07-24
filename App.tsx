@@ -2,17 +2,15 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { SafeAreaView } from 'react-native'
+import { StatusBar } from 'react-native';
+import { UserProvider } from './utils/UserContext'; // <-- Wrap app
 
-// --- Import all screens ---
+// --- Screens ---
 import LoginScreen from './screens/LoginScreen';
-
 import HomeScreen from './screens/home/HomeScreen';
 import HomeDetailsScreen from './screens/home/HomeDetailsScreen';
-
 import DetailsScreen from './screens/details/DetailsScreen';
 import DetailsInfoScreen from './screens/details/DetailsInfoScreen';
-
 import ProfileScreen from './screens/profile/ProfileScreen';
 import EditProfileScreen from './screens/profile/EditProfileScreen';
 
@@ -22,7 +20,6 @@ const DetailsStack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// --- Home Stack ---
 function HomeStackScreen() {
   return (
     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
@@ -32,7 +29,6 @@ function HomeStackScreen() {
   );
 }
 
-// --- Details Stack ---
 function DetailsStackScreen() {
   return (
     <DetailsStack.Navigator screenOptions={{ headerShown: false }}>
@@ -42,7 +38,6 @@ function DetailsStackScreen() {
   );
 }
 
-// --- Profile Stack ---
 function ProfileStackScreen() {
   return (
     <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
@@ -52,7 +47,6 @@ function ProfileStackScreen() {
   );
 }
 
-// --- Tab Navigator ---
 function MainTabs() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
@@ -63,17 +57,19 @@ function MainTabs() {
   );
 }
 
-// --- App Entry ---
 export default function App() {
   return (
-    <NavigationContainer>
-      <RootStack.Navigator
-        initialRouteName="Login"
-        screenOptions={{ headerShown: false }}
-      >
-        <RootStack.Screen name="Login" component={LoginScreen} />
-        <RootStack.Screen name="Main" component={MainTabs} />
-      </RootStack.Navigator>
-    </NavigationContainer>
+    <UserProvider>
+      <StatusBar hidden={true} />
+      <NavigationContainer>
+        <RootStack.Navigator
+          initialRouteName="Login"
+          screenOptions={{ headerShown: false }}
+        >
+          <RootStack.Screen name="Login" component={LoginScreen} />
+          <RootStack.Screen name="Main" component={MainTabs} />
+        </RootStack.Navigator>
+      </NavigationContainer>
+    </UserProvider>
   );
 }

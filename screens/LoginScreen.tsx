@@ -1,7 +1,3 @@
-import 'react-native-url-polyfill/auto'; // <-- Fixes URL & fetch issues
-import { createClient } from '@supabase/supabase-js';
-import { fetch } from 'cross-fetch'; // <-- Needed for React Native
-
 import React, { useState } from 'react';
 import {
   SafeAreaView,
@@ -18,36 +14,31 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
 import LinearGradient from 'react-native-linear-gradient';
-
-// ---- Supabase client inside same file ----
-const SUPABASE_URL = 'https://wplzxpodnfsxtdguwpsl.supabase.co';
-const SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwbHp4cG9kbmZzeHRkZ3V3cHNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyODE4MDMsImV4cCI6MjA2ODg1NzgwM30.IIQw5dTdxBwzXNVoRhpeA0uDU6qyIQYsrKiOjDDLLBU';
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  global: { fetch },
-});
+import { supabase } from '../utils/supabaseClient';
+import { useUser } from '../utils/UserContext';
 
 type RootStackParamList = {
   Login: undefined;
-  Main: { username: string };
+  Main: undefined;
 };
 
 export default function LoginRegister() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { setUser } = useUser();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const navigateToApp = () => navigation.replace('Main', { username });
+  const navigateToApp = (userData: any) => {
+    setUser(userData); // store full user row
+    navigation.replace('Main');
+  };
 
-  // ---- REGISTER ----
   const handleRegister = async () => {
     if (!username.trim() || !password.trim())
       return Alert.alert('Fill all fields');
     setLoading(true);
-
     try {
       const { data: existingUser, error: fetchError } = await supabase
         .from('users')
@@ -61,29 +52,32 @@ export default function LoginRegister() {
         return Alert.alert('User already exists');
       }
 
-      const { error: insertError } = await supabase
+      const { data: insertedUser, error: insertError } = await supabase
         .from('users')
-        .insert([{ username: username.trim(), password: password.trim() }]);
+        .insert([
+          { username: username.trim(), password: password.trim(), balance: 0 },
+        ])
+        .select('*')
+        .single();
+
       if (insertError) throw insertError;
 
       setLoading(false);
-      navigateToApp();
+      navigateToApp(insertedUser);
     } catch (error: any) {
       setLoading(false);
       Alert.alert('Registration Error', error.message);
     }
   };
 
-  // ---- LOGIN ----
   const handleLogin = async () => {
     if (!username.trim() || !password.trim())
       return Alert.alert('Fill all fields');
     setLoading(true);
-
     try {
       const { data: user, error } = await supabase
         .from('users')
-        .select('username, password')
+        .select('*') // fetch full row
         .eq('username', username.trim())
         .maybeSingle();
 
@@ -95,7 +89,7 @@ export default function LoginRegister() {
 
       if (user.password === password.trim()) {
         setLoading(false);
-        navigateToApp();
+        navigateToApp(user);
       } else {
         setLoading(false);
         Alert.alert('Invalid password');
@@ -188,7 +182,7 @@ const styles = StyleSheet.create({
     padding: scale(14),
     backgroundColor: 'rgba(255,255,255,0.74)',
     height: verticalScale(340),
-    width: scale(320),
+    width: scale(300),
     borderRadius: moderateScale(14),
   },
   title: {

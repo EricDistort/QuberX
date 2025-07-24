@@ -1,14 +1,27 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { useUser } from '../../utils/UserContext';
 
-const HomeScreen = () => {
+export default function HomeScreen() {
+  const { user } = useUser();
+
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}   >
-      <Text>HomeScreen</Text>
+    <View style={styles.container}>
+      <Text style={styles.welcome}>Welcome, {user?.username || 'Guest'}!</Text>
+      <Text style={styles.balance}>
+        Balance: ${user?.balance?.toFixed(2) || '0.00'}
+      </Text>
     </View>
-  )
+  );
 }
 
-export default HomeScreen
-
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f8f8',
+  },
+  welcome: { fontSize: 24, fontWeight: 'bold', marginBottom: 10 },
+  balance: { fontSize: 20, color: '#555' },
+});
