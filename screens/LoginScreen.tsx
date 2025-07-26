@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  ImageBackground,
   ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -16,6 +15,7 @@ import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
 import LinearGradient from 'react-native-linear-gradient';
 import { supabase } from '../utils/supabaseClient';
 import { useUser } from '../utils/UserContext';
+import ScreenWrapper from '../utils/ScreenWrapper'; // <-- import wrapper
 
 type RootStackParamList = {
   Login: undefined;
@@ -101,11 +101,7 @@ export default function LoginRegister() {
   };
 
   return (
-    <ImageBackground
-      source={require('./LoginMedia/background.png')}
-      style={styles.background}
-      resizeMode="cover"
-    >
+    <ScreenWrapper>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           <Text style={styles.title}>Login / Register</Text>
@@ -163,12 +159,11 @@ export default function LoginRegister() {
           )}
         </View>
       </SafeAreaView>
-    </ImageBackground>
+    </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  background: { flex: 1, width: '100%', height: '100%' },
   safeArea: {
     flex: 1,
     justifyContent: 'center',
@@ -180,7 +175,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     padding: scale(14),
-    backgroundColor: 'rgba(255,255,255,0.74)',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     height: verticalScale(340),
     width: scale(300),
     borderRadius: moderateScale(14),

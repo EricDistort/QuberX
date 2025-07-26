@@ -3,9 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'react-native';
-import { UserProvider } from './utils/UserContext'; // <-- Wrap app
+import { UserProvider } from './utils/UserContext';
 
-// --- Screens ---
 import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/home/HomeScreen';
 import HomeDetailsScreen from './screens/home/HomeDetailsScreen';
@@ -49,11 +48,37 @@ function ProfileStackScreen() {
 
 function MainTabs() {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="Home" component={HomeStackScreen} />
-      <Tab.Screen name="Details" component={DetailsStackScreen} />
-      <Tab.Screen name="Profile" component={ProfileStackScreen} />
-    </Tab.Navigator>
+    <Tab.Navigator
+  screenOptions={{
+    headerShown: false,
+   tabBarStyle: {
+  position: 'absolute',
+  bottom: 16,
+  left: 0,
+  right: 0,
+  marginHorizontal: '5%',   // Centers it by giving horizontal margins
+  elevation: 5,
+  backgroundColor: '#fff',
+  borderRadius: 20,
+  height: 70,
+  paddingBottom: 10,
+  paddingTop: 10,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 10 },
+  shadowOpacity: 0.12,
+  shadowRadius: 5,
+},
+
+    tabBarActiveTintColor: '#8CA6DB',
+    tabBarInactiveTintColor: '#999',
+  }}
+>
+  <Tab.Screen name="Home" component={HomeStackScreen} />
+  <Tab.Screen name="Details" component={DetailsStackScreen} />
+  <Tab.Screen name="Profile" component={ProfileStackScreen} />
+</Tab.Navigator>
+
+
   );
 }
 
