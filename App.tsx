@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'react-native';
 import { UserProvider } from './utils/UserContext';
+import { Image } from 'react-native';
 
 import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/home/HomeScreen';
@@ -49,36 +50,79 @@ function ProfileStackScreen() {
 function MainTabs() {
   return (
     <Tab.Navigator
-  screenOptions={{
-    headerShown: false,
-   tabBarStyle: {
-  position: 'absolute',
-  bottom: 16,
-  left: 0,
-  right: 0,
-  marginHorizontal: '5%',   // Centers it by giving horizontal margins
-  elevation: 5,
-  backgroundColor: '#fff',
-  borderRadius: 20,
-  height: 70,
-  paddingBottom: 10,
-  paddingTop: 10,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 10 },
-  shadowOpacity: 0.12,
-  shadowRadius: 5,
-},
-
-    tabBarActiveTintColor: '#8CA6DB',
-    tabBarInactiveTintColor: '#999',
-  }}
->
-  <Tab.Screen name="Home" component={HomeStackScreen} />
-  <Tab.Screen name="Details" component={DetailsStackScreen} />
-  <Tab.Screen name="Profile" component={ProfileStackScreen} />
-</Tab.Navigator>
-
-
+    initialRouteName="Home"   
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          position: 'absolute',
+          bottom: 16,
+          left: 0,
+          right: 0,
+          marginHorizontal: '5%',
+          elevation: 5,
+          backgroundColor: '#fff',
+          borderRadius: 20,
+          height: 70,
+          paddingBottom: 10,
+          paddingTop: 10,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.12,
+          shadowRadius: 5,
+        },
+        tabBarActiveTintColor: '#8CA6DB',
+        tabBarInactiveTintColor: '#999',
+      }}
+    >
+      <Tab.Screen
+        name="Withdraw"
+        component={DetailsStackScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Image
+              source={require('./screens/tabMedia/withdraw.webp')}
+              style={{
+                width: 24,
+                height: 24,
+                tintColor: focused ? '#8CA6DB' : '#999',
+              }}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Home"
+        component={HomeStackScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Image
+              source={require('./screens/tabMedia/home.webp')} // <-- your local path
+              style={{
+                width: 24,
+                height: 24,
+                tintColor: focused ? '#8CA6DB' : '#999', // changes color on focus
+              }}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Deposit"
+        component={ProfileStackScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Image
+              source={require('./screens/tabMedia/deposit.webp')}
+              style={{
+                width: 24,
+                height: 24,
+                tintColor: focused ? '#8CA6DB' : '#999',
+              }}
+            />
+          ),
+        }}
+      />
+    </Tab.Navigator>
   );
 }
 

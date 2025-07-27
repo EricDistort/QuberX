@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -10,7 +17,10 @@ export default function HomeScreen({ navigation }: any) {
 
   const handleEditProfileImage = async () => {
     // Step 1: Open Image Picker
-    const result = await launchImageLibrary({ mediaType: 'photo', quality: 0.7 });
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      quality: 0.7,
+    });
     if (result.didCancel || !result.assets) return;
 
     const file = result.assets[0];
@@ -21,11 +31,15 @@ export default function HomeScreen({ navigation }: any) {
       // Step 2: Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, {
-          uri: file.uri,
-          type: file.type,
-          name: file.fileName,
-        }, { upsert: true }); // Overwrite if already exists
+        .upload(
+          filePath,
+          {
+            uri: file.uri,
+            type: file.type,
+            name: file.fileName,
+          },
+          { upsert: true },
+        ); // Overwrite if already exists
 
       if (uploadError) throw uploadError;
 
@@ -70,7 +84,10 @@ export default function HomeScreen({ navigation }: any) {
           </View>
 
           {/* Edit Button */}
-          <TouchableOpacity style={styles.editButton} onPress={handleEditProfileImage}>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={handleEditProfileImage}
+          >
             <Image
               source={require('../homeMedia/editbutton.webp')}
               style={styles.editImage}
@@ -112,6 +129,8 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     marginRight: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(248, 235, 255, 1)',
   },
   userInfo: {
     flex: 1,
@@ -124,7 +143,7 @@ const styles = StyleSheet.create({
   accountNumber: {
     fontSize: 14,
     color: '#555',
-    marginTop: 4,
+    marginTop: 2,
   },
   editButton: {
     padding: 8,
