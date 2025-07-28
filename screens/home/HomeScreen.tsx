@@ -6,6 +6,7 @@ import {
   Image,
   TouchableOpacity,
   Alert,
+  ImageBackground,
 } from 'react-native';
 import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
@@ -16,7 +17,6 @@ export default function HomeScreen({ navigation }: any) {
   const { user, setUser } = useUser();
 
   const handleEditProfileImage = async () => {
-    // Step 1: Open Image Picker
     const result = await launchImageLibrary({
       mediaType: 'photo',
       quality: 0.7,
@@ -28,7 +28,6 @@ export default function HomeScreen({ navigation }: any) {
     const filePath = `avatars/${user.id}.${fileExt}`;
 
     try {
-      // Step 2: Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(
@@ -39,22 +38,18 @@ export default function HomeScreen({ navigation }: any) {
             name: file.fileName,
           },
           { upsert: true },
-        ); // Overwrite if already exists
-
+        );
       if (uploadError) throw uploadError;
 
-      // Step 3: Get Public URL
       const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
       const publicUrl = data.publicUrl;
 
-      // Step 4: Update user profile in DB
       const { error: updateError } = await supabase
         .from('users')
         .update({ profileImage: publicUrl })
         .eq('id', user.id);
       if (updateError) throw updateError;
 
-      // Step 5: Update local context
       setUser({ ...user, profileImage: publicUrl });
       Alert.alert('Success', 'Profile picture updated!');
     } catch (err: any) {
@@ -67,23 +62,18 @@ export default function HomeScreen({ navigation }: any) {
       <View style={styles.container}>
         {/* First Container - Profile Card */}
         <View style={styles.firstContainer}>
-          {/* Profile Image */}
           <Image
             source={{
               uri: user?.profileImage || 'https://via.placeholder.com/80',
             }}
             style={styles.profileImage}
           />
-
-          {/* Name & Account Number */}
           <View style={styles.userInfo}>
             <Text style={styles.name}>{user?.username || 'Guest User'}</Text>
             <Text style={styles.accountNumber}>
               Account No: {user?.account_number || '0000000000'}
             </Text>
           </View>
-
-          {/* Edit Button */}
           <TouchableOpacity
             style={styles.editButton}
             onPress={handleEditProfileImage}
@@ -95,9 +85,28 @@ export default function HomeScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
 
-        {/* Second Container */}
-        <View style={styles.secondContainer}>
-          <Text style={styles.containerText}>Second Container</Text>
+        {/* Second Container - Balance Section */}
+        <View style={styles.secondContainerWrapper}>
+          <ImageBackground
+            source={require('../homeMedia/balancecard.webp')}
+            style={styles.secondContainer}
+            resizeMode="contain"
+          >
+            <View style={styles.balanceOverlay}>
+              <Text style={styles.balanceSubHeader}>Current Balance</Text>
+              <Text style={styles.balanceAmount}>
+                ${user?.balance || '0.00'}
+              </Text>
+              <View style={styles.buttonRow}>
+                <TouchableOpacity style={styles.actionButton}>
+                  <Text style={styles.buttonText}>Send</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionButton}>
+                  <Text style={styles.buttonText}>Receive</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ImageBackground>
         </View>
 
         {/* Third Container */}
@@ -114,11 +123,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 5, // Reduced padding to minimize gaps
   },
   firstContainer: {
     width: '95%',
-    height: '20%',
+    height: '23%',
     backgroundColor: 'rgba(255, 255, 255, 0)',
     flexDirection: 'row',
     alignItems: 'center',
@@ -148,13 +157,56 @@ const styles = StyleSheet.create({
   editButton: {
     padding: 8,
   },
-  secondContainer: {
-    width: '95%',
+  secondContainerWrapper: {
+    width: '92%',
     height: '30%',
-    backgroundColor: 'rgba(200, 200, 255, 0.8)',
-    borderRadius: 12,
+    flex: 1,
+    justifyContent: 'center',
+    overflow: 'hidden', // Ensures no gaps
+    marginTop: -60, // Reduced margin to minimize gaps
+  },
+  secondContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
+    height: '100%',
+  },
+  balanceOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  balanceSubHeader: {
+    fontSize: 16,
+    color: 'rgba(212, 249, 255, 0.84)',
+    //marginBottom: 5,
+  },
+  balanceAmount: {
+    fontSize: 50,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 20,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    width: '100%',
+  },
+  actionButton: {
+    backgroundColor: '#ffffffff',
+    width: 120, // Fixed width
+    height: 40, // Fixed height
+    justifyContent: 'center', // Center text vertically
+    alignItems: 'center', // Center text horizontally
+    borderRadius: 20,
+    marginHorizontal: 5,
+  },
+  buttonText: {
+    color: 'rgba(82, 82, 82, 1)',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   thirdContainer: {
     width: '95%',
