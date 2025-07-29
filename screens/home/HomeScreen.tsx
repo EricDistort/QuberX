@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   ImageBackground,
+  ScrollView,
 } from 'react-native';
 import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
@@ -15,6 +16,66 @@ import { supabase } from '../../utils/supabaseClient';
 
 export default function HomeScreen({ navigation }: any) {
   const { user, setUser } = useUser();
+
+  // Dummy transactions (replace with actual DB data)
+  const transactions = [
+    {
+      id: 1,
+      username: 'John Doe',
+      account: '1234567890',
+      amount: 120,
+      type: 'received',
+    },
+    {
+      id: 2,
+      username: 'Jane Smith',
+      account: '9876543210',
+      amount: -50,
+      type: 'sent',
+    },
+    {
+      id: 3,
+      username: 'Ali Khan',
+      account: '5678901234',
+      amount: 300,
+      type: 'received',
+    },
+    {
+      id: 4,
+      username: 'Maria Garcia',
+      account: '4567890123',
+      amount: -200,
+      type: 'sent',
+    },
+    {
+      id: 5,
+      username: 'John Doe',
+      account: '1234567890',
+      amount: 120,
+      type: 'received',
+    },
+    {
+      id: 6,
+      username: 'Jane Smith',
+      account: '9876543210',
+      amount: -50,
+      type: 'sent',
+    },
+    {
+      id: 7,
+      username: 'Ali Khan',
+      account: '5678901234',
+      amount: 300,
+      type: 'received',
+    },
+    {
+      id: 8,
+      username: 'Maria Garcia',
+      account: '4567890123',
+      amount: -200,
+      type: 'sent',
+    },
+  ];
 
   const handleEditProfileImage = async () => {
     const result = await launchImageLibrary({
@@ -109,9 +170,39 @@ export default function HomeScreen({ navigation }: any) {
           </ImageBackground>
         </View>
 
-        {/* Third Container */}
+        {/* Third Container - Transactions */}
         <View style={styles.thirdContainer}>
-          <Text style={styles.containerText}>Third Container</Text>
+          {/* Header Row */}
+          <View style={styles.transactionsHeader}>
+            <Text style={styles.transactionsTitle}>Transactions</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAll}>See All</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Transaction List */}
+          <ScrollView
+            style={styles.transactionsList}
+            showsHorizontalScrollIndicator={false} // Hide horizontal scrollbar
+            showsVerticalScrollIndicator={false}
+          >
+            {transactions.map(tx => (
+              <View key={tx.id} style={styles.transactionCard}>
+                <View>
+                  <Text style={styles.transactionName}>{tx.username}</Text>
+                  <Text style={styles.transactionAccount}>{tx.account}</Text>
+                </View>
+                <Text
+                  style={[
+                    styles.transactionAmount,
+                    { color: tx.type === 'received' ? 'green' : 'red' },
+                  ]}
+                >
+                  {tx.type === 'received' ? '+' : '-'}${Math.abs(tx.amount)}
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
         </View>
       </View>
     </ScreenWrapper>
@@ -123,12 +214,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 5, // Reduced padding to minimize gaps
+    paddingVertical: 5,
   },
   firstContainer: {
     width: '95%',
     height: '23%',
-    backgroundColor: 'rgba(255, 255, 255, 0)',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 15,
@@ -141,29 +231,17 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(248, 235, 255, 1)',
   },
-  userInfo: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#222',
-  },
-  accountNumber: {
-    fontSize: 14,
-    color: '#555',
-    marginTop: 2,
-  },
-  editButton: {
-    padding: 8,
-  },
+  userInfo: { flex: 1 },
+  name: { fontSize: 18, fontWeight: 'bold', color: '#222' },
+  accountNumber: { fontSize: 14, color: '#555', marginTop: 2 },
+  editButton: { padding: 8 },
   secondContainerWrapper: {
     width: '92%',
     height: '30%',
     flex: 1,
     justifyContent: 'center',
-    overflow: 'hidden', // Ensures no gaps
-    marginTop: -60, // Reduced margin to minimize gaps
+    overflow: 'hidden',
+    marginTop: -60,
   },
   secondContainer: {
     flex: 1,
@@ -181,7 +259,6 @@ const styles = StyleSheet.create({
   balanceSubHeader: {
     fontSize: 16,
     color: 'rgba(212, 249, 255, 0.84)',
-    //marginBottom: 5,
   },
   balanceAmount: {
     fontSize: 50,
@@ -195,11 +272,11 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   actionButton: {
-    backgroundColor: '#ffffffff',
-    width: 120, // Fixed width
-    height: 40, // Fixed height
-    justifyContent: 'center', // Center text vertically
-    alignItems: 'center', // Center text horizontally
+    backgroundColor: '#fff',
+    width: 120,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 20,
     marginHorizontal: 5,
   },
@@ -211,19 +288,28 @@ const styles = StyleSheet.create({
   thirdContainer: {
     width: '95%',
     height: '50%',
-    backgroundColor: 'rgba(200, 255, 200, 0.8)',
+    backgroundColor: 'transparent',
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 10,
   },
-  containerText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+  transactionsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
   },
-  editImage: {
-    width: 24,
-    height: 24,
-    resizeMode: 'contain',
+  transactionsTitle: { fontSize: 18, fontWeight: 'bold', color: '#333' },
+  seeAll: { fontSize: 14, color: '#7e7e7eff' },
+  transactionsList: { flex: 1 },
+  transactionCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.24)',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
+  transactionName: { fontSize: 16, fontWeight: 'bold', color: '#222' },
+  transactionAccount: { fontSize: 13, color: '#666' },
+  transactionAmount: { fontSize: 16, fontWeight: 'bold', alignSelf: 'center' },
+  editImage: { width: 24, height: 24, resizeMode: 'contain' },
 });

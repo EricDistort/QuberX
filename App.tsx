@@ -50,7 +50,7 @@ function ProfileStackScreen() {
 function MainTabs() {
   return (
     <Tab.Navigator
-    initialRouteName="Home"   
+      initialRouteName="Home"
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
@@ -61,7 +61,7 @@ function MainTabs() {
           marginHorizontal: '5%',
           elevation: 5,
           backgroundColor: '#fff',
-          borderRadius: 20,
+          borderRadius: 35,
           height: 70,
           paddingBottom: 10,
           paddingTop: 10,
