@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Alert,
   ImageBackground,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
@@ -16,66 +17,44 @@ import { supabase } from '../../utils/supabaseClient';
 
 export default function HomeScreen({ navigation }: any) {
   const { user, setUser } = useUser();
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
 
-  // Dummy transactions (replace with actual DB data)
-  const transactions = [
-    {
-      id: 1,
-      username: 'John Doe',
-      account: '1234567890',
-      amount: 120,
-      type: 'received',
-    },
-    {
-      id: 2,
-      username: 'Jane Smith',
-      account: '9876543210',
-      amount: -50,
-      type: 'sent',
-    },
-    {
-      id: 3,
-      username: 'Ali Khan',
-      account: '5678901234',
-      amount: 300,
-      type: 'received',
-    },
-    {
-      id: 4,
-      username: 'Maria Garcia',
-      account: '4567890123',
-      amount: -200,
-      type: 'sent',
-    },
-    {
-      id: 5,
-      username: 'John Doe',
-      account: '1234567890',
-      amount: 120,
-      type: 'received',
-    },
-    {
-      id: 6,
-      username: 'Jane Smith',
-      account: '9876543210',
-      amount: -50,
-      type: 'sent',
-    },
-    {
-      id: 7,
-      username: 'Ali Khan',
-      account: '5678901234',
-      amount: 300,
-      type: 'received',
-    },
-    {
-      id: 8,
-      username: 'Maria Garcia',
-      account: '4567890123',
-      amount: -200,
-      type: 'sent',
-    },
-  ];
+  useEffect(() => {
+    if (!user?.account_number) return;
+
+    const fetchTransactions = async () => {
+      setLoadingTransactions(true);
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(
+          `
+          id,
+          sender_acc,
+          receiver_acc,
+          amount,
+          created_at,
+          sender:sender_acc(username, account_number),
+          receiver:receiver_acc(username, account_number)
+        `,
+        )
+        .or(
+          `sender_acc.eq.${user.account_number},receiver_acc.eq.${user.account_number}`,
+        )
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('Error fetching transactions:', error.message);
+        setLoadingTransactions(false);
+        return;
+      }
+      setTransactions(data || []);
+      setLoadingTransactions(false);
+    };
+
+    fetchTransactions();
+  }, [user?.account_number]);
 
   const handleEditProfileImage = async () => {
     const result = await launchImageLibrary({
@@ -121,7 +100,7 @@ export default function HomeScreen({ navigation }: any) {
   return (
     <ScreenWrapper>
       <View style={styles.container}>
-        {/* First Container - Profile Card */}
+        {/* Profile Section */}
         <View style={styles.firstContainer}>
           <Image
             source={{
@@ -146,7 +125,7 @@ export default function HomeScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
 
-        {/* Second Container - Balance Section */}
+        {/* Balance Section */}
         <View style={styles.secondContainerWrapper}>
           <ImageBackground
             source={require('../homeMedia/balancecard.webp')}
@@ -159,7 +138,10 @@ export default function HomeScreen({ navigation }: any) {
                 ${user?.balance || '0.00'}
               </Text>
               <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.actionButton}>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => navigation.navigate('SendMoney')}
+                >
                   <Text style={styles.buttonText}>Send</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionButton}>
@@ -170,39 +152,50 @@ export default function HomeScreen({ navigation }: any) {
           </ImageBackground>
         </View>
 
-        {/* Third Container - Transactions */}
+        {/* Transactions Section */}
         <View style={styles.thirdContainer}>
-          {/* Header Row */}
           <View style={styles.transactionsHeader}>
             <Text style={styles.transactionsTitle}>Transactions</Text>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('TransactionList')}
+            >
               <Text style={styles.seeAll}>See All</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Transaction List */}
-          <ScrollView
-            style={styles.transactionsList}
-            showsHorizontalScrollIndicator={false} // Hide horizontal scrollbar
-            showsVerticalScrollIndicator={false}
-          >
-            {transactions.map(tx => (
-              <View key={tx.id} style={styles.transactionCard}>
-                <View>
-                  <Text style={styles.transactionName}>{tx.username}</Text>
-                  <Text style={styles.transactionAccount}>{tx.account}</Text>
-                </View>
-                <Text
-                  style={[
-                    styles.transactionAmount,
-                    { color: tx.type === 'received' ? 'green' : 'red' },
-                  ]}
-                >
-                  {tx.type === 'received' ? '+' : '-'}${Math.abs(tx.amount)}
-                </Text>
-              </View>
-            ))}
-          </ScrollView>
+          {loadingTransactions ? (
+            <ActivityIndicator size="small" color="#000" />
+          ) : (
+            <ScrollView
+              style={styles.transactionsList}
+              showsVerticalScrollIndicator={false}
+            >
+              {transactions.map(tx => {
+                const isSent = tx.sender_acc === user.account_number;
+                const otherUser = isSent ? tx.receiver : tx.sender;
+                return (
+                  <View key={tx.id} style={styles.transactionCard}>
+                    <View>
+                      <Text style={styles.transactionName}>
+                        {otherUser?.username || 'Unknown User'}
+                      </Text>
+                      <Text style={styles.transactionAccount}>
+                        Account: {otherUser?.account_number}
+                      </Text>
+                    </View>
+                    <Text
+                      style={[
+                        styles.transactionAmount,
+                        { color: isSent ? 'red' : 'green' },
+                      ]}
+                    >
+                      {isSent ? '-' : '+'}${Math.abs(tx.amount)}
+                    </Text>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          )}
         </View>
       </View>
     </ScreenWrapper>
@@ -256,10 +249,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  balanceSubHeader: {
-    fontSize: 16,
-    color: 'rgba(212, 249, 255, 0.84)',
-  },
+  balanceSubHeader: { fontSize: 16, color: 'rgba(212, 249, 255, 0.84)' },
   balanceAmount: {
     fontSize: 50,
     fontWeight: 'bold',
@@ -288,7 +278,6 @@ const styles = StyleSheet.create({
   thirdContainer: {
     width: '95%',
     height: '50%',
-    backgroundColor: 'transparent',
     borderRadius: 12,
     padding: 10,
   },
