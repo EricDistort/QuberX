@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   ImageBackground,
   ScrollView,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
@@ -19,41 +20,56 @@ export default function HomeScreen({ navigation }: any) {
   const { user, setUser } = useUser();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchUserData = async () => {
+    // Fetch updated balance
+    const { data, error } = await supabase
+      .from('users')
+      .select('balance, profileImage, username, account_number')
+      .eq('id', user.id)
+      .single();
+    if (!error && data) {
+      setUser({ ...user, ...data });
+    }
+  };
+
+  const fetchTransactions = async () => {
+    if (!user?.account_number) return;
+    setLoadingTransactions(true);
+    const { data, error } = await supabase
+      .from('transactions')
+      .select(
+        `
+        id,
+        sender_acc,
+        receiver_acc,
+        amount,
+        created_at,
+        sender:sender_acc(username, account_number),
+        receiver:receiver_acc(username, account_number)
+      `,
+      )
+      .or(
+        `sender_acc.eq.${user.account_number},receiver_acc.eq.${user.account_number}`,
+      )
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (!error) setTransactions(data || []);
+    setLoadingTransactions(false);
+  };
 
   useEffect(() => {
-    if (!user?.account_number) return;
-
-    const fetchTransactions = async () => {
-      setLoadingTransactions(true);
-      const { data, error } = await supabase
-        .from('transactions')
-        .select(
-          `
-          id,
-          sender_acc,
-          receiver_acc,
-          amount,
-          created_at,
-          sender:sender_acc(username, account_number),
-          receiver:receiver_acc(username, account_number)
-        `,
-        )
-        .or(
-          `sender_acc.eq.${user.account_number},receiver_acc.eq.${user.account_number}`,
-        )
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) {
-        console.error('Error fetching transactions:', error.message);
-        setLoadingTransactions(false);
-        return;
-      }
-      setTransactions(data || []);
-      setLoadingTransactions(false);
-    };
-
+    fetchUserData();
     fetchTransactions();
+  }, [user?.account_number]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchUserData();
+    await fetchTransactions();
+    setRefreshing(false);
   }, [user?.account_number]);
 
   const handleEditProfileImage = async () => {
@@ -99,105 +115,113 @@ export default function HomeScreen({ navigation }: any) {
 
   return (
     <ScreenWrapper>
-      <View style={styles.container}>
-        {/* Profile Section */}
-        <View style={styles.firstContainer}>
-          <Image
-            source={{
-              uri: user?.profileImage || 'https://via.placeholder.com/80',
-            }}
-            style={styles.profileImage}
-          />
-          <View style={styles.userInfo}>
-            <Text style={styles.name}>{user?.username || 'Guest User'}</Text>
-            <Text style={styles.accountNumber}>
-              Account No: {user?.account_number || '0000000000'}
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={handleEditProfileImage}
-          >
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.container}>
+          {/* Profile Section */}
+          <View style={styles.firstContainer}>
             <Image
-              source={require('../homeMedia/editbutton.webp')}
-              style={styles.editImage}
+              source={{
+                uri: user?.profileImage || 'https://via.placeholder.com/80',
+              }}
+              style={styles.profileImage}
             />
-          </TouchableOpacity>
-        </View>
-
-        {/* Balance Section */}
-        <View style={styles.secondContainerWrapper}>
-          <ImageBackground
-            source={require('../homeMedia/balancecard.webp')}
-            style={styles.secondContainer}
-            resizeMode="contain"
-          >
-            <View style={styles.balanceOverlay}>
-              <Text style={styles.balanceSubHeader}>Current Balance</Text>
-              <Text style={styles.balanceAmount}>
-                ${user?.balance || '0.00'}
+            <View style={styles.userInfo}>
+              <Text style={styles.name}>{user?.username || 'Guest User'}</Text>
+              <Text style={styles.accountNumber}>
+                Account No: {user?.account_number || '0000000000'}
               </Text>
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={styles.actionButton}
-                  onPress={() => navigation.navigate('SendMoney')}
-                >
-                  <Text style={styles.buttonText}>Send</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
-                  <Text style={styles.buttonText}>Receive</Text>
-                </TouchableOpacity>
-              </View>
             </View>
-          </ImageBackground>
-        </View>
-
-        {/* Transactions Section */}
-        <View style={styles.thirdContainer}>
-          <View style={styles.transactionsHeader}>
-            <Text style={styles.transactionsTitle}>Transactions</Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate('TransactionList')}
+              style={styles.editButton}
+              onPress={handleEditProfileImage}
             >
-              <Text style={styles.seeAll}>See All</Text>
+              <Image
+                source={require('../homeMedia/editbutton.webp')}
+                style={styles.editImage}
+              />
             </TouchableOpacity>
           </View>
 
-          {loadingTransactions ? (
-            <ActivityIndicator size="small" color="#000" />
-          ) : (
-            <ScrollView
-              style={styles.transactionsList}
-              showsVerticalScrollIndicator={false}
+          {/* Balance Section */}
+          <View style={styles.secondContainerWrapper}>
+            <ImageBackground
+              source={require('../homeMedia/balancecard.webp')}
+              style={styles.secondContainer}
+              resizeMode="contain"
             >
-              {transactions.map(tx => {
-                const isSent = tx.sender_acc === user.account_number;
-                const otherUser = isSent ? tx.receiver : tx.sender;
-                return (
-                  <View key={tx.id} style={styles.transactionCard}>
-                    <View>
-                      <Text style={styles.transactionName}>
-                        {otherUser?.username || 'Unknown User'}
-                      </Text>
-                      <Text style={styles.transactionAccount}>
-                        Account: {otherUser?.account_number}
+              <View style={styles.balanceOverlay}>
+                <Text style={styles.balanceSubHeader}>Current Balance</Text>
+                <Text style={styles.balanceAmount}>
+                  ${user?.balance || '0.00'}
+                </Text>
+                <View style={styles.buttonRow}>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => navigation.navigate('HomeDetails')}
+                  >
+                    <Text style={styles.buttonText}>Send</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.actionButton}>
+                    <Text style={styles.buttonText}>Receive</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </ImageBackground>
+          </View>
+
+          {/* Transactions Section */}
+          <View style={styles.thirdContainer}>
+            <View style={styles.transactionsHeader}>
+              <Text style={styles.transactionsTitle}>Transactions</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('TransactionList')}
+              >
+                <Text style={styles.seeAll}>See All</Text>
+              </TouchableOpacity>
+            </View>
+
+            {loadingTransactions ? (
+              <ActivityIndicator size="small" color="#000" />
+            ) : (
+              <ScrollView
+                style={styles.transactionsList}
+                showsVerticalScrollIndicator={false}
+              >
+                {transactions.map(tx => {
+                  const isSent = tx.sender_acc === user.account_number;
+                  const otherUser = isSent ? tx.receiver : tx.sender;
+                  return (
+                    <View key={tx.id} style={styles.transactionCard}>
+                      <View>
+                        <Text style={styles.transactionName}>
+                          {otherUser?.username || 'Unknown User'}
+                        </Text>
+                        <Text style={styles.transactionAccount}>
+                          Account: {otherUser?.account_number}
+                        </Text>
+                      </View>
+                      <Text
+                        style={[
+                          styles.transactionAmount,
+                          { color: isSent ? 'red' : 'green' },
+                        ]}
+                      >
+                        {isSent ? '-' : '+'}${Math.abs(tx.amount)}
                       </Text>
                     </View>
-                    <Text
-                      style={[
-                        styles.transactionAmount,
-                        { color: isSent ? 'red' : 'green' },
-                      ]}
-                    >
-                      {isSent ? '-' : '+'}${Math.abs(tx.amount)}
-                    </Text>
-                  </View>
-                );
-              })}
-            </ScrollView>
-          )}
+                  );
+                })}
+              </ScrollView>
+            )}
+          </View>
         </View>
-      </View>
+      </ScrollView>
     </ScreenWrapper>
   );
 }
@@ -277,9 +301,10 @@ const styles = StyleSheet.create({
   },
   thirdContainer: {
     width: '95%',
-    height: '50%',
+    height: '45%',
     borderRadius: 12,
     padding: 10,
+    overflow: 'hidden',
   },
   transactionsHeader: {
     flexDirection: 'row',
