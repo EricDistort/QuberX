@@ -167,7 +167,9 @@ export default function HomeScreen({ navigation }: any) {
                   >
                     <Text style={styles.buttonText}>Send</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.actionButton}>
+                  <TouchableOpacity style={styles.actionButton}
+                    onPress={() => navigation.navigate('HomeRecieve')}
+                  >
                     <Text style={styles.buttonText}>Receive</Text>
                   </TouchableOpacity>
                 </View>

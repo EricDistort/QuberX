@@ -9,6 +9,7 @@ import { Image } from 'react-native';
 import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/home/HomeScreen';
 import HomeDetailsScreen from './screens/home/HomeDetailsScreen';
+import HomeRecieveScreen from './screens/home/HomeRecieveScreen';
 import DetailsScreen from './screens/details/DetailsScreen';
 import DetailsInfoScreen from './screens/details/DetailsInfoScreen';
 import ProfileScreen from './screens/profile/ProfileScreen';
@@ -25,6 +26,7 @@ function HomeStackScreen() {
     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
       <HomeStack.Screen name="HomeDetails" component={HomeDetailsScreen} />
+      <HomeStack.Screen name="HomeRecieve" component={HomeRecieveScreen} />
     </HomeStack.Navigator>
   );
 }
