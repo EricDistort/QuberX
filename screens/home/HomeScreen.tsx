@@ -167,7 +167,8 @@ export default function HomeScreen({ navigation }: any) {
                   >
                     <Text style={styles.buttonText}>Send</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.actionButton}
+                  <TouchableOpacity
+                    style={styles.actionButton}
                     onPress={() => navigation.navigate('HomeRecieve')}
                   >
                     <Text style={styles.buttonText}>Receive</Text>
@@ -257,13 +258,12 @@ const styles = StyleSheet.create({
   secondContainerWrapper: {
     width: '92%',
     height: '30%',
-    flex: 1,
+
     justifyContent: 'center',
     overflow: 'hidden',
     marginTop: -60,
   },
   secondContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
@@ -307,6 +307,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 10,
     overflow: 'hidden',
+    marginBottom: 30,
   },
   transactionsHeader: {
     flexDirection: 'row',
