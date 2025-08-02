@@ -14,6 +14,7 @@ import DetailsScreen from './screens/details/DetailsScreen';
 import DetailsInfoScreen from './screens/details/DetailsInfoScreen';
 import ProfileScreen from './screens/profile/ProfileScreen';
 import EditProfileScreen from './screens/profile/EditProfileScreen';
+import TransactionListScreen from './screens/home/TransactionListScreen';
 
 const RootStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -27,6 +28,10 @@ function HomeStackScreen() {
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
       <HomeStack.Screen name="HomeDetails" component={HomeDetailsScreen} />
       <HomeStack.Screen name="HomeRecieve" component={HomeRecieveScreen} />
+      <HomeStack.Screen
+        name="TransactionList"
+        component={TransactionListScreen}
+      />
     </HomeStack.Navigator>
   );
 }
@@ -77,12 +82,12 @@ function MainTabs() {
       }}
     >
       <Tab.Screen
-        name="Withdraw"
-        component={DetailsStackScreen}
+        name="Deposit"
+        component={ProfileStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
             <Image
-              source={require('./screens/tabMedia/withdraw.webp')}
+              source={require('./screens/tabMedia/deposit.webp')}
               style={{
                 width: 24,
                 height: 24,
@@ -109,12 +114,12 @@ function MainTabs() {
         }}
       />
       <Tab.Screen
-        name="Deposit"
-        component={ProfileStackScreen}
+        name="Withdraw"
+        component={DetailsStackScreen}
         options={{
           tabBarIcon: ({ focused }) => (
             <Image
-              source={require('./screens/tabMedia/deposit.webp')}
+              source={require('./screens/tabMedia/withdraw.webp')}
               style={{
                 width: 24,
                 height: 24,
