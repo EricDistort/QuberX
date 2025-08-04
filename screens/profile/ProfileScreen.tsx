@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Clipboard,
   Platform,
   Image,
   SafeAreaView,
@@ -19,12 +18,14 @@ import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
 import ScreenWrapper from '../../utils/ScreenWrapper';
 import { useUser } from '../../utils/UserContext';
 import { supabase } from '../../utils/supabaseClient';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 export default function DepositScreen() {
   const { user } = useUser();
 
   const walletAddress = '0x42378bf4863744bd10f0655dc198a775e4a15f9a';
   const [txHash, setTxHash] = useState('');
+  const [referrer, setReferrer] = useState('');
   const [loading, setLoading] = useState(false);
 
   const [deposits, setDeposits] = useState<any[]>([]);
@@ -67,12 +68,14 @@ export default function DepositScreen() {
       Alert.alert('Error', 'Please enter the transaction hash');
       return;
     }
+
     setLoading(true);
     try {
       const { error } = await supabase.from('deposits').insert([
         {
           user_id: user.id,
           tx_hash: txHash.trim(),
+          referrer_account_number: referrer.trim() || null, // <-- store referrer
         },
       ]);
       if (error) {
@@ -90,6 +93,7 @@ export default function DepositScreen() {
           'Your deposit request is pending admin approval.',
         );
         setTxHash('');
+        setReferrer('');
         fetchDeposits();
       }
     } catch (err: any) {
@@ -156,6 +160,17 @@ export default function DepositScreen() {
             placeholder="Transaction Hash"
             value={txHash}
             onChangeText={setTxHash}
+            autoCapitalize="none"
+            autoCorrect={false}
+            placeholderTextColor="grey"
+          />
+
+          {/* Referrer Account Number Input */}
+          <TextInput
+            style={styles.input}
+            placeholder="Referrer Account Number (Optional)"
+            value={referrer}
+            onChangeText={setReferrer}
             autoCapitalize="none"
             autoCorrect={false}
             placeholderTextColor="grey"
@@ -236,7 +251,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     padding: scale(14),
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    width: scale(300),
+    width: scale(320),
     borderRadius: moderateScale(14),
     marginTop: verticalScale(40),
   },
