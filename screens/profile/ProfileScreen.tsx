@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,9 @@ import {
   Platform,
   Image,
   SafeAreaView,
+  ScrollView,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
@@ -20,11 +23,13 @@ import { supabase } from '../../utils/supabaseClient';
 export default function DepositScreen() {
   const { user } = useUser();
 
-  // Wallet address as plain text - replace the string below with your wallet address anytime
   const walletAddress = '0x42378bf4863744bd10f0655dc198a775e4a15f9a';
-
   const [txHash, setTxHash] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const [deposits, setDeposits] = useState<any[]>([]);
+  const [loadingDeposits, setLoadingDeposits] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const copyToClipboard = () => {
     if (Platform.OS === 'web') {
@@ -35,6 +40,28 @@ export default function DepositScreen() {
     Alert.alert('Copied', 'Wallet address copied to clipboard!');
   };
 
+  const fetchDeposits = async () => {
+    if (!user?.id) return;
+    setLoadingDeposits(true);
+    const { data, error } = await supabase
+      .from('deposits')
+      .select('id, amount, status, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    if (!error) setDeposits(data || []);
+    setLoadingDeposits(false);
+  };
+
+  useEffect(() => {
+    fetchDeposits();
+  }, [user?.id]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchDeposits();
+    setRefreshing(false);
+  }, [user?.id]);
+
   const submitDeposit = async () => {
     if (!txHash.trim()) {
       Alert.alert('Error', 'Please enter the transaction hash');
@@ -42,7 +69,7 @@ export default function DepositScreen() {
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase.from('deposits').insert([
+      const { error } = await supabase.from('deposits').insert([
         {
           user_id: user.id,
           tx_hash: txHash.trim(),
@@ -63,6 +90,7 @@ export default function DepositScreen() {
           'Your deposit request is pending admin approval.',
         );
         setTxHash('');
+        fetchDeposits();
       }
     } catch (err: any) {
       Alert.alert('Error', err.message);
@@ -71,16 +99,27 @@ export default function DepositScreen() {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return 'green';
+      case 'pending':
+        return 'orange';
+      case 'rejected':
+        return 'red';
+      default:
+        return '#555';
+    }
+  };
+
   return (
     <ScreenWrapper>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          <Text style={styles.title}>Deposit</Text>
-
           {/* QR Code Image */}
           <View style={styles.qrContainer}>
             <Image
-              source={require('../details/detailsMedia/qr.png')} // your QR image here
+              source={require('../details/detailsMedia/qr.png')}
               style={styles.qrImage}
               resizeMode="contain"
             />
@@ -134,13 +173,55 @@ export default function DepositScreen() {
               end={{ x: 1, y: 0 }}
               style={[styles.button, loading && { opacity: 0.6 }]}
             >
-              {loading ? (
-                <Text style={styles.btntxt}>Submitting...</Text>
-              ) : (
-                <Text style={styles.btntxt}>Deposit</Text>
-              )}
+              <Text style={styles.btntxt}>
+                {loading ? 'Submitting...' : 'Deposit'}
+              </Text>
             </LinearGradient>
           </TouchableOpacity>
+        </View>
+
+        {/* Deposit History */}
+        <View style={styles.historyContainer}>
+          {loadingDeposits ? (
+            <ActivityIndicator size="small" color="#000" />
+          ) : (
+            <ScrollView
+              style={styles.historyList}
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+            >
+              {deposits.length === 0 ? (
+                <Text
+                  style={{ textAlign: 'center', marginTop: 10, color: '#555' }}
+                >
+                  No deposits found
+                </Text>
+              ) : (
+                deposits.map(dep => (
+                  <View key={dep.id} style={styles.depositCard}>
+                    <View>
+                      <Text style={styles.depositDate}>
+                        {new Date(dep.created_at).toLocaleDateString()}
+                      </Text>
+                      <Text style={styles.depositAmount}>
+                        ${dep.amount || 0}
+                      </Text>
+                    </View>
+                    <Text
+                      style={[
+                        styles.depositStatus,
+                        { color: getStatusColor(dep.status) },
+                      ]}
+                    >
+                      {dep.status.toUpperCase()}
+                    </Text>
+                  </View>
+                ))
+              )}
+            </ScrollView>
+          )}
         </View>
       </SafeAreaView>
     </ScreenWrapper>
@@ -148,12 +229,7 @@ export default function DepositScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: moderateScale(8),
-  },
+  safeArea: { flex: 1, alignItems: 'center', padding: moderateScale(8) },
   container: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -162,62 +238,44 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     width: scale(300),
     borderRadius: moderateScale(14),
-  },
-  title: {
-    fontSize: moderateScale(26),
-    marginBottom: verticalScale(22),
-    color: 'rgba(39,0,29,0.74)',
-    fontWeight: 'bold',
+    marginTop: verticalScale(40),
   },
   qrContainer: {
     height: verticalScale(180),
     width: scale(180),
-    marginBottom: verticalScale(20),
+    marginBottom: 20,
   },
-  qrImage: {
-    height: '100%',
-    width: '100%',
-    borderRadius: moderateScale(10),
-  },
-  walletRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: verticalScale(20),
-  },
-  walletTextContainer: {
-    flex: 1,
-    paddingVertical: moderateScale(10),
-    paddingHorizontal: moderateScale(4),
-
-    borderRadius: moderateScale(4),
-  },
-  walletText: {
-    color: 'rgba(36,0,31,0.74)',
-    fontSize: moderateScale(17),
-  },
-  copyButton: {
-    width: scale(80),
-  },
+  qrImage: { height: '100%', width: '100%', borderRadius: 10 },
+  walletRow: { flexDirection: 'row', alignItems: 'center', width: '100%' },
+  walletTextContainer: { flex: 1, paddingHorizontal: 4 },
+  walletText: { color: 'rgba(36,0,31,0.74)', fontSize: 17 },
+  copyButton: { width: scale(80), height: verticalScale(40) },
   input: {
     width: '100%',
-    paddingVertical: moderateScale(10),
-    marginBottom: verticalScale(12),
-    backgroundColor: 'transparent',
+    paddingVertical: 10,
+    marginBottom: 12,
     color: 'rgba(36,0,31,0.74)',
-    borderRadius: moderateScale(4),
-    fontSize: moderateScale(17),
     borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0,0,0,0.74)',
+    borderBottomColor: 'rgba(53, 0, 88, 0.18)',
+    fontSize: 17,
   },
-  button: {
-    padding: moderateScale(14),
-    borderRadius: moderateScale(8),
-    alignItems: 'center',
+  button: { padding: 10, borderRadius: 8, alignItems: 'center' },
+  btntxt: { color: '#fff', fontWeight: 'bold', fontSize: 17 },
+
+  // History
+  historyContainer: { width: '95%', marginTop: 20, flex: 1 },
+
+  historyList: { flex: 1 },
+  depositCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.24)',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    height: verticalScale(60),
   },
-  btntxt: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: moderateScale(17),
-  },
+  depositDate: { fontSize: 18, fontWeight: 'bold', color: '#222' },
+  depositAmount: { fontSize: 14, color: '#555' },
+  depositStatus: { fontSize: 16, fontWeight: 'bold', alignSelf: 'center' },
 });
