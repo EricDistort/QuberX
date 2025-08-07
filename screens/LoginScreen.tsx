@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 100, // Ensure it overlays above other elements
+    zIndex: 1, // Ensure it overlays above other elements
   },
   fullScreenAnimation: {
     width: 620, // Full width
