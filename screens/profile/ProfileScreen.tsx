@@ -250,11 +250,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     padding: scale(14),
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 1)',
     width: scale(320),
     borderRadius: moderateScale(14),
     marginTop: verticalScale(40),
+    // iOS shadow properties
+    shadowColor: 'rgba(66, 0, 55, 0.32)', // Shadow color (black)
+    shadowOffset: { width: 0, height: 4 }, // Shadow offset (horizontal, vertical)
+    shadowOpacity: 1, // Shadow transparency (0 is fully transparent, 1 is fully opaque)
+    shadowRadius: 10, // Shadow blur radius
+    // Android shadow properties
+    elevation: 15, // This is the shadow depth for Android
   },
+
   qrContainer: {
     height: verticalScale(180),
     width: scale(180),

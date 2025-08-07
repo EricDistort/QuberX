@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -16,6 +15,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { supabase } from '../utils/supabaseClient';
 import { useUser } from '../utils/UserContext';
 import ScreenWrapper from '../utils/ScreenWrapper'; // <-- import wrapper
+import LottieView from 'lottie-react-native'; // <-- import LottieView
 
 type RootStackParamList = {
   Login: undefined;
@@ -103,6 +103,17 @@ export default function LoginRegister() {
   return (
     <ScreenWrapper>
       <SafeAreaView style={styles.safeArea}>
+        {loading && (
+          <View style={styles.fullScreenContainer}>
+            {/* Lottie animation that will loop indefinitely */}
+            <LottieView
+              source={require('./LoginMedia/loginanimation.json')} // <-- Animation path
+              autoPlay
+              loop={true} // Loop indefinitely
+              style={styles.fullScreenAnimation}
+            />
+          </View>
+        )}
         <View style={styles.container}>
           <Text style={styles.title}>Login / Register</Text>
 
@@ -124,39 +135,28 @@ export default function LoginRegister() {
             placeholderTextColor="grey"
           />
 
-          {loading ? (
-            <ActivityIndicator
-              size="large"
-              color="#8CA6DB"
-              style={{ marginTop: verticalScale(20) }}
-            />
-          ) : (
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity onPress={handleLogin} style={{ width: '48%' }}>
-                <LinearGradient
-                  colors={['#8CA6DB', '#B993D6']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.button}
-                >
-                  <Text style={styles.btntxt}>Login</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleRegister}
-                style={{ width: '48%' }}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity onPress={handleLogin} style={{ width: '48%' }}>
+              <LinearGradient
+                colors={['#8CA6DB', '#B993D6']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.button}
               >
-                <LinearGradient
-                  colors={['#8CA6DB', '#B993D6']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.button}
-                >
-                  <Text style={styles.btntxt}>Register</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-          )}
+                <Text style={styles.btntxt}>Login</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleRegister} style={{ width: '48%' }}>
+              <LinearGradient
+                colors={['#8CA6DB', '#B993D6']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.button}
+              >
+                <Text style={styles.btntxt}>Register</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </View>
       </SafeAreaView>
     </ScreenWrapper>
@@ -169,6 +169,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: moderateScale(8),
+  },
+  fullScreenContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100, // Ensure it overlays above other elements
+  },
+  fullScreenAnimation: {
+    width: 620, // Full width
+    height: 620, // Full height
   },
   container: {
     justifyContent: 'center',

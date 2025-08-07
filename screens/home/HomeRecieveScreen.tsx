@@ -39,7 +39,9 @@ export default function ReceiveMoneyScreen() {
 
           <View style={styles.infoBox}>
             <Text style={styles.label}>Account Number</Text>
-            <Text style={styles.value}>{user?.account_number || '0000000000'}</Text>
+            <Text style={styles.value}>
+              {user?.account_number || '0000000000'}
+            </Text>
           </View>
 
           <TouchableOpacity onPress={handleShare} style={{ width: '80%' }}>
@@ -74,6 +76,13 @@ const styles = StyleSheet.create({
     height: verticalScale(300),
     width: scale(300),
     borderRadius: moderateScale(14),
+
+    shadowColor: 'rgba(66, 0, 55, 0.32)', // Shadow color (black)
+    shadowOffset: { width: 0, height: 4 }, // Shadow offset (horizontal, vertical)
+    shadowOpacity: 1, // Shadow transparency (0 is fully transparent, 1 is fully opaque)
+    shadowRadius: 10, // Shadow blur radius
+    // Android shadow properties
+    elevation: 15, // This is the shadow depth for Android
   },
   title: {
     fontSize: moderateScale(26),

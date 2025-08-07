@@ -6,7 +6,6 @@ import {
   Image,
   TouchableOpacity,
   Alert,
-  ImageBackground,
   ScrollView,
   ActivityIndicator,
   RefreshControl,
@@ -15,6 +14,7 @@ import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { supabase } from '../../utils/supabaseClient';
+import LottieView from 'lottie-react-native'; // Import LottieView
 
 export default function HomeScreen({ navigation }: any) {
   const { user, setUser } = useUser();
@@ -148,34 +148,37 @@ export default function HomeScreen({ navigation }: any) {
             </TouchableOpacity>
           </View>
 
-          {/* Balance Section */}
+          {/* Balance Section - Lottie Animation as Background */}
           <View style={styles.secondContainerWrapper}>
-            <ImageBackground
-              source={require('../homeMedia/balancecard.webp')}
-              style={styles.secondContainer}
-              resizeMode="contain"
-            >
-              <View style={styles.balanceOverlay}>
-                <Text style={styles.balanceSubHeader}>Current Balance</Text>
-                <Text style={styles.balanceAmount}>
-                  ${user?.balance || '0.00'}
-                </Text>
-                <View style={styles.buttonRow}>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => navigation.navigate('HomeDetails')}
-                  >
-                    <Text style={styles.buttonText}>Send</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => navigation.navigate('HomeRecieve')}
-                  >
-                    <Text style={styles.buttonText}>Receive</Text>
-                  </TouchableOpacity>
-                </View>
+            {/* Wrap LottieView inside a View to control border radius */}
+
+            <LottieView
+              source={require('../homeMedia/balanceanimation.json')} // <-- Path to your Lottie JSON file
+              style={[styles.secondContainer, { opacity: 0.7 }]}
+              autoPlay
+              loop
+            />
+
+            <View style={[styles.balanceOverlay]}>
+              <Text style={styles.balanceSubHeader}>Current Balance</Text>
+              <Text style={styles.balanceAmount}>
+                ₹{user?.balance || '0.00'}
+              </Text>
+              <View style={styles.buttonRow}>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => navigation.navigate('HomeDetails')}
+                >
+                  <Text style={styles.buttonText}>Send</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => navigation.navigate('HomeRecieve')}
+                >
+                  <Text style={styles.buttonText}>Receive</Text>
+                </TouchableOpacity>
               </View>
-            </ImageBackground>
+            </View>
           </View>
 
           {/* Transactions Section */}
@@ -258,19 +261,23 @@ const styles = StyleSheet.create({
   secondContainerWrapper: {
     width: '92%',
     height: '30%',
-
     justifyContent: 'center',
     overflow: 'hidden',
     marginTop: -60,
+    borderRadius: 20,
   },
   secondContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
-    height: '100%',
+    width: 500,
+    height: 500,
   },
   balanceOverlay: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
