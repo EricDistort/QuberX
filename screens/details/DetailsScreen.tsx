@@ -249,9 +249,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     height: verticalScale(60),
   },
-  withdrawDate: { fontSize: 18, fontWeight: 'bold', color: '#222' },
-  withdrawAmount: { fontSize: 14, color: '#555' },
-  withdrawStatus: { fontSize: 16, fontWeight: 'bold', alignSelf: 'center' },
+  withdrawDate: { fontSize: 16, fontWeight: 'bold', color: '#222' },
+  withdrawAmount: { fontSize: 13, color: '#666' },
+  withdrawStatus: { fontSize: 15, fontWeight: 'bold', alignSelf: 'center' },
   boldAmount: {
     fontWeight: 'bold', // Make the amount bold
     fontSize: 16, // Optional, to keep consistent size with other text

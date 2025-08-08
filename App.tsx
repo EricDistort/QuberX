@@ -77,8 +77,8 @@ function MainTabs() {
           shadowOpacity: 0.12,
           shadowRadius: 5,
         },
-        tabBarActiveTintColor: '#8CA6DB',
-        tabBarInactiveTintColor: '#999',
+        tabBarActiveTintColor: '#b679beff',
+        tabBarInactiveTintColor: '#a8bac4ff',
       }}
     >
       <Tab.Screen
@@ -91,7 +91,7 @@ function MainTabs() {
               style={{
                 width: 24,
                 height: 24,
-                tintColor: focused ? '#8CA6DB' : '#999',
+                tintColor: focused ? '#c594ccff' : '#c7d7dfff',
               }}
             />
           ),
@@ -107,7 +107,7 @@ function MainTabs() {
               style={{
                 width: 24,
                 height: 24,
-                tintColor: focused ? '#8CA6DB' : '#999', // changes color on focus
+                tintColor: focused ? '#c594ccff' : '#c7d7dfff', // changes color on focus
               }}
             />
           ),
@@ -123,7 +123,7 @@ function MainTabs() {
               style={{
                 width: 24,
                 height: 24,
-                tintColor: focused ? '#8CA6DB' : '#999',
+                tintColor: focused ? '#c594ccff' : '#c7d7dfff',
               }}
             />
           ),

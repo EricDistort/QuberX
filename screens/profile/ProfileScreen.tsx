@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     height: verticalScale(60),
   },
-  depositDate: { fontSize: 18, fontWeight: 'bold', color: '#222' },
-  depositAmount: { fontSize: 14, color: '#555' },
-  depositStatus: { fontSize: 16, fontWeight: 'bold', alignSelf: 'center' },
+  depositDate: { fontSize: 16, fontWeight: 'bold', color: '#222' },
+  depositAmount: { fontSize: 13, color: '#666' },
+  depositStatus: { fontSize: 15, fontWeight: 'bold', alignSelf: 'center' },
 });

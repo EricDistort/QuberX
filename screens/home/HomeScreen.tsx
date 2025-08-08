@@ -260,9 +260,15 @@ const styles = StyleSheet.create({
     marginRight: 12,
     borderWidth: 2,
     borderColor: 'rgba(248, 235, 255, 1)',
+       shadowColor: 'rgba(0, 0, 0, 1)', // Shadow color (black)
+    shadowOffset: { width: 0, height: 4 }, // Shadow offset (horizontal, vertical)
+    shadowOpacity: 1, // Shadow transparency (0 is fully transparent, 1 is fully opaque)
+    shadowRadius: 10, // Shadow blur radius
+    // Android shadow properties
+    elevation: 10, // This is the shadow depth for Android
   },
   userInfo: { flex: 1 },
-  name: { fontSize: 18, fontWeight: 'bold', color: '#222' },
+  name: { fontSize: 18, fontWeight: 'bold', color: '#222222ff' },
   accountNumber: { fontSize: 14, color: '#555', marginTop: 2 },
   editButton: { padding: 8 },
   secondContainerWrapper: {
