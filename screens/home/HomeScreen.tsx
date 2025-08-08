@@ -202,6 +202,13 @@ export default function HomeScreen({ navigation }: any) {
                 {transactions.map(tx => {
                   const isSent = tx.sender_acc === user.account_number;
                   const otherUser = isSent ? tx.receiver : tx.sender;
+                  const transactionDate = new Date(tx.created_at); // Convert string to Date
+
+                  // Format the date as needed (e.g., DD/MM/YYYY)
+                  const formattedDate = `${transactionDate.getDate()}/${
+                    transactionDate.getMonth() + 1
+                  }/${transactionDate.getFullYear()}`;
+
                   return (
                     <View key={tx.id} style={styles.transactionCard}>
                       <View>
@@ -209,7 +216,7 @@ export default function HomeScreen({ navigation }: any) {
                           {otherUser?.username || 'Unknown User'}
                         </Text>
                         <Text style={styles.transactionAccount}>
-                          Account: {otherUser?.account_number}
+                          Date: {formattedDate} {/* Display formatted date */}
                         </Text>
                       </View>
                       <Text
@@ -323,14 +330,15 @@ const styles = StyleSheet.create({
   },
   transactionsTitle: { fontSize: 18, fontWeight: 'bold', color: '#333' },
   seeAll: { fontSize: 14, color: '#7e7e7eff' },
-  transactionsList: { flex: 1 },
+  transactionsList: { height: 80 },
   transactionCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.24)',
+    backgroundColor: 'rgba(255, 255, 255, 0.38)',
     borderRadius: 10,
     padding: 12,
     marginBottom: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    
   },
   transactionName: { fontSize: 16, fontWeight: 'bold', color: '#222' },
   transactionAccount: { fontSize: 13, color: '#666' },

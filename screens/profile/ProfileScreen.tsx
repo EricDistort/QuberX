@@ -286,11 +286,11 @@ const styles = StyleSheet.create({
   btntxt: { color: '#fff', fontWeight: 'bold', fontSize: 17 },
 
   // History
-  historyContainer: { width: '95%', marginTop: 20, flex: 1 },
+  historyContainer: { width: '95%', marginTop: 20 },
 
-  historyList: { flex: 1 },
+  historyList: { height: '30%' },
   depositCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.24)',
+    backgroundColor: 'rgba(255, 255, 255, 0.38)',
     borderRadius: 10,
     padding: 12,
     marginBottom: 8,

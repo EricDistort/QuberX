@@ -30,11 +30,15 @@ export default function WithdrawalScreen() {
   const fetchWithdrawals = async () => {
     if (!user?.id) return;
     setLoadingWithdrawals(true);
+
+    // Fetch latest 10 withdrawals
     const { data, error } = await supabase
       .from('withdrawals')
       .select('id, receiving_wallet, amount, status, created_at')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }) // Order by latest first
+      .limit(15); // Limit to latest 10 transactions
+
     if (!error) setWithdrawals(data || []);
     setLoadingWithdrawals(false);
   };
@@ -145,7 +149,10 @@ export default function WithdrawalScreen() {
 
           {/* Current Withdrawable Amount */}
           <Text style={styles.withdrawableText}>
-            Current Withdrawable Amount: ${user?.withdrawal_amount || 0}
+            Current Withdrawable Amount{' '}
+            <Text style={styles.boldAmount}>
+              ₹{user?.withdrawal_amount || 0}
+            </Text>
           </Text>
         </View>
 
@@ -231,10 +238,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   // History
-  historyContainer: { width: '95%', marginTop: 20, flex: 1 },
-  historyList: { flex: 1 },
+  historyContainer: { width: '95%', marginTop: 20 },
+  historyList: { height: '61%' },
   withdrawCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.24)',
+    backgroundColor: 'rgba(255, 255, 255, 0.38)',
     borderRadius: 10,
     padding: 12,
     marginBottom: 8,
@@ -245,4 +252,8 @@ const styles = StyleSheet.create({
   withdrawDate: { fontSize: 18, fontWeight: 'bold', color: '#222' },
   withdrawAmount: { fontSize: 14, color: '#555' },
   withdrawStatus: { fontSize: 16, fontWeight: 'bold', alignSelf: 'center' },
+  boldAmount: {
+    fontWeight: 'bold', // Make the amount bold
+    fontSize: 16, // Optional, to keep consistent size with other text
+  },
 });
