@@ -95,6 +95,12 @@ export default function SendMoneyScreen() {
                 </LinearGradient>
               </TouchableOpacity>
             )}
+            <Text style={styles.withdrawableText}>
+              Current Transferable Amount{' '}
+              <Text style={styles.boldAmount}>
+                ₹{user?.withdrawal_amount || 0}
+              </Text>
+            </Text>
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -129,7 +135,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: moderateScale(26),
     marginBottom: verticalScale(22),
-    color: 'rgba(39,0,29,0.74)',
+    color: '#a96bb1ff',
     fontWeight: 'bold',
   },
   input: {
@@ -150,4 +156,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   btntxt: { color: '#fff', fontWeight: 'bold', fontSize: moderateScale(17) },
+
+  withdrawableText: {
+    marginTop: 8,
+    fontSize: 13,
+    color: '#555',
+    textAlign: 'center',
+  },
+
+  boldAmount: {
+    fontWeight: 'bold', // Make the amount bold
+    fontSize: 16, // Optional, to keep consistent size with other text
+  },
 });

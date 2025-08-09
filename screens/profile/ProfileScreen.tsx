@@ -217,11 +217,11 @@ export default function DepositScreen() {
                 deposits.map(dep => (
                   <View key={dep.id} style={styles.depositCard}>
                     <View>
+                      <Text style={styles.depositAmount}>
+                        ₹{dep.amount || 0}
+                      </Text>
                       <Text style={styles.depositDate}>
                         {new Date(dep.created_at).toLocaleDateString()}
-                      </Text>
-                      <Text style={styles.depositAmount}>
-                        ${dep.amount || 0}
                       </Text>
                     </View>
                     <Text
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     height: verticalScale(60),
   },
-  depositDate: { fontSize: 16, fontWeight: 'bold', color: '#222' },
-  depositAmount: { fontSize: 13, color: '#666' },
+  depositDate: { fontSize: 13, color: '#666' },
+  depositAmount: { fontSize: 16, fontWeight: 'bold', color: '#222' },
   depositStatus: { fontSize: 15, fontWeight: 'bold', alignSelf: 'center' },
 });

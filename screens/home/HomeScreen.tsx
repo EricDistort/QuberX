@@ -134,7 +134,7 @@ export default function HomeScreen({ navigation }: any) {
             <View style={styles.userInfo}>
               <Text style={styles.name}>{user?.username || 'Guest User'}</Text>
               <Text style={styles.accountNumber}>
-                Account No: {user?.account_number || '0000000000'}
+                Account No {user?.account_number || '0000000000'}
               </Text>
             </View>
             <TouchableOpacity
@@ -216,7 +216,7 @@ export default function HomeScreen({ navigation }: any) {
                           {otherUser?.username || 'Unknown User'}
                         </Text>
                         <Text style={styles.transactionAccount}>
-                          Date: {formattedDate} {/* Display formatted date */}
+                          Date {formattedDate} {/* Display formatted date */}
                         </Text>
                       </View>
                       <Text
@@ -225,7 +225,7 @@ export default function HomeScreen({ navigation }: any) {
                           { color: isSent ? 'red' : 'green' },
                         ]}
                       >
-                        {isSent ? '-' : '+'}${Math.abs(tx.amount)}
+                        {isSent ? '-' : '+'}₹{Math.abs(tx.amount)}
                       </Text>
                     </View>
                   );

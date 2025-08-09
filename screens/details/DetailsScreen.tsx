@@ -178,10 +178,10 @@ export default function WithdrawalScreen() {
                 withdrawals.map(wd => (
                   <View key={wd.id} style={styles.withdrawCard}>
                     <View>
+                      <Text style={styles.withdrawAmount}>₹{wd.amount}</Text>
                       <Text style={styles.withdrawDate}>
                         {new Date(wd.created_at).toLocaleDateString()}
                       </Text>
-                      <Text style={styles.withdrawAmount}>${wd.amount}</Text>
                     </View>
                     <Text
                       style={[
@@ -237,6 +237,10 @@ const styles = StyleSheet.create({
     color: '#555',
     textAlign: 'center',
   },
+   boldAmount: {
+    fontWeight: 'bold', // Make the amount bold
+    fontSize: 16, // Optional, to keep consistent size with other text
+  },
   // History
   historyContainer: { width: '95%', marginTop: 20 },
   historyList: { height: '61%' },
@@ -249,11 +253,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     height: verticalScale(60),
   },
-  withdrawDate: { fontSize: 16, fontWeight: 'bold', color: '#222' },
-  withdrawAmount: { fontSize: 13, color: '#666' },
+  withdrawDate: { fontSize: 13, color: '#666' },
+  withdrawAmount: { fontSize: 16, fontWeight: 'bold', color: '#222' },
   withdrawStatus: { fontSize: 15, fontWeight: 'bold', alignSelf: 'center' },
-  boldAmount: {
-    fontWeight: 'bold', // Make the amount bold
-    fontSize: 16, // Optional, to keep consistent size with other text
-  },
+ 
 });

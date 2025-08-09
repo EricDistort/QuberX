@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: moderateScale(26),
     marginBottom: verticalScale(22),
-    color: 'rgba(39,0,29,0.74)',
+    color: '#a96bb1ff',
     fontWeight: 'bold',
   },
   infoBox: {
