@@ -23,7 +23,8 @@ import Clipboard from '@react-native-clipboard/clipboard';
 export default function DepositScreen() {
   const { user } = useUser();
 
-  const walletAddress = '0x42378bf4863744bd10f0655dc198a775e4a15f9a';
+  const [walletAddress, setWalletAddress] = useState('');
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [txHash, setTxHash] = useState('');
   const [referrer, setReferrer] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,6 +32,22 @@ export default function DepositScreen() {
   const [deposits, setDeposits] = useState<any[]>([]);
   const [loadingDeposits, setLoadingDeposits] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Fetch wallet address & QR code from database
+  const fetchDepositInfo = async () => {
+    const { data, error } = await supabase
+      .from('deposit_info')
+      .select('wallet_address, qr_code_url')
+      .limit(1)
+      .single();
+
+    if (!error && data) {
+      setWalletAddress(data.wallet_address);
+      setQrCodeUrl(data.qr_code_url);
+    } else {
+      console.error('Error fetching deposit info:', error);
+    }
+  };
 
   const copyToClipboard = () => {
     if (Platform.OS === 'web') {
@@ -54,11 +71,13 @@ export default function DepositScreen() {
   };
 
   useEffect(() => {
+    fetchDepositInfo();
     fetchDeposits();
   }, [user?.id]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+    await fetchDepositInfo();
     await fetchDeposits();
     setRefreshing(false);
   }, [user?.id]);
@@ -75,7 +94,7 @@ export default function DepositScreen() {
         {
           user_id: user.id,
           tx_hash: txHash.trim(),
-          referrer_account_number: referrer.trim() || null, // <-- store referrer
+          referrer_account_number: referrer.trim() || null,
         },
       ]);
       if (error) {
@@ -121,14 +140,17 @@ export default function DepositScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           {/* QR Code Image */}
-          <View style={styles.qrContainer}>
-            <Image
-              source={require('../details/detailsMedia/qr.png')}
-              style={styles.qrImage}
-              resizeMode="contain"
-            />
-          </View>
+          {qrCodeUrl ? (
+            <View style={styles.qrContainer}>
+              <Image
+                source={{ uri: qrCodeUrl }}
+                style={styles.qrImage}
+                resizeMode="contain"
+              />
+            </View>
+          ) : null}
 
+          {/* Wallet Address Row */}
           <View style={styles.walletRow}>
             <View style={styles.walletTextContainer}>
               <Text
@@ -136,12 +158,13 @@ export default function DepositScreen() {
                 numberOfLines={1}
                 ellipsizeMode="middle"
               >
-                {walletAddress}
+                {walletAddress || 'Loading...'}
               </Text>
             </View>
             <TouchableOpacity
               onPress={copyToClipboard}
               style={styles.copyButton}
+              disabled={!walletAddress}
             >
               <LinearGradient
                 colors={['#8CA6DB', '#B993D6']}
@@ -254,15 +277,12 @@ const styles = StyleSheet.create({
     width: scale(320),
     borderRadius: moderateScale(14),
     marginTop: verticalScale(40),
-    // iOS shadow properties
-    shadowColor: 'rgba(66, 0, 55, 0.32)', // Shadow color (black)
-    shadowOffset: { width: 0, height: 4 }, // Shadow offset (horizontal, vertical)
-    shadowOpacity: 1, // Shadow transparency (0 is fully transparent, 1 is fully opaque)
-    shadowRadius: 10, // Shadow blur radius
-    // Android shadow properties
-    elevation: 15, // This is the shadow depth for Android
+    shadowColor: 'rgba(66, 0, 55, 0.32)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    elevation: 15,
   },
-
   qrContainer: {
     height: verticalScale(180),
     width: scale(180),
@@ -284,10 +304,7 @@ const styles = StyleSheet.create({
   },
   button: { padding: 10, borderRadius: 8, alignItems: 'center' },
   btntxt: { color: '#fff', fontWeight: 'bold', fontSize: 17 },
-
-  // History
   historyContainer: { width: '95%', marginTop: 20 },
-
   historyList: { height: '30%' },
   depositCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.38)',
