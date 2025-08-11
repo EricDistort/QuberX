@@ -23,7 +23,6 @@ export default function HomeScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchUserData = async () => {
-    // Fetch updated balance
     const { data, error } = await supabase
       .from('users')
       .select('balance, profileImage, username, account_number')
@@ -125,21 +124,57 @@ export default function HomeScreen({ navigation }: any) {
         <View style={styles.container}>
           {/* Profile Section */}
           <View style={styles.firstContainer}>
-            <Image
-              source={{
-                uri: user?.profileImage || 'https://via.placeholder.com/80',
-              }}
-              style={styles.profileImage}
-            />
+            {/* Touchable area for the profile image */}
+            <TouchableOpacity onPress={handleEditProfileImage}>
+              <View
+                style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  marginRight: 12,
+                  borderWidth: 2,
+                  borderColor: 'rgba(248, 235, 255, 1)',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: user?.profileImage ? 'transparent' : 'grey', // grey background if no profile image
+                }}
+              >
+                {user?.profileImage ? (
+                  <Image
+                    source={{ uri: user.profileImage }}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: 30,
+                    }}
+                  />
+                ) : (
+                  <Text
+                    style={{
+                      color: 'white', // White text color
+                      fontSize: 12,
+                      //fontWeight: 'bold',
+                      alignSelf: 'center',
+                      //marginLeft: 12,
+                      textAlign: 'center',
+                    }}
+                  >
+                    Add Image
+                  </Text>
+                )}
+              </View>
+            </TouchableOpacity>
             <View style={styles.userInfo}>
               <Text style={styles.name}>{user?.username || 'Guest User'}</Text>
               <Text style={styles.accountNumber}>
                 Account No {user?.account_number || '0000000000'}
               </Text>
             </View>
+
+            {/* Edit Button for later use (can navigate to another screen) */}
             <TouchableOpacity
               style={styles.editButton}
-              onPress={handleEditProfileImage}
+              onPress={() => navigation.navigate('Help')}
             >
               <Image
                 source={require('../homeMedia/editbutton.webp')}
@@ -150,10 +185,8 @@ export default function HomeScreen({ navigation }: any) {
 
           {/* Balance Section - Lottie Animation as Background */}
           <View style={styles.secondContainerWrapper}>
-            {/* Wrap LottieView inside a View to control border radius */}
-
             <LottieView
-              source={require('../homeMedia/balanceanimation.json')} // <-- Path to your Lottie JSON file
+              source={require('../homeMedia/balanceanimation.json')}
               style={[styles.secondContainer, { opacity: 0.7 }]}
               autoPlay
               loop
@@ -161,9 +194,7 @@ export default function HomeScreen({ navigation }: any) {
 
             <View style={[styles.balanceOverlay]}>
               <Text style={styles.balanceSubHeader}>Current Balance</Text>
-              <Text style={styles.balanceAmount}>
-                ₹{user?.balance || '0.00'}
-              </Text>
+              <Text style={styles.balanceAmount}>₹{user?.balance || '0'}</Text>
               <View style={styles.buttonRow}>
                 <TouchableOpacity
                   style={styles.actionButton}
@@ -202,9 +233,7 @@ export default function HomeScreen({ navigation }: any) {
                 {transactions.map(tx => {
                   const isSent = tx.sender_acc === user.account_number;
                   const otherUser = isSent ? tx.receiver : tx.sender;
-                  const transactionDate = new Date(tx.created_at); // Convert string to Date
-
-                  // Format the date as needed (e.g., DD/MM/YYYY)
+                  const transactionDate = new Date(tx.created_at);
                   const formattedDate = `${transactionDate.getDate()}/${
                     transactionDate.getMonth() + 1
                   }/${transactionDate.getFullYear()}`;
@@ -216,7 +245,7 @@ export default function HomeScreen({ navigation }: any) {
                           {otherUser?.username || 'Unknown User'}
                         </Text>
                         <Text style={styles.transactionAccount}>
-                          Date {formattedDate} {/* Display formatted date */}
+                          Date {formattedDate}
                         </Text>
                       </View>
                       <Text
@@ -260,12 +289,11 @@ const styles = StyleSheet.create({
     marginRight: 12,
     borderWidth: 2,
     borderColor: 'rgba(248, 235, 255, 1)',
-       shadowColor: 'rgba(0, 0, 0, 1)', // Shadow color (black)
-    shadowOffset: { width: 0, height: 4 }, // Shadow offset (horizontal, vertical)
-    shadowOpacity: 1, // Shadow transparency (0 is fully transparent, 1 is fully opaque)
-    shadowRadius: 10, // Shadow blur radius
-    // Android shadow properties
-    elevation: 10, // This is the shadow depth for Android
+    shadowColor: 'rgba(0, 0, 0, 1)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    elevation: 10,
   },
   userInfo: { flex: 1 },
   name: { fontSize: 18, fontWeight: 'bold', color: '#222222ff' },
@@ -344,7 +372,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    
   },
   transactionName: { fontSize: 16, fontWeight: 'bold', color: '#222' },
   transactionAccount: { fontSize: 13, color: '#666' },

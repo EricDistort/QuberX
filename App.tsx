@@ -15,6 +15,7 @@ import DetailsInfoScreen from './screens/details/DetailsInfoScreen';
 import ProfileScreen from './screens/profile/ProfileScreen';
 import EditProfileScreen from './screens/profile/EditProfileScreen';
 import TransactionListScreen from './screens/home/TransactionListScreen';
+import Help from './screens/home/Help';
 
 const RootStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -32,6 +33,7 @@ function HomeStackScreen() {
         name="TransactionList"
         component={TransactionListScreen}
       />
+      <HomeStack.Screen name="Help" component={Help} />
     </HomeStack.Navigator>
   );
 }

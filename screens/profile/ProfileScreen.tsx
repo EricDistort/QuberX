@@ -98,14 +98,7 @@ export default function DepositScreen() {
         },
       ]);
       if (error) {
-        if (error.code === '23505') {
-          Alert.alert(
-            'Duplicate Transaction',
-            'This transaction hash has already been used.',
-          );
-        } else {
-          throw error;
-        }
+        throw error;
       } else {
         Alert.alert(
           'Deposit Request Submitted',
@@ -180,7 +173,7 @@ export default function DepositScreen() {
           {/* Transaction Hash Input */}
           <TextInput
             style={styles.input}
-            placeholder="Transaction Hash"
+            placeholder="Sender Wallet"
             value={txHash}
             onChangeText={setTxHash}
             autoCapitalize="none"
@@ -191,7 +184,7 @@ export default function DepositScreen() {
           {/* Referrer Account Number Input */}
           <TextInput
             style={styles.input}
-            placeholder="Referrer Account Number (Optional)"
+            placeholder="Referrer Account (Optional)"
             value={referrer}
             onChangeText={setReferrer}
             autoCapitalize="none"
