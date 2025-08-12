@@ -33,7 +33,6 @@ function HomeStackScreen() {
         name="TransactionList"
         component={TransactionListScreen}
       />
-      <HomeStack.Screen name="Help" component={Help} />
     </HomeStack.Navigator>
   );
 }
@@ -146,6 +145,7 @@ export default function App() {
         >
           <RootStack.Screen name="Login" component={LoginScreen} />
           <RootStack.Screen name="Main" component={MainTabs} />
+          <RootStack.Screen name="Help" component={Help} />
         </RootStack.Navigator>
       </NavigationContainer>
     </UserProvider>
