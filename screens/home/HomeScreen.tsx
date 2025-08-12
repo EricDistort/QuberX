@@ -211,7 +211,12 @@ export default function HomeScreen({ navigation }: any) {
               </View>
             </View>
           </View>
-
+          <Text style={styles.withdrawableText}>
+            Total Referrals{' '}
+            <Text style={styles.boldAmount}>
+              ₹{user?.referrals || 0}
+            </Text>
+          </Text>
           {/* Transactions Section */}
           <View style={styles.thirdContainer}>
             <View style={styles.transactionsHeader}>
@@ -304,7 +309,7 @@ const styles = StyleSheet.create({
     height: '30%',
     justifyContent: 'center',
     overflow: 'hidden',
-    marginTop: -60,
+    marginTop: -40,
     borderRadius: 20,
   },
   secondContainer: {
@@ -377,4 +382,16 @@ const styles = StyleSheet.create({
   transactionAccount: { fontSize: 13, color: '#666' },
   transactionAmount: { fontSize: 16, fontWeight: 'bold', alignSelf: 'center' },
   editImage: { width: 30, height: 30, resizeMode: 'contain' },
+  withdrawableText: {
+    marginTop: 8,
+    marginBottom: 10,
+    fontSize: 13,
+    color: '#555',
+    textAlign: 'center',
+  },
+
+  boldAmount: {
+    fontWeight: 'bold', // Make the amount bold
+    fontSize: 16, // Optional, to keep consistent size with other text
+  },
 });
