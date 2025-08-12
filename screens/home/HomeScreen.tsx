@@ -177,7 +177,7 @@ export default function HomeScreen({ navigation }: any) {
               onPress={() => navigation.navigate('Help')}
             >
               <Image
-                source={require('../homeMedia/editbutton.webp')}
+                source={require('../homeMedia/support.webp')}
                 style={styles.editImage}
               />
             </TouchableOpacity>
@@ -376,5 +376,5 @@ const styles = StyleSheet.create({
   transactionName: { fontSize: 16, fontWeight: 'bold', color: '#222' },
   transactionAccount: { fontSize: 13, color: '#666' },
   transactionAmount: { fontSize: 16, fontWeight: 'bold', alignSelf: 'center' },
-  editImage: { width: 24, height: 24, resizeMode: 'contain' },
+  editImage: { width: 30, height: 30, resizeMode: 'contain' },
 });
