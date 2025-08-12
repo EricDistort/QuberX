@@ -213,9 +213,7 @@ export default function HomeScreen({ navigation }: any) {
           </View>
           <Text style={styles.withdrawableText}>
             Total Referrals{' '}
-            <Text style={styles.boldAmount}>
-              ₹{user?.referrals || 0}
-            </Text>
+            <Text style={styles.boldAmount}>₹{user?.referrals || 0}</Text>
           </Text>
           {/* Transactions Section */}
           <View style={styles.thirdContainer}>
