@@ -15,7 +15,11 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useUser } from '../../utils/UserContext';
 import { sendMoney } from '../../utils/transactions';
 import ScreenWrapper from '../../utils/ScreenWrapper';
-import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
+import {
+  scale as s,
+  verticalScale as vs,
+  moderateScale as ms,
+} from 'react-native-size-matters';
 
 export default function SendMoneyScreen() {
   const { user, setUser } = useUser();
@@ -81,7 +85,7 @@ export default function SendMoneyScreen() {
               <ActivityIndicator
                 size="large"
                 color="#8CA6DB"
-                style={{ marginTop: verticalScale(20) }}
+                style={{ marginTop: vs(20) }}
               />
             ) : (
               <TouchableOpacity onPress={handleSend} style={{ width: '80%' }}>
@@ -113,59 +117,55 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: moderateScale(8),
+    padding: ms(8),
   },
   container: {
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    padding: scale(14),
+    padding: s(14),
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    height: verticalScale(340),
-    width: scale(300),
-    borderRadius: moderateScale(14),
-
-    shadowColor: 'rgba(66, 0, 55, 0.32)', // Shadow color (black)
-    shadowOffset: { width: 0, height: 4 }, // Shadow offset (horizontal, vertical)
-    shadowOpacity: 1, // Shadow transparency (0 is fully transparent, 1 is fully opaque)
-    shadowRadius: 10, // Shadow blur radius
-    // Android shadow properties
-    elevation: 15, // This is the shadow depth for Android
+    height: vs(340),
+    width: s(300),
+    borderRadius: ms(14),
+    shadowColor: 'rgba(66, 0, 55, 0.32)',
+    shadowOffset: { width: 0, height: vs(4) },
+    shadowOpacity: 1,
+    shadowRadius: ms(10),
+    elevation: 15,
   },
   title: {
-    fontSize: moderateScale(26),
-    marginBottom: verticalScale(22),
+    fontSize: ms(26),
+    marginBottom: vs(22),
     color: '#a96bb1ff',
     fontWeight: 'bold',
   },
   input: {
     width: '80%',
-    paddingVertical: moderateScale(10),
-    marginBottom: verticalScale(12),
+    paddingVertical: ms(10),
+    marginBottom: vs(12),
     backgroundColor: 'transparent',
     color: 'rgba(36,0,31,0.74)',
-    borderRadius: moderateScale(4),
-    fontSize: moderateScale(17),
+    borderRadius: ms(4),
+    fontSize: ms(17),
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(0,0,0,0.74)',
   },
   button: {
-    padding: moderateScale(14),
-    borderRadius: moderateScale(8),
-    marginTop: verticalScale(12),
+    padding: ms(14),
+    borderRadius: ms(8),
+    marginTop: vs(12),
     alignItems: 'center',
   },
-  btntxt: { color: '#fff', fontWeight: 'bold', fontSize: moderateScale(17) },
-
+  btntxt: { color: '#fff', fontWeight: 'bold', fontSize: ms(17) },
   withdrawableText: {
-    marginTop: 8,
-    fontSize: 13,
+    marginTop: vs(8),
+    fontSize: ms(13),
     color: '#555',
     textAlign: 'center',
   },
-
   boldAmount: {
-    fontWeight: 'bold', // Make the amount bold
-    fontSize: 16, // Optional, to keep consistent size with other text
+    fontWeight: 'bold',
+    fontSize: ms(16),
   },
 });

@@ -12,7 +12,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
+import {
+  scale as s,
+  verticalScale as vs,
+  moderateScale as ms,
+} from 'react-native-size-matters';
 import ScreenWrapper from '../../utils/ScreenWrapper';
 import { useUser } from '../../utils/UserContext';
 import { supabase } from '../../utils/supabaseClient';
@@ -30,14 +34,12 @@ export default function WithdrawalScreen() {
   const fetchWithdrawals = async () => {
     if (!user?.id) return;
     setLoadingWithdrawals(true);
-
-    // Fetch latest 10 withdrawals
     const { data, error } = await supabase
       .from('withdrawals')
       .select('id, receiving_wallet, amount, status, created_at')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false }) // Order by latest first
-      .limit(15); // Limit to latest 10 transactions
+      .order('created_at', { ascending: false })
+      .limit(15);
 
     if (!error) setWithdrawals(data || []);
     setLoadingWithdrawals(false);
@@ -60,7 +62,6 @@ export default function WithdrawalScreen() {
       return;
     }
 
-    // Check against withdrawal_amount instead of balance
     if (withdrawalAmount > (user?.withdrawal_amount || 0)) {
       Alert.alert('Error', 'Insufficient withdrawable amount');
       return;
@@ -108,7 +109,6 @@ export default function WithdrawalScreen() {
     <ScreenWrapper>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          {/* Receiving Wallet Input */}
           <TextInput
             style={styles.input}
             placeholder="Receiving Wallet Address"
@@ -119,7 +119,6 @@ export default function WithdrawalScreen() {
             placeholderTextColor="grey"
           />
 
-          {/* Amount Input */}
           <TextInput
             style={styles.input}
             placeholder="Amount"
@@ -129,7 +128,6 @@ export default function WithdrawalScreen() {
             placeholderTextColor="grey"
           />
 
-          {/* Withdraw Button */}
           <TouchableOpacity
             onPress={submitWithdrawal}
             disabled={loading}
@@ -147,7 +145,6 @@ export default function WithdrawalScreen() {
             </LinearGradient>
           </TouchableOpacity>
 
-          {/* Current Withdrawable Amount */}
           <Text style={styles.withdrawableText}>
             Current Withdrawable Amount{' '}
             <Text style={styles.boldAmount}>
@@ -156,7 +153,6 @@ export default function WithdrawalScreen() {
           </Text>
         </View>
 
-        {/* Withdrawal History */}
         <View style={styles.historyContainer}>
           {loadingWithdrawals ? (
             <ActivityIndicator size="small" color="#000" />
@@ -170,7 +166,11 @@ export default function WithdrawalScreen() {
             >
               {withdrawals.length === 0 ? (
                 <Text
-                  style={{ textAlign: 'center', marginTop: 10, color: '#555' }}
+                  style={{
+                    textAlign: 'center',
+                    marginTop: vs(10),
+                    color: '#555',
+                  }}
                 >
                   No withdrawals found
                 </Text>
@@ -203,58 +203,55 @@ export default function WithdrawalScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, alignItems: 'center', padding: moderateScale(8) },
+  safeArea: { flex: 1, alignItems: 'center', padding: ms(8) },
   container: {
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    padding: scale(14),
+    padding: s(14),
     backgroundColor: 'rgba(255, 255, 255, 1)',
-    width: scale(300),
-    borderRadius: moderateScale(14),
-    marginTop: verticalScale(40),
-    shadowColor: 'rgba(66, 0, 55, 0.32)', // Shadow color (black)
-    shadowOffset: { width: 0, height: 4 }, // Shadow offset (horizontal, vertical)
-    shadowOpacity: 1, // Shadow transparency (0 is fully transparent, 1 is fully opaque)
-    shadowRadius: 10, // Shadow blur radius
-    // Android shadow properties
-    elevation: 15, // This is the shadow depth for Android
+    width: s(300),
+    borderRadius: ms(14),
+    marginTop: vs(40),
+    shadowColor: 'rgba(66, 0, 55, 0.32)',
+    shadowOffset: { width: 0, height: vs(4) },
+    shadowOpacity: 1,
+    shadowRadius: ms(10),
+    elevation: 15,
   },
   input: {
     width: '100%',
-    paddingVertical: 10,
-    marginBottom: 12,
+    paddingVertical: ms(10),
+    marginBottom: vs(12),
     color: 'rgba(36,0,31,0.74)',
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(53, 0, 88, 0.18)',
-    fontSize: 17,
+    fontSize: ms(17),
   },
-  button: { padding: 10, borderRadius: 8, alignItems: 'center' },
-  btntxt: { color: '#fff', fontWeight: 'bold', fontSize: 17 },
+  button: { padding: ms(10), borderRadius: ms(8), alignItems: 'center' },
+  btntxt: { color: '#fff', fontWeight: 'bold', fontSize: ms(17) },
   withdrawableText: {
-    marginTop: 8,
-    fontSize: 13,
+    marginTop: vs(8),
+    fontSize: ms(13),
     color: '#555',
     textAlign: 'center',
   },
-   boldAmount: {
-    fontWeight: 'bold', // Make the amount bold
-    fontSize: 16, // Optional, to keep consistent size with other text
+  boldAmount: {
+    fontWeight: 'bold',
+    fontSize: ms(16),
   },
-  // History
-  historyContainer: { width: '95%', marginTop: 20 },
+  historyContainer: { width: '95%', marginTop: vs(20) },
   historyList: { height: '61%' },
   withdrawCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.38)',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
+    borderRadius: ms(10),
+    padding: s(12),
+    marginBottom: vs(8),
     flexDirection: 'row',
     justifyContent: 'space-between',
-    height: verticalScale(60),
+    height: vs(60),
   },
-  withdrawDate: { fontSize: 13, color: '#666' },
-  withdrawAmount: { fontSize: 16, fontWeight: 'bold', color: '#222' },
-  withdrawStatus: { fontSize: 15, fontWeight: 'bold', alignSelf: 'center' },
- 
+  withdrawDate: { fontSize: ms(13), color: '#666' },
+  withdrawAmount: { fontSize: ms(16), fontWeight: 'bold', color: '#222' },
+  withdrawStatus: { fontSize: ms(15), fontWeight: 'bold', alignSelf: 'center' },
 });

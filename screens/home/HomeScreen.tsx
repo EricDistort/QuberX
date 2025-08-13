@@ -10,11 +10,16 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import {
+  scale as s,
+  verticalScale as vs,
+  moderateScale as ms,
+} from 'react-native-size-matters';
 import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { supabase } from '../../utils/supabaseClient';
-import LottieView from 'lottie-react-native'; // Import LottieView
+import LottieView from 'lottie-react-native';
 
 export default function HomeScreen({ navigation }: any) {
   const { user, setUser } = useUser();
@@ -124,19 +129,18 @@ export default function HomeScreen({ navigation }: any) {
         <View style={styles.container}>
           {/* Profile Section */}
           <View style={styles.firstContainer}>
-            {/* Touchable area for the profile image */}
             <TouchableOpacity onPress={handleEditProfileImage}>
               <View
                 style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 30,
-                  marginRight: 12,
-                  borderWidth: 2,
+                  width: s(60),
+                  height: s(60),
+                  borderRadius: ms(30),
+                  marginRight: s(12),
+                  borderWidth: s(2),
                   borderColor: 'rgba(248, 235, 255, 1)',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  backgroundColor: user?.profileImage ? 'transparent' : 'grey', // grey background if no profile image
+                  backgroundColor: user?.profileImage ? 'transparent' : 'grey',
                 }}
               >
                 {user?.profileImage ? (
@@ -145,17 +149,14 @@ export default function HomeScreen({ navigation }: any) {
                     style={{
                       width: '100%',
                       height: '100%',
-                      borderRadius: 30,
+                      borderRadius: ms(30),
                     }}
                   />
                 ) : (
                   <Text
                     style={{
-                      color: 'white', // White text color
-                      fontSize: 12,
-                      //fontWeight: 'bold',
-                      alignSelf: 'center',
-                      //marginLeft: 12,
+                      color: 'white',
+                      fontSize: ms(12),
                       textAlign: 'center',
                     }}
                   >
@@ -171,7 +172,6 @@ export default function HomeScreen({ navigation }: any) {
               </Text>
             </View>
 
-            {/* Edit Button for later use (can navigate to another screen) */}
             <TouchableOpacity
               style={styles.editButton}
               onPress={() => navigation.navigate('Help')}
@@ -183,7 +183,7 @@ export default function HomeScreen({ navigation }: any) {
             </TouchableOpacity>
           </View>
 
-          {/* Balance Section - Lottie Animation as Background */}
+          {/* Balance Section */}
           <View style={styles.secondContainerWrapper}>
             <LottieView
               source={require('../homeMedia/balanceanimation.json')}
@@ -191,8 +191,7 @@ export default function HomeScreen({ navigation }: any) {
               autoPlay
               loop
             />
-
-            <View style={[styles.balanceOverlay]}>
+            <View style={styles.balanceOverlay}>
               <Text style={styles.balanceSubHeader}>Current Balance</Text>
               <Text style={styles.balanceAmount}>₹{user?.balance || '0'}</Text>
               <View style={styles.buttonRow}>
@@ -211,11 +210,13 @@ export default function HomeScreen({ navigation }: any) {
               </View>
             </View>
           </View>
+
           <Text style={styles.withdrawableText}>
             Total Referrals{' '}
             <Text style={styles.boldAmount}>₹{user?.referrals || 0}</Text>
           </Text>
-          {/* Transactions Section */}
+
+          {/* Transactions */}
           <View style={styles.thirdContainer}>
             <View style={styles.transactionsHeader}>
               <Text style={styles.transactionsTitle}>Transactions</Text>
@@ -276,45 +277,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 5,
+    paddingVertical: vs(5),
   },
   firstContainer: {
     width: '95%',
     height: '23%',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 15,
-  },
-  profileImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: 12,
-    borderWidth: 2,
-    borderColor: 'rgba(248, 235, 255, 1)',
-    shadowColor: 'rgba(0, 0, 0, 1)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 10,
-    elevation: 10,
+    paddingHorizontal: s(15),
   },
   userInfo: { flex: 1 },
-  name: { fontSize: 18, fontWeight: 'bold', color: '#222222ff' },
-  accountNumber: { fontSize: 14, color: '#555', marginTop: 2 },
-  editButton: { padding: 8 },
+  name: { fontSize: ms(18), fontWeight: 'bold', color: '#222222ff' },
+  accountNumber: { fontSize: ms(14), color: '#555', marginTop: vs(2) },
+  editButton: { padding: ms(8) },
   secondContainerWrapper: {
     width: '92%',
     height: '30%',
     justifyContent: 'center',
     overflow: 'hidden',
-    marginTop: -40,
-    borderRadius: 20,
+    marginTop: vs(-32),
+    borderRadius: ms(20),
   },
   secondContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    width: 500,
-    height: 500,
+    width: s(500),
+    height: s(500),
   },
   balanceOverlay: {
     position: 'absolute',
@@ -324,14 +312,14 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: s(20),
   },
-  balanceSubHeader: { fontSize: 16, color: 'rgba(212, 249, 255, 0.84)' },
+  balanceSubHeader: { fontSize: ms(16), color: 'rgba(212, 249, 255, 0.84)' },
   balanceAmount: {
-    fontSize: 50,
+    fontSize: ms(50),
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 20,
+    marginBottom: vs(20),
   },
   buttonRow: {
     flexDirection: 'row',
@@ -340,56 +328,59 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     backgroundColor: '#fff',
-    width: 120,
-    height: 40,
+    width: s(120),
+    height: vs(40),
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 20,
-    marginHorizontal: 5,
+    borderRadius: ms(50),
+    marginHorizontal: s(5),
   },
   buttonText: {
     color: 'rgba(82, 82, 82, 1)',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: ms(16),
   },
   thirdContainer: {
     width: '95%',
-    height: '45%',
-    borderRadius: 12,
-    padding: 10,
+    height: '44%',
+    borderRadius: ms(12),
+    padding: s(10),
     overflow: 'hidden',
-    marginBottom: 30,
+    marginBottom: vs(30),
   },
   transactionsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: vs(10),
   },
-  transactionsTitle: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-  seeAll: { fontSize: 14, color: '#7e7e7eff' },
-  transactionsList: { height: 80 },
+  transactionsTitle: { fontSize: ms(18), fontWeight: 'bold', color: '#333' },
+  seeAll: { fontSize: ms(14), color: '#7e7e7eff' },
+  transactionsList: { height: vs(80) },
   transactionCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.38)',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
+    borderRadius: ms(10),
+    padding: s(12),
+    marginBottom: vs(8),
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  transactionName: { fontSize: 16, fontWeight: 'bold', color: '#222' },
-  transactionAccount: { fontSize: 13, color: '#666' },
-  transactionAmount: { fontSize: 16, fontWeight: 'bold', alignSelf: 'center' },
-  editImage: { width: 30, height: 30, resizeMode: 'contain' },
+  transactionName: { fontSize: ms(16), fontWeight: 'bold', color: '#222' },
+  transactionAccount: { fontSize: ms(13), color: '#666' },
+  transactionAmount: {
+    fontSize: ms(16),
+    fontWeight: 'bold',
+    alignSelf: 'center',
+  },
+  editImage: { width: s(30), height: s(30), resizeMode: 'contain' },
   withdrawableText: {
-    marginTop: 8,
-    marginBottom: 10,
-    fontSize: 13,
+    marginTop: vs(8),
+    marginBottom: vs(5),
+    fontSize: ms(13),
     color: '#555',
     textAlign: 'center',
   },
-
   boldAmount: {
-    fontWeight: 'bold', // Make the amount bold
-    fontSize: 16, // Optional, to keep consistent size with other text
+    fontWeight: 'bold',
+    fontSize: ms(16),
   },
 });

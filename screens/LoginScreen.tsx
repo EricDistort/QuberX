@@ -10,12 +10,16 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
+import {
+  scale as s,
+  verticalScale as vs,
+  moderateScale as ms,
+} from 'react-native-size-matters';
 import LinearGradient from 'react-native-linear-gradient';
 import { supabase } from '../utils/supabaseClient';
 import { useUser } from '../utils/UserContext';
-import ScreenWrapper from '../utils/ScreenWrapper'; // <-- import wrapper
-import LottieView from 'lottie-react-native'; // <-- import LottieView
+import ScreenWrapper from '../utils/ScreenWrapper';
+import LottieView from 'lottie-react-native';
 
 type RootStackParamList = {
   Login: undefined;
@@ -31,7 +35,7 @@ export default function LoginRegister() {
   const [loading, setLoading] = useState(false);
 
   const navigateToApp = (userData: any) => {
-    setUser(userData); // store full user row
+    setUser(userData);
     navigation.replace('Main');
   };
 
@@ -77,7 +81,7 @@ export default function LoginRegister() {
     try {
       const { data: user, error } = await supabase
         .from('users')
-        .select('*') // fetch full row
+        .select('*')
         .eq('username', username.trim())
         .maybeSingle();
 
@@ -105,11 +109,10 @@ export default function LoginRegister() {
       <SafeAreaView style={styles.safeArea}>
         {loading && (
           <View style={styles.fullScreenContainer}>
-            {/* Lottie animation that will loop indefinitely */}
             <LottieView
-              source={require('./LoginMedia/loginanimation.json')} // <-- Animation path
+              source={require('./LoginMedia/loginanimation.json')}
               autoPlay
-              loop={true} // Loop indefinitely
+              loop
               style={styles.fullScreenAnimation}
             />
           </View>
@@ -168,7 +171,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: moderateScale(8),
+    padding: ms(8),
   },
   fullScreenContainer: {
     position: 'absolute',
@@ -178,51 +181,55 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1, // Ensure it overlays above other elements
+    zIndex: 1,
   },
   fullScreenAnimation: {
-    width: 620, // Full width
-    height: 620, // Full height
+    width: s(620),
+    height: s(620),
   },
   container: {
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    padding: scale(14),
+    padding: s(14),
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    height: verticalScale(340),
-    width: scale(300),
-    borderRadius: moderateScale(14),
+    height: vs(340),
+    width: s(300),
+    borderRadius: ms(14),
   },
   title: {
-    fontSize: moderateScale(26),
-    marginBottom: verticalScale(22),
+    fontSize: ms(26),
+    marginBottom: vs(22),
     color: 'rgba(39,0,29,0.74)',
     fontWeight: 'bold',
   },
   input: {
     width: '80%',
-    paddingVertical: moderateScale(10),
-    marginBottom: verticalScale(12),
+    paddingVertical: ms(10),
+    marginBottom: vs(12),
     backgroundColor: 'transparent',
     color: 'rgba(36,0,31,0.74)',
-    borderRadius: moderateScale(4),
-    fontSize: moderateScale(17),
+    borderRadius: ms(4),
+    fontSize: ms(17),
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(0,0,0,0.74)',
   },
   button: {
-    padding: moderateScale(14),
-    borderRadius: moderateScale(8),
-    marginTop: verticalScale(12),
+    padding: ms(14),
+    borderRadius: ms(8),
+    marginTop: vs(12),
     alignItems: 'center',
   },
-  btntxt: { color: '#fff', fontWeight: 'bold', fontSize: moderateScale(17) },
+  btntxt: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: ms(17),
+  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '80%',
     alignItems: 'center',
-    marginTop: verticalScale(12),
+    marginTop: vs(12),
   },
 });

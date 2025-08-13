@@ -10,7 +10,11 @@ import {
 import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
 import LinearGradient from 'react-native-linear-gradient';
-import { scale, moderateScale, verticalScale } from 'react-native-size-matters';
+import {
+  scale as s,
+  verticalScale as vs,
+  moderateScale as ms,
+} from 'react-native-size-matters';
 
 export default function ReceiveMoneyScreen() {
   const { user } = useUser();
@@ -18,9 +22,7 @@ export default function ReceiveMoneyScreen() {
   const handleShare = async () => {
     try {
       const message = `Here are my account details:\n\nUsername: ${user?.username}\nAccount No: ${user?.account_number}`;
-      await Share.share({
-        message,
-      });
+      await Share.share({ message });
     } catch (error) {
       console.log('Error sharing:', error);
     }
@@ -65,52 +67,54 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: moderateScale(8),
+    padding: ms(8),
   },
   container: {
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    padding: scale(14),
+    padding: s(14),
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    height: verticalScale(300),
-    width: scale(300),
-    borderRadius: moderateScale(14),
-
-    shadowColor: 'rgba(66, 0, 55, 0.32)', // Shadow color (black)
-    shadowOffset: { width: 0, height: 4 }, // Shadow offset (horizontal, vertical)
-    shadowOpacity: 1, // Shadow transparency (0 is fully transparent, 1 is fully opaque)
-    shadowRadius: 10, // Shadow blur radius
-    // Android shadow properties
-    elevation: 15, // This is the shadow depth for Android
+    height: vs(300),
+    width: s(300),
+    borderRadius: ms(14),
+    shadowColor: 'rgba(66, 0, 55, 0.32)',
+    shadowOffset: { width: 0, height: vs(4) },
+    shadowOpacity: 1,
+    shadowRadius: ms(10),
+    elevation: 15,
   },
   title: {
-    fontSize: moderateScale(26),
-    marginBottom: verticalScale(22),
+    fontSize: ms(26),
+    marginBottom: vs(22),
     color: '#a96bb1ff',
     fontWeight: 'bold',
   },
   infoBox: {
     width: '80%',
-    marginBottom: verticalScale(12),
+    marginBottom: vs(12),
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(0,0,0,0.74)',
-    paddingBottom: verticalScale(6),
+    paddingBottom: vs(6),
   },
   label: {
-    fontSize: moderateScale(14),
+    fontSize: ms(14),
     color: 'grey',
   },
   value: {
-    fontSize: moderateScale(18),
+    fontSize: ms(18),
     fontWeight: 'bold',
     color: 'rgba(36,0,31,0.74)',
   },
   button: {
-    padding: moderateScale(14),
-    borderRadius: moderateScale(8),
-    marginTop: verticalScale(20),
+    padding: ms(14),
+    borderRadius: ms(8),
+    marginTop: vs(20),
     alignItems: 'center',
   },
-  btntxt: { color: '#fff', fontWeight: 'bold', fontSize: moderateScale(17) },
+  btntxt: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: ms(17),
+  },
 });

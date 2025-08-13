@@ -14,7 +14,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
+import { scale as s, verticalScale as vs, moderateScale as ms } from 'react-native-size-matters';
 import ScreenWrapper from '../../utils/ScreenWrapper';
 import { useUser } from '../../utils/UserContext';
 import { supabase } from '../../utils/supabaseClient';
@@ -22,7 +22,6 @@ import Clipboard from '@react-native-clipboard/clipboard';
 
 export default function DepositScreen() {
   const { user } = useUser();
-
   const [walletAddress, setWalletAddress] = useState('');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [txHash, setTxHash] = useState('');
@@ -33,7 +32,6 @@ export default function DepositScreen() {
   const [loadingDeposits, setLoadingDeposits] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Fetch random wallet address & QR code from database via RPC
   const fetchDepositInfo = async () => {
     const { data, error } = await supabase.rpc('get_random_deposit_info');
     if (!error && data && data.length > 0) {
@@ -82,14 +80,13 @@ export default function DepositScreen() {
       Alert.alert('Error', 'Please enter the transaction hash');
       return;
     }
-
     setLoading(true);
     try {
       const { error } = await supabase.from('deposits').insert([
         {
           user_id: user.id,
           tx_hash: txHash.trim(),
-          wallet_address: walletAddress, // add wallet address here
+          wallet_address: walletAddress,
           referrer_account_number: referrer.trim() || null,
         },
       ]);
@@ -213,7 +210,11 @@ export default function DepositScreen() {
             >
               {deposits.length === 0 ? (
                 <Text
-                  style={{ textAlign: 'center', marginTop: 10, color: '#555' }}
+                  style={{
+                    textAlign: 'center',
+                    marginTop: vs(10),
+                    color: '#555',
+                  }}
                 >
                   No deposits found
                 </Text>
@@ -248,55 +249,55 @@ export default function DepositScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, alignItems: 'center', padding: moderateScale(8) },
+  safeArea: { flex: 1, alignItems: 'center', padding: ms(8) },
   container: {
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
-    padding: scale(14),
+    padding: s(14),
     backgroundColor: 'rgba(255, 255, 255, 1)',
-    width: scale(320),
-    borderRadius: moderateScale(14),
-    marginTop: verticalScale(40),
+    width: s(320),
+    borderRadius: ms(14),
+    marginTop: vs(40),
     shadowColor: 'rgba(66, 0, 55, 0.32)',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: vs(4) },
     shadowOpacity: 1,
-    shadowRadius: 10,
+    shadowRadius: ms(10),
     elevation: 15,
   },
   qrContainer: {
-    height: verticalScale(180),
-    width: scale(180),
-    marginBottom: 20,
+    height: vs(180),
+    width: s(180),
+    marginBottom: vs(20),
   },
-  qrImage: { height: '100%', width: '100%', borderRadius: 10 },
+  qrImage: { height: '100%', width: '100%', borderRadius: ms(10) },
   walletRow: { flexDirection: 'row', alignItems: 'center', width: '100%' },
-  walletTextContainer: { flex: 1, paddingHorizontal: 4 },
-  walletText: { color: 'rgba(36,0,31,0.74)', fontSize: 17 },
-  copyButton: { width: scale(80), height: verticalScale(40) },
+  walletTextContainer: { flex: 1, paddingHorizontal: s(4) },
+  walletText: { color: 'rgba(36,0,31,0.74)', fontSize: ms(17) },
+  copyButton: { width: s(80), height: vs(40) },
   input: {
     width: '100%',
-    paddingVertical: 10,
-    marginBottom: 12,
+    paddingVertical: ms(10),
+    marginBottom: vs(12),
     color: 'rgba(36,0,31,0.74)',
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(53, 0, 88, 0.18)',
-    fontSize: 17,
+    fontSize: ms(17),
   },
-  button: { padding: 10, borderRadius: 8, alignItems: 'center' },
-  btntxt: { color: '#fff', fontWeight: 'bold', fontSize: 17 },
-  historyContainer: { width: '95%', marginTop: 20 },
+  button: { padding: ms(10), borderRadius: ms(8), alignItems: 'center' },
+  btntxt: { color: '#fff', fontWeight: 'bold', fontSize: ms(17) },
+  historyContainer: { width: '95%', marginTop: vs(20) },
   historyList: { height: '30%' },
   depositCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.38)',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
+    borderRadius: ms(10),
+    padding: s(12),
+    marginBottom: vs(8),
     flexDirection: 'row',
     justifyContent: 'space-between',
-    height: verticalScale(60),
+    height: vs(60),
   },
-  depositDate: { fontSize: 13, color: '#666' },
-  depositAmount: { fontSize: 16, fontWeight: 'bold', color: '#222' },
-  depositStatus: { fontSize: 15, fontWeight: 'bold', alignSelf: 'center' },
+  depositDate: { fontSize: ms(13), color: '#666' },
+  depositAmount: { fontSize: ms(16), fontWeight: 'bold', color: '#222' },
+  depositStatus: { fontSize: ms(15), fontWeight: 'bold', alignSelf: 'center' },
 });

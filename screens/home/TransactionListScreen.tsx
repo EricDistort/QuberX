@@ -9,6 +9,11 @@ import {
 import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
 import { supabase } from '../../utils/supabaseClient';
+import {
+  scale as s,
+  verticalScale as vs,
+  moderateScale as ms,
+} from 'react-native-size-matters';
 
 export default function TransactionListScreen() {
   const { user } = useUser();
@@ -55,7 +60,7 @@ export default function TransactionListScreen() {
             {otherUser?.username || 'Unknown User'}
           </Text>
           <Text style={[styles.amount, { color: isSent ? 'red' : 'green' }]}>
-            {isSent ? '-' : '+'}${Math.abs(item.amount)}
+            {isSent ? '-' : '+'}₹{Math.abs(item.amount)}
           </Text>
         </View>
         <Text style={styles.subText}>
@@ -78,7 +83,7 @@ export default function TransactionListScreen() {
             data={transactions}
             keyExtractor={item => item.id.toString()}
             renderItem={renderItem}
-            contentContainerStyle={{ paddingBottom: 20 }}
+            contentContainerStyle={{ paddingBottom: vs(20) }}
             showsVerticalScrollIndicator={false}
           />
         )}
@@ -90,20 +95,25 @@ export default function TransactionListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 16,
-    paddingRight: 16,
-    paddingLeft: 16,
-    marginTop: 40,
+    paddingTop: vs(16),
+    paddingRight: s(16),
+    paddingLeft: s(16),
+    marginTop: vs(40),
   },
-  header: { fontSize: 22, fontWeight: 'bold', marginBottom: 12, color: '#222' },
+  header: {
+    fontSize: ms(22),
+    fontWeight: 'bold',
+    marginBottom: vs(12),
+    color: '#222',
+  },
   card: {
     backgroundColor: 'rgba(255, 255, 255, 1)',
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 12,
+    padding: s(14),
+    borderRadius: ms(10),
+    marginBottom: vs(12),
     elevation: 2,
   },
-  username: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-  amount: { fontSize: 18, fontWeight: 'bold' },
-  subText: { fontSize: 14, color: '#555', marginTop: 4 },
+  username: { fontSize: ms(18), fontWeight: 'bold', color: '#333' },
+  amount: { fontSize: ms(18), fontWeight: 'bold' },
+  subText: { fontSize: ms(14), color: '#555', marginTop: vs(3) },
 });

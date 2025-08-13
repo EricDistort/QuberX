@@ -2,9 +2,13 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StatusBar } from 'react-native';
+import { StatusBar, Image } from 'react-native';
+import {
+  scale as s,
+  verticalScale as vs,
+  moderateScale as ms,
+} from 'react-native-size-matters';
 import { UserProvider } from './utils/UserContext';
-import { Image } from 'react-native';
 
 import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/home/HomeScreen';
@@ -63,20 +67,20 @@ function MainTabs() {
         headerShown: false,
         tabBarStyle: {
           position: 'absolute',
-          bottom: 16,
+          bottom: vs(16),
           left: 0,
           right: 0,
           marginHorizontal: '5%',
           elevation: 5,
           backgroundColor: '#fff',
-          borderRadius: 35,
-          height: 70,
-          paddingBottom: 10,
-          paddingTop: 10,
+          borderRadius: ms(35),
+          height: vs(65),
+          paddingBottom: vs(10),
+          paddingTop: vs(10),
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: 10 },
+          shadowOffset: { width: 0, height: vs(10) },
           shadowOpacity: 0.12,
-          shadowRadius: 5,
+          shadowRadius: ms(5),
         },
         tabBarActiveTintColor: '#b679beff',
         tabBarInactiveTintColor: '#a8bac4ff',
@@ -90,8 +94,8 @@ function MainTabs() {
             <Image
               source={require('./screens/tabMedia/deposit.webp')}
               style={{
-                width: 24,
-                height: 24,
+                width: s(24),
+                height: s(24),
                 tintColor: focused ? '#c594ccff' : '#c7d7dfff',
               }}
             />
@@ -104,11 +108,11 @@ function MainTabs() {
         options={{
           tabBarIcon: ({ focused }) => (
             <Image
-              source={require('./screens/tabMedia/home.webp')} // <-- your local path
+              source={require('./screens/tabMedia/home.webp')}
               style={{
-                width: 24,
-                height: 24,
-                tintColor: focused ? '#c594ccff' : '#c7d7dfff', // changes color on focus
+                width: s(24),
+                height: s(24),
+                tintColor: focused ? '#c594ccff' : '#c7d7dfff',
               }}
             />
           ),
@@ -122,8 +126,8 @@ function MainTabs() {
             <Image
               source={require('./screens/tabMedia/withdraw.webp')}
               style={{
-                width: 24,
-                height: 24,
+                width: s(24),
+                height: s(24),
                 tintColor: focused ? '#c594ccff' : '#c7d7dfff',
               }}
             />

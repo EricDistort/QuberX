@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,11 +11,16 @@ import {
   Platform,
   ScrollView,
   Keyboard,
-  ActivityIndicator, // Import ActivityIndicator
+  ActivityIndicator,
 } from 'react-native';
 import { supabase } from '../../utils/supabaseClient';
 import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
+import {
+  scale as s,
+  verticalScale as vs,
+  moderateScale as ms,
+} from 'react-native-size-matters';
 
 export default function SupportScreen() {
   const { user } = useUser();
@@ -23,9 +28,8 @@ export default function SupportScreen() {
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState('');
   const [loadingMessages, setLoadingMessages] = useState(false);
-  const [loading, setLoading] = useState(false); // New loading state
+  const [loading, setLoading] = useState(false);
 
-  // Create a new conversation or fetch existing open one
   const fetchOrCreateConversation = async () => {
     const { data, error } = await supabase
       .from('conversations')
@@ -34,9 +38,7 @@ export default function SupportScreen() {
       .eq('status', 'open')
       .maybeSingle();
 
-    if (error) console.log(error);
-
-    if (data) {
+    if (!error && data) {
       setConversationId(data.id);
       fetchMessages(data.id);
     } else {
@@ -45,9 +47,7 @@ export default function SupportScreen() {
         .insert([{ user_id: user.id }])
         .select()
         .single();
-      if (!newError) {
-        setConversationId(newConv.id);
-      }
+      if (!newError) setConversationId(newConv.id);
     }
   };
 
@@ -59,10 +59,8 @@ export default function SupportScreen() {
       .eq('conversation_id', convId)
       .order('created_at', { ascending: true });
 
-    if (!error) {
-      setMessages(data || []);
-      setLoadingMessages(false);
-    }
+    if (!error) setMessages(data || []);
+    setLoadingMessages(false);
   };
 
   const sendMessage = async () => {
@@ -77,15 +75,14 @@ export default function SupportScreen() {
     ]);
     setInput('');
     fetchMessages(conversationId);
-    Keyboard.dismiss(); // Dismiss the keyboard after sending the message
+    Keyboard.dismiss();
   };
 
-  // Manually trigger the refresh of messages
   const handleManualRefresh = async () => {
     if (conversationId) {
-      setLoading(true); // Set loading state to true when the button is clicked
+      setLoading(true);
       await fetchMessages(conversationId);
-      setLoading(false); // Set loading state to false after the operation is done
+      setLoading(false);
     }
   };
 
@@ -111,7 +108,6 @@ export default function SupportScreen() {
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          {/* Customer Support Header */}
           <View style={styles.headerContainer}>
             <Text style={styles.headerTitle}>Customer Support</Text>
             <TouchableOpacity
@@ -119,7 +115,7 @@ export default function SupportScreen() {
               onPress={handleManualRefresh}
             >
               {loading ? (
-                <ActivityIndicator size="small" color="#fff" /> // Show loading animation when clicked
+                <ActivityIndicator size="small" color="#fff" />
               ) : (
                 <Text style={{ color: '#fff', fontWeight: 'bold' }}>
                   Refresh
@@ -128,17 +124,16 @@ export default function SupportScreen() {
             </TouchableOpacity>
           </View>
 
-          <ScrollView contentContainerStyle={{ flex: 1, borderRadius: 15 }}>
+          <ScrollView contentContainerStyle={{ flex: 1, borderRadius: ms(15) }}>
             <FlatList
               data={messages}
               keyExtractor={item => String(item.id)}
               renderItem={renderItem}
-              contentContainerStyle={{ padding: 10 }}
-              inverted={false} // Display messages from top to bottom
+              contentContainerStyle={{ padding: s(10) }}
+              inverted={false}
             />
           </ScrollView>
 
-          {/* Input Row */}
           <View style={styles.inputRow}>
             <TextInput
               style={styles.input}
@@ -147,7 +142,7 @@ export default function SupportScreen() {
               placeholder="Type your message..."
               placeholderTextColor="#808080ff"
               returnKeyType="send"
-              onSubmitEditing={sendMessage} // Send message when 'send' key is pressed
+              onSubmitEditing={sendMessage}
             />
             <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
               <Text style={{ color: '#fff', fontWeight: 'bold' }}>Send</Text>
@@ -165,48 +160,48 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    marginTop: 40,
+    paddingHorizontal: s(20),
+    paddingVertical: vs(10),
+    marginTop: vs(40),
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: ms(22),
     fontWeight: 'bold',
     color: '#a96bb1ff',
   },
   messageBubble: {
-    padding: 10,
-    borderRadius: 8,
-    marginVertical: 4,
+    padding: s(10),
+    borderRadius: ms(8),
+    marginVertical: vs(4),
     maxWidth: '80%',
   },
   userBubble: { backgroundColor: '#fcecffff', alignSelf: 'flex-end' },
   adminBubble: { backgroundColor: '#ffffffff', alignSelf: 'flex-start' },
-  messageText: { fontSize: 16 },
+  messageText: { fontSize: ms(16) },
   inputRow: {
     flexDirection: 'row',
-    padding: 20,
+    padding: s(20),
   },
   input: {
     flex: 1,
     backgroundColor: '#ffffffff',
-    borderRadius: 50,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginRight: 8,
+    borderRadius: ms(50),
+    paddingHorizontal: s(10),
+    paddingVertical: vs(5),
+    marginRight: s(8),
   },
   sendButton: {
     backgroundColor: '#8CA6DB',
-    paddingHorizontal: 16,
+    paddingHorizontal: s(16),
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 50,
-    height: 40,
+    borderRadius: ms(50),
+    height: vs(40),
   },
   refreshButton: {
     backgroundColor: '#8CA6DB',
-    padding: 10,
-    borderRadius: 50,
+    padding: ms(10),
+    borderRadius: ms(50),
     justifyContent: 'center',
     alignItems: 'center',
   },
