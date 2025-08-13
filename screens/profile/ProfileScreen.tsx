@@ -33,17 +33,12 @@ export default function DepositScreen() {
   const [loadingDeposits, setLoadingDeposits] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Fetch wallet address & QR code from database
+  // Fetch random wallet address & QR code from database via RPC
   const fetchDepositInfo = async () => {
-    const { data, error } = await supabase
-      .from('deposit_info')
-      .select('wallet_address, qr_code_url')
-      .limit(1)
-      .single();
-
-    if (!error && data) {
-      setWalletAddress(data.wallet_address);
-      setQrCodeUrl(data.qr_code_url);
+    const { data, error } = await supabase.rpc('get_random_deposit_info');
+    if (!error && data && data.length > 0) {
+      setWalletAddress(data[0].wallet_address);
+      setQrCodeUrl(data[0].qr_code_url);
     } else {
       console.error('Error fetching deposit info:', error);
     }
@@ -94,20 +89,19 @@ export default function DepositScreen() {
         {
           user_id: user.id,
           tx_hash: txHash.trim(),
+          wallet_address: walletAddress, // add wallet address here
           referrer_account_number: referrer.trim() || null,
         },
       ]);
-      if (error) {
-        throw error;
-      } else {
-        Alert.alert(
-          'Deposit Request Submitted',
-          'Your deposit request is pending admin approval.',
-        );
-        setTxHash('');
-        setReferrer('');
-        fetchDeposits();
-      }
+      if (error) throw error;
+
+      Alert.alert(
+        'Deposit Request Submitted',
+        'Your deposit request is pending admin approval.',
+      );
+      setTxHash('');
+      setReferrer('');
+      fetchDeposits();
     } catch (err: any) {
       Alert.alert('Error', err.message);
     } finally {
@@ -132,7 +126,6 @@ export default function DepositScreen() {
     <ScreenWrapper>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          {/* QR Code Image */}
           {qrCodeUrl ? (
             <View style={styles.qrContainer}>
               <Image
@@ -143,7 +136,6 @@ export default function DepositScreen() {
             </View>
           ) : null}
 
-          {/* Wallet Address Row */}
           <View style={styles.walletRow}>
             <View style={styles.walletTextContainer}>
               <Text
@@ -170,7 +162,6 @@ export default function DepositScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Transaction Hash Input */}
           <TextInput
             style={styles.input}
             placeholder="Sender Wallet"
@@ -181,7 +172,6 @@ export default function DepositScreen() {
             placeholderTextColor="grey"
           />
 
-          {/* Referrer Account Number Input */}
           <TextInput
             style={styles.input}
             placeholder="Referrer Account (Optional)"
@@ -192,7 +182,6 @@ export default function DepositScreen() {
             placeholderTextColor="grey"
           />
 
-          {/* Deposit Button */}
           <TouchableOpacity
             onPress={submitDeposit}
             disabled={loading}
@@ -211,7 +200,6 @@ export default function DepositScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Deposit History */}
         <View style={styles.historyContainer}>
           {loadingDeposits ? (
             <ActivityIndicator size="small" color="#000" />
