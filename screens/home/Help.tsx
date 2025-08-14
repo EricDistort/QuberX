@@ -199,10 +199,12 @@ const styles = StyleSheet.create({
     height: vs(40),
   },
   refreshButton: {
-    backgroundColor: '#8CA6DB',
-    padding: ms(10),
+    backgroundColor: '#b78cdbff',
+    //padding: ms(10),
     borderRadius: ms(50),
     justifyContent: 'center',
     alignItems: 'center',
+    height: vs(30),
+    width: s(70),
   },
 });
