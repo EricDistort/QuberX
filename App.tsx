@@ -82,7 +82,7 @@ function MainTabs() {
           shadowOpacity: 0.12,
           shadowRadius: ms(5),
         },
-        tabBarActiveTintColor: '#b679beff',
+        tabBarActiveTintColor: '#a879beff',
         tabBarInactiveTintColor: '#a8bac4ff',
       }}
     >
@@ -90,48 +90,57 @@ function MainTabs() {
         name="Deposit"
         component={ProfileStackScreen}
         options={{
-          tabBarIcon: ({ focused }) => (
-            <Image
-              source={require('./screens/tabMedia/deposit.webp')}
-              style={{
-                width: s(24),
-                height: s(24),
-                tintColor: focused ? '#c594ccff' : '#c7d7dfff',
-              }}
-            />
-          ),
+          tabBarIcon: ({ focused }) => {
+            const size = focused ? s(24 + 5) : s(24); // Add 5 if focused
+            return (
+              <Image
+                source={require('./screens/tabMedia/store.webp')}
+                style={{
+                  width: size,
+                  height: size,
+                  opacity: focused ? 1 : 0.5, // Full opacity if focused
+                }}
+              />
+            );
+          },
         }}
       />
       <Tab.Screen
         name="Home"
         component={HomeStackScreen}
         options={{
-          tabBarIcon: ({ focused }) => (
-            <Image
-              source={require('./screens/tabMedia/home.webp')}
-              style={{
-                width: s(24),
-                height: s(24),
-                tintColor: focused ? '#c594ccff' : '#c7d7dfff',
-              }}
-            />
-          ),
+          tabBarIcon: ({ focused }) => {
+            const size = focused ? s(24 + 5) : s(24); // Add 5 if focused
+            return (
+              <Image
+                source={require('./screens/tabMedia/home.webp')}
+                style={{
+                  width: size,
+                  height: size,
+                  opacity: focused ? 1 : 0.5, // Full opacity if focused, half if not
+                }}
+              />
+            );
+          },
         }}
       />
       <Tab.Screen
-        name="Withdraw"
+        name="Store"
         component={DetailsStackScreen}
         options={{
-          tabBarIcon: ({ focused }) => (
-            <Image
-              source={require('./screens/tabMedia/withdraw.webp')}
-              style={{
-                width: s(24),
-                height: s(24),
-                tintColor: focused ? '#c594ccff' : '#c7d7dfff',
-              }}
-            />
-          ),
+          tabBarIcon: ({ focused }) => {
+            const size = focused ? s(24 + 5) : s(24); // Add 5 if focused
+            return (
+              <Image
+                source={require('./screens/tabMedia/feed.webp')}
+                style={{
+                  width: size,
+                  height: size,
+                  opacity: focused ? 1 : 0.5, // Full opacity if focused, half if not
+                }}
+              />
+            );
+          },
         }}
       />
     </Tab.Navigator>

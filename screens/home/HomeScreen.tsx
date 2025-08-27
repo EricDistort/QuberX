@@ -184,6 +184,7 @@ export default function HomeScreen({ navigation }: any) {
           </View>
 
           {/* Balance Section */}
+          {/* Replace the current Balance Section in your HomeScreen with this */}
           <View style={styles.secondContainerWrapper}>
             <LottieView
               source={require('../homeMedia/balanceanimation.json')}
@@ -194,19 +195,40 @@ export default function HomeScreen({ navigation }: any) {
             <View style={styles.balanceOverlay}>
               <Text style={styles.balanceSubHeader}>Current Balance</Text>
               <Text style={styles.balanceAmount}>₹{user?.balance || '0'}</Text>
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={styles.actionButton}
-                  onPress={() => navigation.navigate('HomeDetails')}
-                >
-                  <Text style={styles.buttonText}>Send</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.actionButton}
-                  onPress={() => navigation.navigate('HomeRecieve')}
-                >
-                  <Text style={styles.buttonText}>Receive</Text>
-                </TouchableOpacity>
+
+              {/* Four horizontal image buttons */}
+              <View style={styles.fourButtonRow}>
+                {[
+                  {
+                    name: 'Send',
+                    icon: require('../homeMedia/send.webp'),
+                    onPress: () => navigation.navigate('HomeDetails'),
+                  },
+                  {
+                    name: 'Receive',
+                    icon: require('../homeMedia/recieve.webp'),
+                    onPress: () => navigation.navigate('HomeRecieve'),
+                  },
+                  {
+                    name: 'Deposit',
+                    icon: require('../homeMedia/deposit.webp'),
+                    onPress: () => navigation.navigate('DepositScreen'),
+                  },
+                  {
+                    name: 'History',
+                    icon: require('../homeMedia/withdraw.webp'),
+                    onPress: () => navigation.navigate('TransactionList'),
+                  },
+                ].map((btn, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.imageButton}
+                    onPress={btn.onPress}
+                  >
+                    <Image source={btn.icon} style={styles.buttonIcon} />
+                    <Text style={styles.buttonLabel}>{btn.name}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
           </View>
@@ -382,5 +404,26 @@ const styles = StyleSheet.create({
   boldAmount: {
     fontWeight: 'bold',
     fontSize: ms(16),
+  },
+
+  fourButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: vs(-20),
+  },
+  imageButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
+  },
+  buttonIcon: {
+    width: s(50),
+    height: s(45),
+  },
+  buttonLabel: {
+    fontSize: ms(12),
+    color: '#fff',
+    textAlign: 'center',
   },
 });
