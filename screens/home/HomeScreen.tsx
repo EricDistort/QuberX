@@ -199,25 +199,25 @@ export default function HomeScreen({ navigation }: any) {
               {/* Four horizontal image buttons */}
               <View style={styles.fourButtonRow}>
                 {[
+                {
+                  name: 'Deposit',
+                  icon: require('../homeMedia/deposit.webp'),
+                  onPress: () => navigation.navigate('DepositMoney'),
+                },
                   {
                     name: 'Send',
                     icon: require('../homeMedia/send.webp'),
-                    onPress: () => navigation.navigate('HomeDetails'),
+                    onPress: () => navigation.navigate('SendMoney'),
                   },
                   {
                     name: 'Receive',
                     icon: require('../homeMedia/recieve.webp'),
-                    onPress: () => navigation.navigate('HomeRecieve'),
+                    onPress: () => navigation.navigate('RecieveMoney'),
                   },
                   {
-                    name: 'Deposit',
-                    icon: require('../homeMedia/deposit.webp'),
-                    onPress: () => navigation.navigate('DepositScreen'),
-                  },
-                  {
-                    name: 'History',
+                    name: 'Withdraw',
                     icon: require('../homeMedia/withdraw.webp'),
-                    onPress: () => navigation.navigate('TransactionList'),
+                    onPress: () => navigation.navigate('WithdrawalMoney'),
                   },
                 ].map((btn, index) => (
                   <TouchableOpacity

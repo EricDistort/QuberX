@@ -12,50 +12,49 @@ import { UserProvider } from './utils/UserContext';
 
 import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/home/HomeScreen';
-import HomeDetailsScreen from './screens/home/HomeDetailsScreen';
-import HomeRecieveScreen from './screens/home/HomeRecieveScreen';
-import DetailsScreen from './screens/details/DetailsScreen';
-import DetailsInfoScreen from './screens/details/DetailsInfoScreen';
-import ProfileScreen from './screens/profile/ProfileScreen';
-import EditProfileScreen from './screens/profile/EditProfileScreen';
 import TransactionListScreen from './screens/home/TransactionListScreen';
 import Help from './screens/home/Help';
-
+import DepositScreen from './screens/home/DepositScreen';
+import WithdrawalScreen from './screens/home/WithdrawalScreen';
+import FeedScreen from './screens/Feed/FeedScreen';
+import StoreScreen from './screens/Store/StoreMedia/StoreScreen';
+import RecieveMoneyScreen from './screens/home/RecieveMoneyScreen';
+import SendMoneyScreen from './screens/home/SendMoneyScreen';
 const RootStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
-const DetailsStack = createNativeStackNavigator();
-const ProfileStack = createNativeStackNavigator();
+const StoreStack = createNativeStackNavigator();
+const FeedStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function HomeStackScreen() {
   return (
     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
-      <HomeStack.Screen name="HomeDetails" component={HomeDetailsScreen} />
-      <HomeStack.Screen name="HomeRecieve" component={HomeRecieveScreen} />
+      <HomeStack.Screen name="SendMoney" component={SendMoneyScreen} />
+      <HomeStack.Screen name="RecieveMoney" component={RecieveMoneyScreen} />
       <HomeStack.Screen
         name="TransactionList"
         component={TransactionListScreen}
       />
+      <HomeStack.Screen name="DepositMoney" component={DepositScreen} />
+      <HomeStack.Screen name="WithdrawalMoney" component={WithdrawalScreen} />
     </HomeStack.Navigator>
   );
 }
 
-function DetailsStackScreen() {
+function FeedStackScreen() {
   return (
-    <DetailsStack.Navigator screenOptions={{ headerShown: false }}>
-      <DetailsStack.Screen name="DetailsMain" component={DetailsScreen} />
-      <DetailsStack.Screen name="DetailsInfo" component={DetailsInfoScreen} />
-    </DetailsStack.Navigator>
+    <FeedStack.Navigator screenOptions={{ headerShown: false }}>
+      <FeedStack.Screen name="FeedMain" component={FeedScreen} />
+    </FeedStack.Navigator>
   );
 }
 
-function ProfileStackScreen() {
+function StoreStackScreen() {
   return (
-    <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
-      <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
-      <ProfileStack.Screen name="EditProfile" component={EditProfileScreen} />
-    </ProfileStack.Navigator>
+    <StoreStack.Navigator screenOptions={{ headerShown: false }}>
+      <StoreStack.Screen name="StoreMain" component={StoreScreen} />
+    </StoreStack.Navigator>
   );
 }
 
@@ -88,7 +87,7 @@ function MainTabs() {
     >
       <Tab.Screen
         name="Store"
-        component={ProfileStackScreen}
+        component={StoreStackScreen}
         options={{
           tabBarIcon: ({ focused }) => {
             const size = focused ? s(24 + 5) : s(24); // Add 5 if focused
@@ -126,7 +125,7 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Feed"
-        component={DetailsStackScreen}
+        component={FeedStackScreen}
         options={{
           tabBarIcon: ({ focused }) => {
             const size = focused ? s(24 + 5) : s(24); // Add 5 if focused

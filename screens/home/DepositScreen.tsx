@@ -14,7 +14,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { scale as s, verticalScale as vs, moderateScale as ms } from 'react-native-size-matters';
+import {
+  scale as s,
+  verticalScale as vs,
+  moderateScale as ms,
+} from 'react-native-size-matters';
 import ScreenWrapper from '../../utils/ScreenWrapper';
 import { useUser } from '../../utils/UserContext';
 import { supabase } from '../../utils/supabaseClient';
