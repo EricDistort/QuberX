@@ -85,9 +85,9 @@ const styles = StyleSheet.create({
     elevation: 15,
   },
   title: {
-    fontSize: ms(26),
+    fontSize: ms(25),
     marginBottom: vs(22),
-    color: '#a96bb1ff',
+    color: '#612369ff',
     fontWeight: 'bold',
   },
   infoBox: {

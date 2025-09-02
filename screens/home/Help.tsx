@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: ms(22),
     fontWeight: 'bold',
-    color: '#a96bb1ff',
+    color: '#612369ff',
   },
   messageBubble: {
     padding: s(10),

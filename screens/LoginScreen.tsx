@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: ms(26),
     marginBottom: vs(22),
-    color: 'rgba(39,0,29,0.74)',
+    color: '#612369ff',
     fontWeight: 'bold',
   },
   input: {

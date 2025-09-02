@@ -63,6 +63,8 @@ export default function FeedScreen() {
             style={styles.media}
             resizeMode="cover"
             repeat
+            
+            controls={true}
           />
         ) : (
           <Image
@@ -140,7 +142,7 @@ const styles = StyleSheet.create({
   maintitle: {
     fontSize: ms(20),
     marginBottom: vs(10),
-    color: '#a96bb1ff',
+    color: '#612369ff',
     fontWeight: 'bold',
     alignSelf: 'center',
     marginTop: vs(20),
