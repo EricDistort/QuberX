@@ -20,6 +20,7 @@ import FeedScreen from './screens/Feed/FeedScreen';
 import StoreScreen from './screens/Store/StoreMedia/StoreScreen';
 import RecieveMoneyScreen from './screens/home/RecieveMoneyScreen';
 import SendMoneyScreen from './screens/home/SendMoneyScreen';
+import OrderListScreen from './screens/Store/StoreMedia/OrderListScreen';
 const RootStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
 const StoreStack = createNativeStackNavigator();
@@ -54,6 +55,7 @@ function StoreStackScreen() {
   return (
     <StoreStack.Navigator screenOptions={{ headerShown: false }}>
       <StoreStack.Screen name="StoreMain" component={StoreScreen} />
+      <StoreStack.Screen name="OrderList" component={OrderListScreen} />
     </StoreStack.Navigator>
   );
 }
