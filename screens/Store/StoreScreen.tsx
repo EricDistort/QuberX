@@ -12,9 +12,9 @@ import {
   Dimensions,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { supabase } from '../../../utils/supabaseClient';
-import { useUser } from '../../../utils/UserContext';
-import ScreenWrapper from '../../../utils/ScreenWrapper';
+import { supabase } from '../../utils/supabaseClient';
+import { useUser } from '../../utils/UserContext';
+import ScreenWrapper from '../../utils/ScreenWrapper';
 
 const { width } = Dimensions.get('window');
 const cardWidth = width / 2 - 20;
