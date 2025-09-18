@@ -126,7 +126,7 @@ export default function LoginRegister() {
             value={username}
             onChangeText={setUsername}
             autoCapitalize="none"
-            placeholderTextColor="grey"
+            placeholderTextColor="#31175383"
           />
           <TextInput
             placeholder="Password"
@@ -135,29 +135,19 @@ export default function LoginRegister() {
             secureTextEntry
             onChangeText={setPassword}
             autoCapitalize="none"
-            placeholderTextColor="grey"
+            placeholderTextColor="#31175383"
           />
 
           <View style={styles.buttonContainer}>
-            <TouchableOpacity onPress={handleLogin} style={{ width: '48%' }}>
-              <LinearGradient
-                colors={['#8CA6DB', '#B993D6']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.button}
-              >
+            <TouchableOpacity onPress={handleLogin} style={styles.button}>
+             
                 <Text style={styles.btntxt}>Login</Text>
-              </LinearGradient>
+             
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleRegister} style={{ width: '48%' }}>
-              <LinearGradient
-                colors={['#8CA6DB', '#B993D6']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.button}
-              >
+            <TouchableOpacity onPress={handleRegister} style={styles.button}>
+             
                 <Text style={styles.btntxt}>Register</Text>
-              </LinearGradient>
+              
             </TouchableOpacity>
           </View>
         </View>
@@ -200,7 +190,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: ms(26),
     marginBottom: vs(22),
-    color: '#612369ff',
+    color: '#452966ff',
     fontWeight: 'bold',
   },
   input: {
@@ -208,17 +198,19 @@ const styles = StyleSheet.create({
     paddingVertical: ms(10),
     marginBottom: vs(12),
     backgroundColor: 'transparent',
-    color: 'rgba(36,0,31,0.74)',
+    color: '#452966ff',
     borderRadius: ms(4),
     fontSize: ms(17),
     borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0,0,0,0.74)',
+    borderBottomColor: '#452966ff',
   },
   button: {
     padding: ms(14),
     borderRadius: ms(8),
     marginTop: vs(12),
     alignItems: 'center',
+    backgroundColor: '#452966ff',
+    width: '48%',
   },
   btntxt: {
     color: '#fff',

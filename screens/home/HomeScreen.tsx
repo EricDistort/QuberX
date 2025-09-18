@@ -186,12 +186,7 @@ export default function HomeScreen({ navigation }: any) {
           {/* Balance Section */}
           {/* Replace the current Balance Section in your HomeScreen with this */}
           <View style={styles.secondContainerWrapper}>
-            <LottieView
-              source={require('../homeMedia/balanceanimation.json')}
-              style={[styles.secondContainer, { opacity: 0.7 }]}
-              autoPlay
-              loop
-            />
+            
             <View style={styles.balanceOverlay}>
               <Text style={styles.balanceSubHeader}>Current Balance</Text>
               <Text style={styles.balanceAmount}>₹{user?.balance || '0'}</Text>
@@ -319,13 +314,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginTop: vs(-32),
     borderRadius: ms(20),
+    backgroundColor: '#452966ff',
+    shadowColor: 'rgba(40, 0, 85, 1)',
+    shadowOffset: { width: 0, height: vs(4) },
+    shadowOpacity: 1,
+    shadowRadius: ms(10),
+    elevation: 10,
   },
-  secondContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: s(500),
-    height: s(500),
-  },
+ 
   balanceOverlay: {
     position: 'absolute',
     top: 0,

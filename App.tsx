@@ -83,7 +83,7 @@ function MainTabs() {
           shadowOpacity: 0.12,
           shadowRadius: ms(5),
         },
-        tabBarActiveTintColor: '#a879beff',
+        tabBarActiveTintColor: '#6c4994ff',
         tabBarInactiveTintColor: '#a8bac4ff',
       }}
     >
@@ -100,6 +100,7 @@ function MainTabs() {
                   width: size,
                   height: size,
                   opacity: focused ? 1 : 0.5, // Full opacity if focused
+                  tintColor: '#58377eff',
                 }}
               />
             );
@@ -119,6 +120,7 @@ function MainTabs() {
                   width: size,
                   height: size,
                   opacity: focused ? 1 : 0.5, // Full opacity if focused, half if not
+                  tintColor: '#58377eff',
                 }}
               />
             );
@@ -138,6 +140,7 @@ function MainTabs() {
                   width: size,
                   height: size,
                   opacity: focused ? 1 : 0.5, // Full opacity if focused, half if not
+                  tintColor: '#58377eff',
                 }}
               />
             );

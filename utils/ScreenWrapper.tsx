@@ -1,18 +1,14 @@
 import React from 'react';
-import { ImageBackground, StyleSheet } from 'react-native';
+import { ImageBackground, StyleSheet, View } from 'react-native';
 
 export default function ScreenWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <ImageBackground
-      source={require('../screens/LoginMedia/background.png')}
-      style={styles.background}
-      resizeMode="cover"
-    >
+    <View style={styles.background}>
       {children}
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  background: { flex: 1, width: '100%', height: '100%' },
+  background: { flex: 1, width: '100%', height: '100%', backgroundColor: '#ded0ffff' },
 });
