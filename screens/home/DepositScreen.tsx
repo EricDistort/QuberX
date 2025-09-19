@@ -152,14 +152,9 @@ export default function DepositScreen() {
               style={styles.copyButton}
               disabled={!walletAddress}
             >
-              <LinearGradient
-                colors={['#8CA6DB', '#B993D6']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.button}
-              >
+              <View style={styles.button}>
                 <Text style={styles.btntxt}>Copy</Text>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           </View>
 
@@ -188,16 +183,11 @@ export default function DepositScreen() {
             disabled={loading}
             style={{ width: '100%' }}
           >
-            <LinearGradient
-              colors={loading ? ['#b0bcd6', '#b0bcd6'] : ['#8CA6DB', '#B993D6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[styles.button, loading && { opacity: 0.6 }]}
-            >
+            <View style={[styles.button, loading && { opacity: 0.6 }]}>
               <Text style={styles.btntxt}>
                 {loading ? 'Submitting...' : 'Deposit'}
               </Text>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -263,7 +253,7 @@ const styles = StyleSheet.create({
     width: s(320),
     borderRadius: ms(14),
     marginTop: vs(40),
-    shadowColor: 'rgba(66, 0, 55, 0.32)',
+    shadowColor: 'rgba(66, 0, 55, 0.45)',
     shadowOffset: { width: 0, height: vs(4) },
     shadowOpacity: 1,
     shadowRadius: ms(10),
@@ -288,7 +278,12 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(53, 0, 88, 0.18)',
     fontSize: ms(17),
   },
-  button: { padding: ms(10), borderRadius: ms(8), alignItems: 'center' },
+  button: {
+    padding: ms(10),
+    borderRadius: ms(8),
+    alignItems: 'center',
+    backgroundColor: '#6c4994ff',
+  },
   btntxt: { color: '#fff', fontWeight: 'bold', fontSize: ms(17) },
   historyContainer: { width: '95%', marginTop: vs(20) },
   historyList: { height: '30%' },
