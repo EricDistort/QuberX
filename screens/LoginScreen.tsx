@@ -32,6 +32,7 @@ export default function LoginRegister() {
   const { setUser } = useUser();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [referrerAcc, setReferrerAcc] = useState('');
   const [loading, setLoading] = useState(false);
 
   const navigateToApp = (userData: any) => {
@@ -42,6 +43,7 @@ export default function LoginRegister() {
   const handleRegister = async () => {
     if (!username.trim() || !password.trim())
       return Alert.alert('Fill all fields');
+
     setLoading(true);
     try {
       const { data: existingUser, error: fetchError } = await supabase
@@ -56,10 +58,29 @@ export default function LoginRegister() {
         return Alert.alert('User already exists');
       }
 
+      let referrerAccount: number | null = null;
+      if (referrerAcc.trim()) {
+        const { data: refUser } = await supabase
+          .from('users')
+          .select('account_number')
+          .eq('account_number', referrerAcc.trim())
+          .maybeSingle();
+        if (!refUser) {
+          setLoading(false);
+          return Alert.alert('Invalid Referrer Account Number');
+        }
+        referrerAccount = refUser.account_number;
+      }
+
       const { data: insertedUser, error: insertError } = await supabase
         .from('users')
         .insert([
-          { username: username.trim(), password: password.trim(), balance: 0 },
+          {
+            username: username.trim(),
+            password: password.trim(),
+            balance: 0,
+            referrer_account_number: referrerAccount,
+          },
         ])
         .select('*')
         .single();
@@ -117,40 +138,52 @@ export default function LoginRegister() {
             />
           </View>
         )}
-        <View style={styles.container}>
-          <Text style={styles.title}>Login / Register</Text>
+        <LinearGradient
+          colors={['#00c6ff', '#ff00ff']}
+          style={{
+            padding: ms(2),
+            borderRadius: ms(14),
+          }}
+        >
+          <View style={styles.container}>
+            <Text style={styles.title}>Login / Register</Text>
 
-          <TextInput
-            placeholder="Username"
-            style={styles.input}
-            value={username}
-            onChangeText={setUsername}
-            autoCapitalize="none"
-            placeholderTextColor="#31175383"
-          />
-          <TextInput
-            placeholder="Password"
-            style={styles.input}
-            value={password}
-            secureTextEntry
-            onChangeText={setPassword}
-            autoCapitalize="none"
-            placeholderTextColor="#31175383"
-          />
+            <TextInput
+              placeholder="Username"
+              style={styles.input}
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+              placeholderTextColor="#00c8ff56"
+            />
+            <TextInput
+              placeholder="Password"
+              style={styles.input}
+              value={password}
+              secureTextEntry
+              onChangeText={setPassword}
+              autoCapitalize="none"
+              placeholderTextColor="#00c8ff56"
+            />
+            <TextInput
+              placeholder="Referrer Account Number"
+              style={styles.input}
+              value={referrerAcc}
+              onChangeText={setReferrerAcc}
+              keyboardType="numeric"
+              placeholderTextColor="#00c8ff56"
+            />
 
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity onPress={handleLogin} style={styles.button}>
-             
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity onPress={handleLogin} style={styles.button}>
                 <Text style={styles.btntxt}>Login</Text>
-             
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleRegister} style={styles.button}>
-             
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleRegister} style={styles.button}>
                 <Text style={styles.btntxt}>Register</Text>
-              
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </LinearGradient>
       </SafeAreaView>
     </ScreenWrapper>
   );
@@ -182,15 +215,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     padding: s(14),
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    height: vs(340),
+    backgroundColor: 'black',
+    height: vs(380),
     width: s(300),
     borderRadius: ms(14),
+    borderWidth: ms(2),
+    borderColor: 'transparent',
+    overflow: 'hidden',
   },
   title: {
     fontSize: ms(26),
     marginBottom: vs(22),
-    color: '#452966ff',
+    color: '#00c6ff',
     fontWeight: 'bold',
   },
   input: {
@@ -198,18 +234,18 @@ const styles = StyleSheet.create({
     paddingVertical: ms(10),
     marginBottom: vs(12),
     backgroundColor: 'transparent',
-    color: '#452966ff',
+    color: '#00c6ff',
     borderRadius: ms(4),
     fontSize: ms(17),
     borderBottomWidth: 0.5,
-    borderBottomColor: '#452966ff',
+    borderBottomColor: '#00c8ff7e',
   },
   button: {
     padding: ms(14),
     borderRadius: ms(8),
     marginTop: vs(12),
     alignItems: 'center',
-    backgroundColor: '#452966ff',
+    backgroundColor: '#ff00ffbd',
     width: '48%',
   },
   btntxt: {

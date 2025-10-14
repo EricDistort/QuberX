@@ -19,60 +19,66 @@ import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { supabase } from '../../utils/supabaseClient';
-import LottieView from 'lottie-react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
 export default function HomeScreen({ navigation }: any) {
   const { user, setUser } = useUser();
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [traders, setTraders] = useState<any[]>([]);
+  const [loadingTraders, setLoadingTraders] = useState(false);
 
   const fetchUserData = async () => {
     const { data, error } = await supabase
       .from('users')
-      .select('balance, profileImage, username, account_number')
+      .select(
+        'balance, profileImage, username, account_number, direct_business',
+      )
       .eq('id', user.id)
       .single();
-    if (!error && data) {
-      setUser({ ...user, ...data });
-    }
+    if (!error && data) setUser({ ...user, ...data });
   };
 
-  const fetchTransactions = async () => {
-    if (!user?.account_number) return;
-    setLoadingTransactions(true);
+  const fetchTraders = async () => {
+    setLoadingTraders(true);
     const { data, error } = await supabase
-      .from('transactions')
-      .select(
-        `
-        id,
-        sender_acc,
-        receiver_acc,
-        amount,
-        created_at,
-        sender:sender_acc(username, account_number),
-        receiver:receiver_acc(username, account_number)
-      `,
-      )
-      .or(
-        `sender_acc.eq.${user.account_number},receiver_acc.eq.${user.account_number}`,
-      )
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    if (!error) setTransactions(data || []);
-    setLoadingTransactions(false);
+      .from('fake_traders')
+      .select('id, name, image_url, designation');
+    if (!error && data) {
+      const initialized = data.map(t => ({
+        ...t,
+        amount: Math.floor(Math.random() * 1000) + 100,
+        trend: 'up',
+      }));
+      setTraders(initialized);
+    }
+    setLoadingTraders(false);
   };
 
   useEffect(() => {
     fetchUserData();
-    fetchTransactions();
+    fetchTraders();
+
+    const interval = setInterval(() => {
+      setTraders(prev =>
+        prev.map(t => {
+          const change = (Math.random() * 20 - 10).toFixed(2);
+          const newAmount = Math.max(0, t.amount + Number(change));
+          return {
+            ...t,
+            amount: newAmount,
+            trend: Number(change) >= 0 ? 'up' : 'down',
+          };
+        }),
+      );
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, [user?.account_number]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await fetchUserData();
-    await fetchTransactions();
+    await fetchTraders();
     setRefreshing(false);
   }, [user?.account_number]);
 
@@ -137,7 +143,7 @@ export default function HomeScreen({ navigation }: any) {
                   borderRadius: ms(30),
                   marginRight: s(12),
                   borderWidth: s(2),
-                  borderColor: 'rgba(248, 235, 255, 1)',
+                  borderColor: '#00c6ff',
                   justifyContent: 'center',
                   alignItems: 'center',
                   backgroundColor: user?.profileImage ? 'transparent' : 'grey',
@@ -165,6 +171,7 @@ export default function HomeScreen({ navigation }: any) {
                 )}
               </View>
             </TouchableOpacity>
+
             <View style={styles.userInfo}>
               <Text style={styles.name}>{user?.username || 'Guest User'}</Text>
               <Text style={styles.accountNumber}>
@@ -184,102 +191,111 @@ export default function HomeScreen({ navigation }: any) {
           </View>
 
           {/* Balance Section */}
-          {/* Replace the current Balance Section in your HomeScreen with this */}
           <View style={styles.secondContainerWrapper}>
-            
-            <View style={styles.balanceOverlay}>
-              <Text style={styles.balanceSubHeader}>Current Balance</Text>
-              <Text style={styles.balanceAmount}>₹{user?.balance || '0'}</Text>
+            <LinearGradient
+              colors={['#00c6ff', '#ff00ff']}
+              start={{ x: 0, y: 1 }}
+              end={{ x: 1, y: 0 }}
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: ms(20),
+                alignSelf: 'center',
+              }}
+            >
+              <View style={styles.balanceOverlay}>
+                <Text style={styles.balanceSubHeader}>Current Balance</Text>
+                <Text style={styles.balanceAmount}>
+                  ${user?.balance || '0'}
+                </Text>
 
-              {/* Four horizontal image buttons */}
-              <View style={styles.fourButtonRow}>
-                {[
-                {
-                  name: 'Deposit',
-                  icon: require('../homeMedia/deposit.webp'),
-                  onPress: () => navigation.navigate('DepositMoney'),
-                },
-                  {
-                    name: 'Send',
-                    icon: require('../homeMedia/send.webp'),
-                    onPress: () => navigation.navigate('SendMoney'),
-                  },
-                  {
-                    name: 'Receive',
-                    icon: require('../homeMedia/recieve.webp'),
-                    onPress: () => navigation.navigate('RecieveMoney'),
-                  },
-                  {
-                    name: 'Withdraw',
-                    icon: require('../homeMedia/withdraw.webp'),
-                    onPress: () => navigation.navigate('WithdrawalMoney'),
-                  },
-                ].map((btn, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.imageButton}
-                    onPress={btn.onPress}
-                  >
-                    <Image source={btn.icon} style={styles.buttonIcon} />
-                    <Text style={styles.buttonLabel}>{btn.name}</Text>
-                  </TouchableOpacity>
-                ))}
+                <View style={styles.fourButtonRow}>
+                  {[
+                    {
+                      name: 'Deposit',
+                      icon: require('../homeMedia/deposit.webp'),
+                      onPress: () => navigation.navigate('DepositMoney'),
+                    },
+                    {
+                      name: 'Rewards',
+                      icon: require('../homeMedia/send.webp'),
+                      onPress: () => navigation.navigate('SendMoney'),
+                    },
+                    {
+                      name: 'News',
+                      icon: require('../homeMedia/recieve.webp'),
+                      onPress: () => navigation.navigate('RecieveMoney'),
+                    },
+                    {
+                      name: 'Withdraw',
+                      icon: require('../homeMedia/withdraw.webp'),
+                      onPress: () => navigation.navigate('WithdrawalMoney'),
+                    },
+                  ].map((btn, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.imageButton}
+                      onPress={btn.onPress}
+                    >
+                      <Image source={btn.icon} style={styles.buttonIcon} />
+                      <Text style={styles.buttonLabel}>{btn.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-            </View>
+            </LinearGradient>
           </View>
 
           <Text style={styles.withdrawableText}>
-            Total Referrals{' '}
-            <Text style={styles.boldAmount}>₹{user?.referrals || 0}</Text>
+            Direct Business{' '}
+            <Text style={styles.boldAmount}>₹{user?.direct_business || 0}</Text>
           </Text>
 
-          {/* Transactions */}
+          {/* Live Traders Section */}
           <View style={styles.thirdContainer}>
-            <View style={styles.transactionsHeader}>
-              <Text style={styles.transactionsTitle}>Transactions</Text>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('TransactionList')}
-              >
-                <Text style={styles.seeAll}>See All</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.transactionsTitle}>Live Traders</Text>
 
-            {loadingTransactions ? (
-              <ActivityIndicator size="small" color="#000" />
+            {loadingTraders ? (
+              <ActivityIndicator size="small" color="#00c6ff" />
             ) : (
               <ScrollView
-                style={styles.transactionsList}
+                contentContainerStyle={{ alignItems: 'center' }}
                 showsVerticalScrollIndicator={false}
               >
-                {transactions.map(tx => {
-                  const isSent = tx.sender_acc === user.account_number;
-                  const otherUser = isSent ? tx.receiver : tx.sender;
-                  const transactionDate = new Date(tx.created_at);
-                  const formattedDate = `${transactionDate.getDate()}/${
-                    transactionDate.getMonth() + 1
-                  }/${transactionDate.getFullYear()}`;
-
-                  return (
-                    <View key={tx.id} style={styles.transactionCard}>
-                      <View>
-                        <Text style={styles.transactionName}>
-                          {otherUser?.username || 'Unknown User'}
-                        </Text>
-                        <Text style={styles.transactionAccount}>
-                          Date {formattedDate}
+                {traders.map(trader => (
+                  <View key={trader.id} style={styles.traderCard}>
+                    <View
+                      style={{ flexDirection: 'row', alignItems: 'center' }}
+                    >
+                      <Image
+                        source={{ uri: trader.image_url }}
+                        style={styles.traderImage}
+                      />
+                      <View
+                        style={{
+                          alignItems: 'center',
+                          backgroundColor: 'transparent',
+                        }}
+                      >
+                        <Text style={styles.traderName}>{trader.name}</Text>
+                        <Text style={styles.traderDesignation}>
+                          {trader.designation}
                         </Text>
                       </View>
-                      <Text
-                        style={[
-                          styles.transactionAmount,
-                          { color: isSent ? 'red' : 'green' },
-                        ]}
-                      >
-                        {isSent ? '-' : '+'}₹{Math.abs(tx.amount)}
-                      </Text>
                     </View>
-                  );
-                })}
+                    <Text
+                      style={[
+                        styles.traderAmount,
+                        {
+                          color: trader.trend === 'up' ? 'green' : 'red',
+                        },
+                      ]}
+                    >
+                      {trader.trend === 'up' ? '▲' : '▼'}$
+                      {trader.amount.toFixed(2)}
+                    </Text>
+                  </View>
+                ))}
               </ScrollView>
             )}
           </View>
@@ -290,12 +306,7 @@ export default function HomeScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: vs(5),
-  },
+  container: { flex: 1, alignItems: 'center', paddingVertical: vs(5) },
   firstContainer: {
     width: '95%',
     height: '23%',
@@ -304,9 +315,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: s(15),
   },
   userInfo: { flex: 1 },
-  name: { fontSize: ms(18), fontWeight: 'bold', color: '#222222ff' },
-  accountNumber: { fontSize: ms(14), color: '#555', marginTop: vs(2) },
+  name: { fontSize: ms(18), fontWeight: 'bold', color: '#f3fcffff' },
+  accountNumber: { fontSize: ms(14), color: '#afeeff8c', marginTop: vs(2) },
   editButton: { padding: ms(8) },
+  editImage: { width: s(30), height: s(30), resizeMode: 'contain' },
   secondContainerWrapper: {
     width: '92%',
     height: '30%',
@@ -314,14 +326,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginTop: vs(-32),
     borderRadius: ms(20),
-    backgroundColor: '#452966ff',
+    backgroundColor: '#000',
     shadowColor: 'rgba(40, 0, 85, 1)',
     shadowOffset: { width: 0, height: vs(4) },
     shadowOpacity: 1,
     shadowRadius: ms(10),
     elevation: 10,
+    borderColor: '#00c6ff',
+    borderWidth: ms(1),
   },
- 
   balanceOverlay: {
     position: 'absolute',
     top: 0,
@@ -339,87 +352,52 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginBottom: vs(20),
   },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    width: '100%',
-  },
-  actionButton: {
-    backgroundColor: '#fff',
-    width: s(120),
-    height: vs(40),
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: ms(50),
-    marginHorizontal: s(5),
-  },
-  buttonText: {
-    color: 'rgba(82, 82, 82, 1)',
-    fontWeight: 'bold',
-    fontSize: ms(16),
-  },
-  thirdContainer: {
-    width: '95%',
-    height: '44%',
-    borderRadius: ms(12),
-    padding: s(10),
-    overflow: 'hidden',
-    marginBottom: vs(30),
-  },
-  transactionsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: vs(10),
-  },
-  transactionsTitle: { fontSize: ms(18), fontWeight: 'bold', color: '#333' },
-  seeAll: { fontSize: ms(14), color: '#7e7e7eff' },
-  transactionsList: { height: vs(80) },
-  transactionCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.38)',
-    borderRadius: ms(10),
-    padding: s(12),
-    marginBottom: vs(8),
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  transactionName: { fontSize: ms(16), fontWeight: 'bold', color: '#222' },
-  transactionAccount: { fontSize: ms(13), color: '#666' },
-  transactionAmount: {
-    fontSize: ms(16),
-    fontWeight: 'bold',
-    alignSelf: 'center',
-  },
-  editImage: { width: s(30), height: s(30), resizeMode: 'contain' },
-  withdrawableText: {
-    marginTop: vs(8),
-    marginBottom: vs(5),
-    fontSize: ms(13),
-    color: '#555',
-    textAlign: 'center',
-  },
-  boldAmount: {
-    fontWeight: 'bold',
-    fontSize: ms(16),
-  },
-
   fourButtonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
     marginBottom: vs(-20),
   },
-  imageButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    flex: 1,
-  },
-  buttonIcon: {
-    width: s(50),
-    height: s(45),
-  },
-  buttonLabel: {
-    fontSize: ms(12),
-    color: '#fff',
+  imageButton: { justifyContent: 'center', alignItems: 'center', flex: 1 },
+  buttonIcon: { width: s(50), height: s(45) },
+  buttonLabel: { fontSize: ms(12), color: '#fff', textAlign: 'center' },
+  withdrawableText: {
+    marginTop: vs(8),
+    marginBottom: vs(5),
+    fontSize: ms(13),
+    color: '#a5a5a5ff',
     textAlign: 'center',
   },
+  boldAmount: { fontWeight: 'bold', fontSize: ms(16), color: '#fff' },
+  thirdContainer: {
+    width: '98%',
+    borderRadius: ms(12),
+    padding: s(10),
+    marginBottom: vs(30),
+  },
+  transactionsTitle: {
+    fontSize: ms(18),
+    fontWeight: 'bold',
+    color: '#00c6ff',
+    marginBottom: vs(10),
+  },
+  traderCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: ms(10),
+    padding: s(10),
+    marginBottom: vs(10),
+    width: '100%',
+  },
+  traderImage: {
+    width: s(50),
+    height: s(50),
+    borderRadius: ms(30),
+    marginRight: s(10),
+  },
+  traderName: { fontSize: ms(15), fontWeight: 'bold', color: '#fff' },
+  traderDesignation: { fontSize: ms(13), color: '#aaa' },
+  traderAmount: { fontSize: ms(15), fontWeight: 'bold', marginTop: vs(4) },
 });

@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StatusBar, Image } from 'react-native';
+import { StatusBar, Image, View } from 'react-native';
 import {
   scale as s,
   verticalScale as vs,
@@ -21,6 +21,7 @@ import StoreScreen from './screens/Store/StoreScreen';
 import RecieveMoneyScreen from './screens/home/RecieveMoneyScreen';
 import SendMoneyScreen from './screens/home/SendMoneyScreen';
 import OrderListScreen from './screens/Store/OrderListScreen';
+import { LinearGradient } from 'react-native-linear-gradient';
 const RootStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
 const StoreStack = createNativeStackNavigator();
@@ -31,12 +32,9 @@ function HomeStackScreen() {
   return (
     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
-      <HomeStack.Screen name="SendMoney" component={SendMoneyScreen} />
-      <HomeStack.Screen name="RecieveMoney" component={RecieveMoneyScreen} />
-      <HomeStack.Screen
-        name="TransactionList"
-        component={TransactionListScreen}
-      />
+      <HomeStack.Screen name="SendMoney" component={StoreScreen} />
+      <HomeStack.Screen name="RecieveMoney" component={FeedScreen} />
+     
       <HomeStack.Screen name="DepositMoney" component={DepositScreen} />
       <HomeStack.Screen name="WithdrawalMoney" component={WithdrawalScreen} />
     </HomeStack.Navigator>
@@ -46,7 +44,7 @@ function HomeStackScreen() {
 function FeedStackScreen() {
   return (
     <FeedStack.Navigator screenOptions={{ headerShown: false }}>
-      <FeedStack.Screen name="FeedMain" component={FeedScreen} />
+      <FeedStack.Screen name="FeedMain" component={TransactionListScreen} />
     </FeedStack.Navigator>
   );
 }
@@ -54,102 +52,122 @@ function FeedStackScreen() {
 function StoreStackScreen() {
   return (
     <StoreStack.Navigator screenOptions={{ headerShown: false }}>
-      <StoreStack.Screen name="StoreMain" component={StoreScreen} />
-      <StoreStack.Screen name="OrderList" component={OrderListScreen} />
+      <StoreStack.Screen name="StoreMain" component={SendMoneyScreen} />
+      
     </StoreStack.Navigator>
   );
 }
 
 function MainTabs() {
   return (
-    <Tab.Navigator
-      initialRouteName="Home"
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          position: 'absolute',
-          bottom: vs(16),
-          left: 0,
-          right: 0,
-          marginHorizontal: '5%',
-          elevation: 5,
-          backgroundColor: '#fff',
-          borderRadius: ms(35),
-          height: vs(65),
-          paddingBottom: vs(10),
+    <View style={{ flex: 1 }}>
+      <Tab.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: {
+            position: 'absolute',
+            bottom: vs(16),
+            left: 0,
+            right: 0,
+            height: vs(65),
+            backgroundColor: 'rgba(0, 0, 0, 1)',
+            borderRadius: ms(35),
+            borderWidth: ms(2),
+            borderColor: 'transparent',
+            overflow: 'hidden',
+            elevation: 5,
+            marginHorizontal: '5%',
+            paddingBottom: vs(10),
           paddingTop: vs(10),
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: vs(10) },
-          shadowOpacity: 0.12,
-          shadowRadius: ms(5),
-        },
-        tabBarActiveTintColor: '#6c4994ff',
-        tabBarInactiveTintColor: '#a8bac4ff',
-      }}
-    >
-      <Tab.Screen
-        name="Store"
-        component={StoreStackScreen}
-        options={{
-          tabBarIcon: ({ focused }) => {
-            const size = focused ? s(24 + 5) : s(24); // Add 5 if focused
-            return (
-              <Image
-                source={require('./screens/tabMedia/store.webp')}
+          },
+          tabBarBackground: () => (
+            <LinearGradient
+              colors={['#00c6ff', '#ff00ff']}
+              style={{
+                flex: 1,
+                borderRadius: ms(35),
+                padding: ms(2),
+              }}
+            >
+              <View
                 style={{
-                  width: size,
-                  height: size,
-                  opacity: focused ? 1 : 0.5, // Full opacity if focused
-                  tintColor: '#58377eff',
+                  flex: 1,
+                  backgroundColor: 'rgba(0, 0, 0, 1)',
+                  borderRadius: ms(35),
                 }}
               />
-            );
-          },
+            </LinearGradient>
+          ),
+          tabBarActiveTintColor: '#00c6ff',
+          tabBarInactiveTintColor: '#00c8ff77',
         }}
-      />
-      <Tab.Screen
-        name="Home"
-        component={HomeStackScreen}
-        options={{
-          tabBarIcon: ({ focused }) => {
-            const size = focused ? s(24 + 5) : s(24); // Add 5 if focused
-            return (
-              <Image
-                source={require('./screens/tabMedia/home.webp')}
-                style={{
-                  width: size,
-                  height: size,
-                  opacity: focused ? 1 : 0.5, // Full opacity if focused, half if not
-                  tintColor: '#58377eff',
-                }}
-              />
-            );
-          },
-        }}
-      />
-      <Tab.Screen
-        name="Feed"
-        component={FeedStackScreen}
-        options={{
-          tabBarIcon: ({ focused }) => {
-            const size = focused ? s(24 + 5) : s(24); // Add 5 if focused
-            return (
-              <Image
-                source={require('./screens/tabMedia/feed.webp')}
-                style={{
-                  width: size,
-                  height: size,
-                  opacity: focused ? 1 : 0.5, // Full opacity if focused, half if not
-                  tintColor: '#58377eff',
-                }}
-              />
-            );
-          },
-        }}
-      />
-    </Tab.Navigator>
+      >
+        <Tab.Screen
+          name="Store"
+          component={StoreStackScreen}
+          options={{
+            tabBarIcon: ({ focused }) => {
+              const size = focused ? s(29) : s(24);
+              return (
+                <Image
+                  source={require('./screens/tabMedia/store.webp')}
+                  style={{
+                    width: size,
+                    height: size,
+                    tintColor: '#00c6ff',
+                    opacity: focused ? 1 : 0.5,
+                  }}
+                />
+              );
+            },
+          }}
+        />
+        <Tab.Screen
+          name="Home"
+          component={HomeStackScreen}
+          options={{
+            tabBarIcon: ({ focused }) => {
+              const size = focused ? s(29) : s(24);
+              return (
+                <Image
+                  source={require('./screens/tabMedia/home.webp')}
+                  style={{
+                    width: size,
+                    height: size,
+                    tintColor: '#00c6ff',
+                    opacity: focused ? 1 : 0.5,
+                  }}
+                />
+              );
+            },
+          }}
+        />
+        <Tab.Screen
+          name="Feed"
+          component={FeedStackScreen}
+          options={{
+            tabBarIcon: ({ focused }) => {
+              const size = focused ? s(29) : s(24);
+              return (
+                <Image
+                  source={require('./screens/tabMedia/feed.webp')}
+                  style={{
+                    width: size,
+                    height: size,
+                    tintColor: '#00c6ff',
+                    opacity: focused ? 1 : 0.5,
+                  }}
+                />
+              );
+            },
+          }}
+        />
+      </Tab.Navigator>
+    </View>
   );
 }
+
 
 export default function App() {
   return (

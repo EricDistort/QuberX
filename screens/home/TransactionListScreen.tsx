@@ -59,8 +59,8 @@ export default function TransactionListScreen() {
           <Text style={styles.username}>
             {otherUser?.username || 'Unknown User'}
           </Text>
-          <Text style={[styles.amount, { color: isSent ? 'red' : 'green' }]}>
-            {isSent ? '-' : '+'}₹{Math.abs(item.amount)}
+          <Text style={[styles.amount, { color: isSent ? 'red' : '#00c6ff' }]}>
+            {isSent ? '-' : '+'}${Math.abs(item.amount)}
           </Text>
         </View>
         <Text style={styles.subText}>
@@ -104,16 +104,18 @@ const styles = StyleSheet.create({
     fontSize: ms(22),
     fontWeight: 'bold',
     marginBottom: vs(12),
-    color: '#222',
+    color: '#00c6ff',
   },
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 1)',
+    backgroundColor: 'rgba(0, 0, 0, 1)',
     padding: s(14),
     borderRadius: ms(10),
     marginBottom: vs(12),
     elevation: 2,
+    borderColor: '#00c6ff',
+    borderWidth: ms(0.5),
   },
-  username: { fontSize: ms(18), fontWeight: 'bold', color: '#333' },
+  username: { fontSize: ms(18), fontWeight: 'bold', color: '#ffffffff' },
   amount: { fontSize: ms(18), fontWeight: 'bold' },
   subText: { fontSize: ms(14), color: '#555', marginTop: vs(3) },
 });

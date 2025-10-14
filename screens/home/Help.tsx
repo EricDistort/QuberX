@@ -140,7 +140,7 @@ export default function SupportScreen() {
               value={input}
               onChangeText={setInput}
               placeholder="Type your message..."
-              placeholderTextColor="#808080ff"
+              placeholderTextColor="#00c8ff88"
               returnKeyType="send"
               onSubmitEditing={sendMessage}
             />
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: ms(22),
     fontWeight: 'bold',
-    color: '#612369ff',
+    color: '#00c6ff',
   },
   messageBubble: {
     padding: s(10),
@@ -184,14 +184,16 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: '#ffffffff',
+    backgroundColor: '#000000ff',
     borderRadius: ms(50),
     paddingHorizontal: s(10),
     paddingVertical: vs(5),
     marginRight: s(8),
+    borderColor: '#00c6ff',
+    borderWidth: ms(1),
   },
   sendButton: {
-    backgroundColor: '#8CA6DB',
+    backgroundColor: '#007c9eff',
     paddingHorizontal: s(16),
     justifyContent: 'center',
     alignItems: 'center',
@@ -199,7 +201,7 @@ const styles = StyleSheet.create({
     height: vs(40),
   },
   refreshButton: {
-    backgroundColor: '#b78cdbff',
+    backgroundColor: '#007c9eff',
     //padding: ms(10),
     borderRadius: ms(50),
     justifyContent: 'center',
