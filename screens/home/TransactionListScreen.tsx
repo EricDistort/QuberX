@@ -83,7 +83,7 @@ export default function TransactionListScreen() {
             data={transactions}
             keyExtractor={item => item.id.toString()}
             renderItem={renderItem}
-            contentContainerStyle={{ paddingBottom: vs(20) }}
+            contentContainerStyle={{ paddingBottom: vs(80) }}
             showsVerticalScrollIndicator={false}
           />
         )}

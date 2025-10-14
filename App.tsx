@@ -104,7 +104,7 @@ function MainTabs() {
         }}
       >
         <Tab.Screen
-          name="Store"
+          name="Trades"
           component={StoreStackScreen}
           options={{
             tabBarIcon: ({ focused }) => {
@@ -144,7 +144,7 @@ function MainTabs() {
           }}
         />
         <Tab.Screen
-          name="Feed"
+          name="Receipt"
           component={FeedStackScreen}
           options={{
             tabBarIcon: ({ focused }) => {

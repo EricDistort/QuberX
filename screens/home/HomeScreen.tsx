@@ -204,7 +204,7 @@ export default function HomeScreen({ navigation }: any) {
               }}
             >
               <View style={styles.balanceOverlay}>
-                <Text style={styles.balanceSubHeader}>Current Balance</Text>
+                <Text style={styles.balanceSubHeader}>Trading Balance</Text>
                 <Text style={styles.balanceAmount}>
                   ${user?.balance || '0'}
                 </Text>
@@ -248,7 +248,7 @@ export default function HomeScreen({ navigation }: any) {
 
           <Text style={styles.withdrawableText}>
             Direct Business{' '}
-            <Text style={styles.boldAmount}>₹{user?.direct_business || 0}</Text>
+            <Text style={styles.boldAmount}>${user?.direct_business || 0}</Text>
           </Text>
 
           {/* Live Traders Section */}
@@ -258,45 +258,51 @@ export default function HomeScreen({ navigation }: any) {
             {loadingTraders ? (
               <ActivityIndicator size="small" color="#00c6ff" />
             ) : (
-              <ScrollView
-                contentContainerStyle={{ alignItems: 'center' }}
-                showsVerticalScrollIndicator={false}
-              >
-                {traders.map(trader => (
-                  <View key={trader.id} style={styles.traderCard}>
-                    <View
-                      style={{ flexDirection: 'row', alignItems: 'center' }}
-                    >
-                      <Image
-                        source={{ uri: trader.image_url }}
-                        style={styles.traderImage}
-                      />
+              <View style={{ height: vs(250), width: '100%' }}>
+                <ScrollView
+                  contentContainerStyle={{
+                    alignItems: 'center',
+                    paddingBottom: vs(30),
+                  }}
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled={true}
+                >
+                  {traders.map(trader => (
+                    <View key={trader.id} style={styles.traderCard}>
                       <View
-                        style={{
-                          alignItems: 'center',
-                          backgroundColor: 'transparent',
-                        }}
+                        style={{ flexDirection: 'row', alignItems: 'center' }}
                       >
-                        <Text style={styles.traderName}>{trader.name}</Text>
-                        <Text style={styles.traderDesignation}>
-                          {trader.designation}
-                        </Text>
+                        <Image
+                          source={{ uri: trader.image_url }}
+                          style={styles.traderImage}
+                        />
+                        <View
+                          style={{
+                            alignItems: 'flex-start',
+                            backgroundColor: 'transparent',
+                          }}
+                        >
+                          <Text style={styles.traderName}>{trader.name}</Text>
+                          <Text style={styles.traderDesignation}>
+                            {trader.designation}
+                          </Text>
+                        </View>
                       </View>
+                      <Text
+                        style={[
+                          styles.traderAmount,
+                          {
+                            color: trader.trend === 'up' ? 'green' : 'red',
+                          },
+                        ]}
+                      >
+                        {trader.trend === 'up' ? '▲' : '▼'}$
+                        {trader.amount.toFixed(2)}
+                      </Text>
                     </View>
-                    <Text
-                      style={[
-                        styles.traderAmount,
-                        {
-                          color: trader.trend === 'up' ? 'green' : 'red',
-                        },
-                      ]}
-                    >
-                      {trader.trend === 'up' ? '▲' : '▼'}$
-                      {trader.amount.toFixed(2)}
-                    </Text>
-                  </View>
-                ))}
-              </ScrollView>
+                  ))}
+                </ScrollView>
+              </View>
             )}
           </View>
         </View>
@@ -385,15 +391,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: ms(10),
     padding: s(10),
     marginBottom: vs(10),
     width: '100%',
   },
   traderImage: {
-    width: s(50),
-    height: s(50),
+    width: s(45),
+    height: s(45),
     borderRadius: ms(30),
     marginRight: s(10),
   },

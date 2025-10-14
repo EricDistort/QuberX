@@ -12,16 +12,15 @@ import {
 import { supabase } from '../../utils/supabaseClient';
 import ScreenWrapper from '../../utils/ScreenWrapper';
 import {
-  scale,
-  verticalScale,
-  moderateScale,
-  ms,
-  vs,
+  scale as s,
+  verticalScale as vs,
+  moderateScale as ms,
 } from 'react-native-size-matters';
 import Video from 'react-native-video';
+import LinearGradient from 'react-native-linear-gradient';
 
 const { width } = Dimensions.get('window');
-const cardWidth = width * 0.95;
+const cardWidth = width * 0.92;
 
 export default function FeedScreen() {
   const [feeds, setFeeds] = useState<any[]>([]);
@@ -55,30 +54,30 @@ export default function FeedScreen() {
       (item.banner_url.endsWith('.mp4') || item.banner_url.includes('video'));
 
     return (
-      <View style={styles.card}>
-        {/* Image or Video */}
-        {isVideo ? (
-          <Video
-            source={{ uri: item.banner_url }}
-            style={styles.media}
-            resizeMode="cover"
-            repeat
-            
-            controls={true}
-          />
-        ) : (
-          <Image
-            source={{ uri: item.banner_url }}
-            style={styles.media}
-            resizeMode="cover"
-          />
-        )}
+      
+        <View style={styles.card}>
+          {isVideo ? (
+            <Video
+              source={{ uri: item.banner_url }}
+              style={styles.media}
+              resizeMode="cover"
+              repeat
+              controls
+            />
+          ) : (
+            <Image
+              source={{ uri: item.banner_url }}
+              style={styles.media}
+              resizeMode="cover"
+            />
+          )}
 
-        <View style={styles.textContainer}>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.body}>{item.body}</Text>
+          <View style={styles.textContainer}>
+            <Text style={styles.title}>{item.title}</Text>
+            <Text style={styles.body}>{item.body}</Text>
+          </View>
         </View>
-      </View>
+      
     );
   };
 
@@ -86,11 +85,7 @@ export default function FeedScreen() {
     <ScreenWrapper>
       <Text style={styles.maintitle}>News Feed</Text>
       {loading ? (
-        <ActivityIndicator
-          size="large"
-          color="#000"
-          style={{ marginTop: 20 }}
-        />
+        <ActivityIndicator size="large" color="#00ffff" style={{ marginTop: 20 }} />
       ) : (
         <FlatList
           data={feeds}
@@ -100,7 +95,7 @@ export default function FeedScreen() {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
-          contentContainerStyle={{ padding: 10 }}
+          contentContainerStyle={{ paddingBottom: vs(30), alignItems: 'center' }}
         />
       )}
     </ScreenWrapper>
@@ -108,41 +103,44 @@ export default function FeedScreen() {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 16,
+  gradientBorder: {
+    borderRadius: ms(14),
+    padding: ms(2),
+    marginBottom: vs(12),
     width: cardWidth,
-    alignSelf: 'center',
+  },
+  card: {
+    backgroundColor: 'rgba(0, 204, 255, 0.1)',
+    borderRadius: ms(14),
     overflow: 'hidden',
-    shadowColor: 'rgba(0,0,0,0.2)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
-    elevation: 5,
+    marginBottom: vs(20),
+    margin: s(10),
+    
   },
   media: {
     width: '100%',
-    height: verticalScale(150),
+    height: vs(160),
     backgroundColor: '#000',
+    borderTopLeftRadius: ms(14),
+    borderTopRightRadius: ms(14),
   },
   textContainer: {
-    padding: moderateScale(12),
+    padding: s(12),
   },
   title: {
-    fontSize: 18,
+    fontSize: ms(18),
     fontWeight: 'bold',
-    color: '#222',
-    marginBottom: 6,
+    color: '#00ffff',
+    marginBottom: vs(6),
   },
   body: {
-    fontSize: 15,
-    color: '#555',
+    fontSize: ms(15),
+    color: '#ddd',
   },
   maintitle: {
-    fontSize: ms(20),
-    marginBottom: vs(10),
-    color: '#612369ff',
+    fontSize: ms(22),
+    marginBottom: vs(12),
+    color: '#00ffff',
     fontWeight: 'bold',
     alignSelf: 'center',
     marginTop: vs(20),

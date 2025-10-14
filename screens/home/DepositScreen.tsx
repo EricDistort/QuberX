@@ -113,190 +113,239 @@ export default function DepositScreen() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'green';
+        return '#00ff9d';
       case 'pending':
-        return 'orange';
+        return '#00ffff';
       case 'rejected':
-        return 'red';
+        return '#ff004c';
       default:
-        return '#555';
+        return '#aaa';
     }
   };
 
   return (
     <ScreenWrapper>
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
-          {qrCodeUrl ? (
-            <View style={styles.qrContainer}>
-              <Image
-                source={{ uri: qrCodeUrl }}
-                style={styles.qrImage}
-                resizeMode="contain"
-              />
-            </View>
-          ) : null}
-
-          <View style={styles.walletRow}>
-            <View style={styles.walletTextContainer}>
-              <Text
-                style={styles.walletText}
-                numberOfLines={1}
-                ellipsizeMode="middle"
-              >
-                {walletAddress || 'Loading...'}
-              </Text>
-            </View>
-            <TouchableOpacity
-              onPress={copyToClipboard}
-              style={styles.copyButton}
-              disabled={!walletAddress}
-            >
-              <View style={styles.button}>
-                <Text style={styles.btntxt}>Copy</Text>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.mainContainer}>
+            {/* QR Section */}
+            {qrCodeUrl ? (
+              <View style={styles.qrContainer}>
+                <Image
+                  source={{ uri: qrCodeUrl }}
+                  style={styles.qrImage}
+                  resizeMode="contain"
+                />
               </View>
+            ) : null}
+
+            {/* Wallet Row */}
+            <View style={styles.walletRow}>
+              <Text style={styles.walletLabel}>Wallet Address</Text>
+              <View style={styles.walletBox}>
+                <Text
+                  style={styles.walletText}
+                  numberOfLines={1}
+                  ellipsizeMode="middle"
+                >
+                  {walletAddress || 'Loading...'}
+                </Text>
+                <TouchableOpacity
+                  onPress={copyToClipboard}
+                  style={styles.copyButton}
+                  disabled={!walletAddress}
+                >
+                  <Text style={styles.copyText}>Copy</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Inputs */}
+            <TextInput
+              style={styles.input}
+              placeholder="Sender Wallet / Tx Hash"
+              value={txHash}
+              onChangeText={setTxHash}
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholderTextColor="#777"
+            />
+
+            {/* Submit Button */}
+            <TouchableOpacity
+              onPress={submitDeposit}
+              disabled={loading}
+              style={{ width: '100%' }}
+            >
+              <LinearGradient
+                colors={['#00ffff', '#007fff']}
+                start={{ x: 0, y: 1 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.button, loading && { opacity: 0.6 }]}
+              >
+                <Text style={styles.btntxt}>
+                  {loading ? 'Submitting...' : 'Deposit'}
+                </Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Sender Wallet"
-            value={txHash}
-            onChangeText={setTxHash}
-            autoCapitalize="none"
-            autoCorrect={false}
-            placeholderTextColor="grey"
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Referrer Account (Optional)"
-            value={referrer}
-            onChangeText={setReferrer}
-            autoCapitalize="none"
-            autoCorrect={false}
-            placeholderTextColor="grey"
-          />
-
-          <TouchableOpacity
-            onPress={submitDeposit}
-            disabled={loading}
-            style={{ width: '100%' }}
-          >
-            <View style={[styles.button, loading && { opacity: 0.6 }]}>
-              <Text style={styles.btntxt}>
-                {loading ? 'Submitting...' : 'Deposit'}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.historyContainer}>
-          {loadingDeposits ? (
-            <ActivityIndicator size="small" color="#000" />
-          ) : (
-            <ScrollView
-              style={styles.historyList}
-              showsVerticalScrollIndicator={false}
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-              }
-            >
-              {deposits.length === 0 ? (
-                <Text
-                  style={{
-                    textAlign: 'center',
-                    marginTop: vs(10),
-                    color: '#555',
-                  }}
-                >
-                  No deposits found
-                </Text>
-              ) : (
-                deposits.map(dep => (
-                  <View key={dep.id} style={styles.depositCard}>
-                    <View>
-                      <Text style={styles.depositAmount}>
-                        ₹{dep.amount || 0}
-                      </Text>
-                      <Text style={styles.depositDate}>
-                        {new Date(dep.created_at).toLocaleDateString()}
+          {/* History Section */}
+          <View style={styles.historyContainer}>
+            <Text style={styles.historyTitle}>Deposit History</Text>
+            {loadingDeposits ? (
+              <ActivityIndicator size="small" color="#00ffff" />
+            ) : (
+              <ScrollView
+                style={styles.historyList}
+                showsVerticalScrollIndicator={false}
+              >
+                {deposits.length === 0 ? (
+                  <Text style={styles.noDeposits}>No deposits found</Text>
+                ) : (
+                  deposits.map(dep => (
+                    <View key={dep.id} style={styles.depositCard}>
+                      <View>
+                        <Text style={styles.depositAmount}>
+                          ${dep.amount || 0}
+                        </Text>
+                        <Text style={styles.depositDate}>
+                          {new Date(dep.created_at).toLocaleDateString()}
+                        </Text>
+                      </View>
+                      <Text
+                        style={[
+                          styles.depositStatus,
+                          { color: getStatusColor(dep.status) },
+                        ]}
+                      >
+                        {dep.status.toUpperCase()}
                       </Text>
                     </View>
-                    <Text
-                      style={[
-                        styles.depositStatus,
-                        { color: getStatusColor(dep.status) },
-                      ]}
-                    >
-                      {dep.status.toUpperCase()}
-                    </Text>
-                  </View>
-                ))
-              )}
-            </ScrollView>
-          )}
-        </View>
+                  ))
+                )}
+              </ScrollView>
+            )}
+          </View>
+        </ScrollView>
       </SafeAreaView>
     </ScreenWrapper>
   );
 }
 
+/* ---------------------- STYLES ---------------------- */
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, alignItems: 'center', padding: ms(8) },
-  container: {
-    justifyContent: 'center',
+  safeArea: { flex: 1 },
+  scrollContent: {
+    flexGrow: 1,
     alignItems: 'center',
-    alignSelf: 'center',
-    padding: s(14),
-    backgroundColor: 'rgba(255, 255, 255, 1)',
-    width: s(320),
-    borderRadius: ms(14),
-    marginTop: vs(40),
-    shadowColor: 'rgba(66, 0, 55, 0.45)',
-    shadowOffset: { width: 0, height: vs(4) },
-    shadowOpacity: 1,
-    shadowRadius: ms(10),
-    elevation: 15,
+    paddingBottom: vs(30),
   },
+
+  mainContainer: {
+    width: '92%',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    borderRadius: ms(20),
+    padding: s(5),
+    marginTop: vs(20),
+  },
+
   qrContainer: {
-    height: vs(180),
-    width: s(180),
-    marginBottom: vs(20),
+    height: vs(200),
+    width: s(200),
+    alignSelf: 'center',
+    marginBottom: vs(16),
+    borderWidth: 1,
+    borderColor: 'rgba(0,255,255,0.3)',
+    borderRadius: ms(10),
+    overflow: 'hidden',
   },
-  qrImage: { height: '100%', width: '100%', borderRadius: ms(10) },
-  walletRow: { flexDirection: 'row', alignItems: 'center', width: '100%' },
-  walletTextContainer: { flex: 1, paddingHorizontal: s(4) },
-  walletText: { color: 'rgba(36,0,31,0.74)', fontSize: ms(17) },
-  copyButton: { width: s(80), height: vs(40) },
+  qrImage: { height: '100%', width: '100%' },
+
+  walletRow: { width: '100%', marginBottom: vs(15) },
+  walletLabel: {
+    color: '#00ffff',
+    fontSize: ms(14),
+    fontWeight: '600',
+    marginBottom: vs(6),
+  },
+  walletBox: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 255, 255, 0.06)',
+    borderRadius: ms(8),
+
+    paddingHorizontal: s(10),
+    height: vs(40),
+  },
+  walletText: { color: '#fff', fontSize: ms(14), flex: 1 },
+  copyButton: {
+    backgroundColor: 'rgba(0,255,255,0.15)',
+    borderRadius: ms(6),
+    paddingVertical: vs(4),
+    paddingHorizontal: s(10),
+    borderWidth: 1,
+    borderColor: 'rgba(0,255,255,0.3)',
+  },
+  copyText: { color: '#00ffff', fontWeight: 'bold', fontSize: ms(13) },
+
   input: {
     width: '100%',
+    backgroundColor: 'rgba(0,255,255,0.05)',
+    borderRadius: ms(8),
+    borderWidth: 1,
+    borderColor: 'rgba(0,255,255,0.2)',
     paddingVertical: ms(10),
+    paddingHorizontal: s(10),
     marginBottom: vs(12),
-    color: 'rgba(36,0,31,0.74)',
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(53, 0, 88, 0.18)',
+    color: '#fff',
+    fontSize: ms(15),
+  },
+
+  button: {
+    paddingVertical: ms(12),
+    borderRadius: ms(10),
+    alignItems: 'center',
+  },
+  btntxt: {
+    color: '#fff',
+    fontWeight: 'bold',
     fontSize: ms(17),
   },
-  button: {
-    padding: ms(10),
-    borderRadius: ms(8),
-    alignItems: 'center',
-    backgroundColor: '#6c4994ff',
+
+  historyContainer: {
+    width: '92%',
+    marginTop: vs(25),
   },
-  btntxt: { color: '#fff', fontWeight: 'bold', fontSize: ms(17) },
-  historyContainer: { width: '95%', marginTop: vs(20) },
-  historyList: { height: '30%' },
+  historyTitle: {
+    fontSize: ms(18),
+    fontWeight: 'bold',
+    color: '#00ffff',
+    marginBottom: vs(10),
+  },
+  historyList: { height: vs(200) },
   depositCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.38)',
+    backgroundColor: 'rgba(0,255,255,0.05)',
     borderRadius: ms(10),
     padding: s(12),
     marginBottom: vs(8),
     flexDirection: 'row',
     justifyContent: 'space-between',
-    height: vs(60),
   },
-  depositDate: { fontSize: ms(13), color: '#666' },
-  depositAmount: { fontSize: ms(16), fontWeight: 'bold', color: '#222' },
-  depositStatus: { fontSize: ms(15), fontWeight: 'bold', alignSelf: 'center' },
+  depositDate: { fontSize: ms(13), color: '#aaa' },
+  depositAmount: { fontSize: ms(16), fontWeight: 'bold', color: '#fff' },
+  depositStatus: { fontSize: ms(14), fontWeight: 'bold', alignSelf: 'center' },
+  noDeposits: {
+    textAlign: 'center',
+    color: '#666',
+    marginTop: vs(10),
+    fontSize: ms(14),
+  },
 });

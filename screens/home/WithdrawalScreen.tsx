@@ -95,163 +95,205 @@ export default function WithdrawalScreen() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'green';
+        return '#00ff9d';
       case 'pending':
-        return 'orange';
+        return '#00ffff';
       case 'rejected':
-        return 'red';
+        return '#ff004c';
       default:
-        return '#555';
+        return '#aaa';
     }
   };
 
   return (
     <ScreenWrapper>
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
-          <TextInput
-            style={styles.input}
-            placeholder="Receiving Wallet Address"
-            value={wallet}
-            onChangeText={setWallet}
-            autoCapitalize="none"
-            autoCorrect={false}
-            placeholderTextColor="grey"
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Amount"
-            value={amount}
-            onChangeText={setAmount}
-            keyboardType="numeric"
-            placeholderTextColor="grey"
-          />
-
-          <TouchableOpacity
-            onPress={submitWithdrawal}
-            disabled={loading}
-            style={{ width: '100%' }}
+        <ScrollView
+          style={{ width: '100%' }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          contentContainerStyle={{ alignItems: 'center', paddingBottom: vs(30) }}
+        >
+          <LinearGradient
+            colors={['#00c6ff', '#ff00ff']}
+            start={{ x: 1, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={styles.gradientBorder}
           >
-            <View style={[styles.button, loading && { opacity: 0.6 }]}>
-              <Text style={styles.btntxt}>
-                {loading ? 'Submitting...' : 'Withdraw'}
+            <View style={styles.container}>
+              <TextInput
+                style={styles.input}
+                placeholder="Receiving Wallet Address"
+                value={wallet}
+                onChangeText={setWallet}
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholderTextColor="#777"
+              />
+
+              <TextInput
+                style={styles.input}
+                placeholder="Amount"
+                value={amount}
+                onChangeText={setAmount}
+                keyboardType="numeric"
+                placeholderTextColor="#777"
+              />
+
+              <TouchableOpacity
+                onPress={submitWithdrawal}
+                disabled={loading}
+                style={{ width: '100%' }}
+              >
+                <LinearGradient
+                  colors={['#00ffff', '#007fff']}
+                  start={{ x: 0, y: 1 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[styles.button, loading && { opacity: 0.6 }]}
+                >
+                  <Text style={styles.btntxt}>
+                    {loading ? 'Submitting...' : 'Withdraw'}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <Text style={styles.withdrawableText}>
+                Current Withdrawable Amount{' '}
+                <Text style={styles.boldAmount}>
+                  ₹{user?.withdrawal_amount || 0}
+                </Text>
               </Text>
             </View>
-          </TouchableOpacity>
+          </LinearGradient>
 
-          <Text style={styles.withdrawableText}>
-            Current Withdrawable Amount{' '}
-            <Text style={styles.boldAmount}>
-              ₹{user?.withdrawal_amount || 0}
-            </Text>
-          </Text>
-        </View>
-
-        <View style={styles.historyContainer}>
-          {loadingWithdrawals ? (
-            <ActivityIndicator size="small" color="#000" />
-          ) : (
-            <ScrollView
-              style={styles.historyList}
-              showsVerticalScrollIndicator={false}
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-              }
-            >
-              {withdrawals.length === 0 ? (
-                <Text
-                  style={{
-                    textAlign: 'center',
-                    marginTop: vs(10),
-                    color: '#555',
-                  }}
-                >
-                  No withdrawals found
-                </Text>
-              ) : (
-                withdrawals.map(wd => (
-                  <View key={wd.id} style={styles.withdrawCard}>
-                    <View>
-                      <Text style={styles.withdrawAmount}>₹{wd.amount}</Text>
-                      <Text style={styles.withdrawDate}>
-                        {new Date(wd.created_at).toLocaleDateString()}
-                      </Text>
-                    </View>
-                    <Text
-                      style={[
-                        styles.withdrawStatus,
-                        { color: getStatusColor(wd.status) },
-                      ]}
+          <View style={styles.historyContainer}>
+            <Text style={styles.historyTitle}>Withdrawal History</Text>
+            {loadingWithdrawals ? (
+              <ActivityIndicator size="small" color="#00ffff" />
+            ) : (
+              <ScrollView
+                style={styles.historyList}
+                showsVerticalScrollIndicator={false}
+              >
+                {withdrawals.length === 0 ? (
+                  <Text style={styles.noWithdrawals}>No withdrawals found</Text>
+                ) : (
+                  withdrawals.map(wd => (
+                    <LinearGradient
+                      key={wd.id}
+                      colors={['#00c6ff', '#ff00ff']}
+                      start={{ x: 1, y: 0 }}
+                      end={{ x: 0, y: 1 }}
+                      style={styles.cardGradient}
                     >
-                      {wd.status.toUpperCase()}
-                    </Text>
-                  </View>
-                ))
-              )}
-            </ScrollView>
-          )}
-        </View>
+                      <View style={styles.withdrawCard}>
+                        <View>
+                          <Text style={styles.withdrawAmount}>₹{wd.amount}</Text>
+                          <Text style={styles.withdrawDate}>
+                            {new Date(wd.created_at).toLocaleDateString()}
+                          </Text>
+                        </View>
+                        <Text
+                          style={[
+                            styles.withdrawStatus,
+                            { color: getStatusColor(wd.status) },
+                          ]}
+                        >
+                          {wd.status.toUpperCase()}
+                        </Text>
+                      </View>
+                    </LinearGradient>
+                  ))
+                )}
+              </ScrollView>
+            )}
+          </View>
+        </ScrollView>
       </SafeAreaView>
     </ScreenWrapper>
   );
 }
 
+/* ---------------------- STYLES ---------------------- */
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, alignItems: 'center', padding: ms(8) },
+  safeArea: { flex: 1 },
+  gradientBorder: {
+    width: '92%',
+    borderRadius: ms(20),
+    padding: ms(2),
+    marginTop: vs(50),
+  },
   container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    borderRadius: ms(20),
     padding: s(14),
-    backgroundColor: 'rgba(255, 255, 255, 1)',
-    width: s(300),
-    borderRadius: ms(14),
-    marginTop: vs(40),
-    shadowColor: 'rgba(66, 0, 55, 0.45)',
-    shadowOffset: { width: 0, height: vs(4) },
-    shadowOpacity: 1,
-    shadowRadius: ms(10),
-    elevation: 15,
+    alignItems: 'center',
   },
   input: {
     width: '100%',
+    backgroundColor: 'rgba(0,255,255,0.05)',
+    borderRadius: ms(8),
+    borderWidth: 1,
+    borderColor: 'rgba(0,255,255,0.2)',
     paddingVertical: ms(10),
+    paddingHorizontal: s(10),
     marginBottom: vs(12),
-    color: 'rgba(36,0,31,0.74)',
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(53, 0, 88, 0.18)',
-    fontSize: ms(17),
+    color: '#fff',
+    fontSize: ms(15),
   },
   button: {
-    padding: ms(10),
-    borderRadius: ms(8),
+    paddingVertical: ms(12),
+    borderRadius: ms(10),
     alignItems: 'center',
-    backgroundColor: '#6c4994ff',
   },
-  btntxt: { color: '#fff', fontWeight: 'bold', fontSize: ms(17) },
+  btntxt: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: ms(17),
+  },
   withdrawableText: {
     marginTop: vs(8),
     fontSize: ms(13),
-    color: '#555',
+    color: '#ffffffa9',
     textAlign: 'center',
   },
   boldAmount: {
     fontWeight: 'bold',
     fontSize: ms(16),
+    color: '#00ffff',
   },
-  historyContainer: { width: '95%', marginTop: vs(20) },
-  historyList: { height: '61%' },
+  historyContainer: {
+    width: '92%',
+    marginTop: vs(25),
+  },
+  historyTitle: {
+    fontSize: ms(18),
+    fontWeight: 'bold',
+    color: '#00ffff',
+    marginBottom: vs(10),
+  },
+  historyList: { height: vs(350) },
+  cardGradient: {
+    borderRadius: ms(10),
+    padding: ms(2),
+    marginBottom: vs(8),
+  },
   withdrawCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.38)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     borderRadius: ms(10),
     padding: s(12),
-    marginBottom: vs(8),
     flexDirection: 'row',
     justifyContent: 'space-between',
-    height: vs(60),
   },
-  withdrawDate: { fontSize: ms(13), color: '#666' },
-  withdrawAmount: { fontSize: ms(16), fontWeight: 'bold', color: '#222' },
-  withdrawStatus: { fontSize: ms(15), fontWeight: 'bold', alignSelf: 'center' },
+  withdrawDate: { fontSize: ms(13), color: '#aaa' },
+  withdrawAmount: { fontSize: ms(16), fontWeight: 'bold', color: '#fff' },
+  withdrawStatus: { fontSize: ms(14), fontWeight: 'bold', alignSelf: 'center' },
+  noWithdrawals: {
+    textAlign: 'center',
+    color: '#666',
+    marginTop: vs(10),
+    fontSize: ms(14),
+  },
 });

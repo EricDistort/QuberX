@@ -9,7 +9,9 @@ import {
   RefreshControl,
   ActivityIndicator,
   SafeAreaView,
+  Dimensions,
 } from 'react-native';
+import { LineChart } from 'react-native-chart-kit';
 import { supabase } from '../../utils/supabaseClient';
 import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
@@ -19,17 +21,24 @@ import {
   moderateScale as ms,
 } from 'react-native-size-matters';
 
+const screenWidth = Dimensions.get('window').width;
+
 export default function TradesScreen() {
   const { user, setUser } = useUser();
   const [trades, setTrades] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [endingTrade, setEndingTrade] = useState<number | null>(null);
+  const [chartData, setChartData] = useState<number[]>([
+    100, 102, 101, 103, 105,
+  ]);
 
   const fetchUserData = async () => {
     const { data, error } = await supabase
       .from('users')
-      .select('withdrawal_amount, profileImage, username, account_number')
+      .select(
+        'withdrawal_amount, profileImage, username, account_number, level_income, subscription_bonus',
+      )
       .eq('id', user.id)
       .single();
     if (!error && data) setUser({ ...user, ...data });
@@ -47,7 +56,6 @@ export default function TradesScreen() {
       .order('created_at', { ascending: false });
     if (error) Alert.alert('Error', error.message);
     else {
-      // Initialize with random trade fluctuation data
       const initialized = (data || []).map(t => ({
         ...t,
         liveAmount: t.amount,
@@ -63,12 +71,26 @@ export default function TradesScreen() {
     fetchTrades();
   }, [user?.id]);
 
-  // Update live amounts randomly every second
+  // 🔁 Simulate live chart data
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setChartData(prev => {
+        const next = [...prev.slice(-29)];
+        const last = prev[prev.length - 1] || 100;
+        const change = (Math.random() * 2 - 1).toFixed(2);
+        next.push(Math.max(50, last + Number(change)));
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // 🔁 Simulate live trade value updates
   useEffect(() => {
     const interval = setInterval(() => {
       setTrades(prev =>
         prev.map(t => {
-          const change = (Math.random() * 20 - 10).toFixed(2); // ±10 range
+          const change = (Math.random() * 20 - 10).toFixed(2);
           const newAmount = Math.max(0, t.liveAmount + Number(change));
           return {
             ...t,
@@ -130,9 +152,47 @@ export default function TradesScreen() {
               </View>
             </View>
 
-            {/* 2️⃣ Middle Grey Container */}
+            {/* 2️⃣ Middle Section – Modern Chart */}
             <View style={styles.middleContainer}>
-              <Text style={styles.greyPlaceholder}>— Reserved Section —</Text>
+              <LineChart
+                data={{
+                  labels: [],
+                  datasets: [{ data: chartData }],
+                }}
+                width={screenWidth}
+                height={190}
+                withDots={false}
+                withInnerLines={false}
+                withOuterLines={false}
+                withVerticalLines={false}
+                withHorizontalLabels={true}
+                chartConfig={{
+                  backgroundGradientFrom: 'transparent',
+                  backgroundGradientTo: 'transparent',
+                  color: () => '#00ffff',
+                  strokeWidth: 3,
+                  propsForBackgroundLines: {
+                    stroke: 'transparent',
+                  },
+                }}
+                bezier
+              />
+
+              {/* 🟩 New Horizontal Info Containers */}
+              <View style={styles.infoRow}>
+                <View style={styles.infoCard}>
+                  <Text style={styles.infoTitle}>Level Income</Text>
+                  <Text style={styles.infoValue}>
+                    ${user?.level_income || 0}
+                  </Text>
+                </View>
+                <View style={styles.infoCard}>
+                  <Text style={styles.infoTitle}>Subscription Bonus</Text>
+                  <Text style={styles.infoValue}>
+                    ${user?.subscription_bonus || 0}
+                  </Text>
+                </View>
+              </View>
             </View>
 
             {/* 3️⃣ Running Trades Section */}
@@ -151,12 +211,13 @@ export default function TradesScreen() {
                   {trades.map(trade => (
                     <View key={trade.id} style={styles.tradeCard}>
                       <View>
-                        <Text style={styles.amount}>${trade.amount}</Text>
+                        <Text style={styles.amount}>USDT {trade.amount}</Text>
                         <Text
                           style={[
                             styles.liveAmount,
                             {
-                              color: trade.trend === 'up' ? 'green' : 'red',
+                              color:
+                                trade.trend === 'up' ? '#00ff9d' : '#ff004c',
                             },
                           ]}
                         >
@@ -188,13 +249,10 @@ export default function TradesScreen() {
   );
 }
 
+/* --------------------------- STYLES --------------------------- */
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: vs(5),
-  },
+  container: { flex: 1, alignItems: 'center', paddingVertical: vs(5) },
 
   /* Top Section */
   secondContainerWrapper: {
@@ -202,44 +260,57 @@ const styles = StyleSheet.create({
     height: '15%',
     justifyContent: 'center',
     overflow: 'hidden',
-    marginTop: vs(10),
+    marginTop: vs(15),
     borderRadius: ms(20),
     backgroundColor: '#000',
-    shadowColor: 'rgba(40, 0, 85, 1)',
-    shadowOffset: { width: 0, height: vs(4) },
-    shadowOpacity: 1,
-    shadowRadius: ms(10),
-    elevation: 10,
-    borderColor: '#00c6ff',
-    borderWidth: ms(1),
+    borderColor: '#00ffff',
+    borderWidth: ms(0),
   },
-  balanceOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: s(20),
-  },
-  balanceSubHeader: { fontSize: ms(16), color: '#e2faff' },
+  balanceOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  balanceSubHeader: { fontSize: ms(16), color: '#00eaff' },
   balanceAmount: {
     fontSize: ms(46),
     fontWeight: 'bold',
     color: '#fff',
-    //marginTop: vs(6),
+    marginTop: vs(2),
   },
 
-  /* Middle Grey Container */
+  /* Chart + Info Section */
   middleContainer: {
     width: '97%',
-    height: '30%',
-    backgroundColor: 'rgba(200,200,200,0.3)',
+    height: '40%',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: ms(20),
-    marginTop: vs(20),
+    marginTop: vs(-15),
+    backgroundColor: 'rgba(0, 10, 20, 0)',
   },
-  greyPlaceholder: {
-    color: '#ccc',
-    fontSize: ms(14),
+
+  /* Horizontal Info Row */
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    width: '90%',
+    marginTop: vs(-5),
+  },
+  infoCard: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 255, 255, 0.04)',
+    borderRadius: ms(10),
+    paddingVertical: vs(5),
+    marginHorizontal: s(5),
+    alignItems: 'center',
+  },
+  infoTitle: {
+    color: '#00ffff',
+    fontSize: ms(13),
+    fontWeight: '600',
+  },
+  infoValue: {
+    color: '#fff',
+    fontSize: ms(18),
+    fontWeight: 'bold',
+    marginTop: vs(3),
   },
 
   /* Bottom Trades Section */
@@ -248,44 +319,37 @@ const styles = StyleSheet.create({
     height: '42%',
     borderRadius: ms(12),
     padding: s(10),
-    marginTop: vs(20),
+    marginTop: vs(-20),
   },
   transactionsTitle: {
     fontSize: ms(18),
     fontWeight: 'bold',
-    color: '#00c6ff',
+    color: '#00ffff',
     marginBottom: vs(10),
+    marginLeft: s(5),
   },
   tradeCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     borderRadius: ms(10),
     padding: s(12),
     marginBottom: vs(10),
+    borderWidth: 1,
+    borderColor: 'rgba(0,255,255,0.15)',
   },
-  amount: {
-    fontSize: ms(17),
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  liveAmount: {
-    fontSize: ms(14),
-    fontWeight: '600',
-    //marginTop: vs(4),
-  },
+  amount: { fontSize: ms(17), fontWeight: 'bold', color: '#fff' },
+  liveAmount: { fontSize: ms(14), fontWeight: '600' },
   endButton: {
-    backgroundColor: '#6c4994ff',
+    backgroundColor: 'rgba(255, 17, 0, 0.15)',
     borderRadius: ms(8),
     paddingVertical: ms(8),
     paddingHorizontal: s(16),
+    borderWidth: 1,
+    borderColor: '#ff3300ff',
   },
-  endText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: ms(15),
-  },
+  endText: { color: '#fff', fontWeight: 'bold', fontSize: ms(15) },
   noTrades: {
     color: '#aaa',
     fontSize: ms(15),
