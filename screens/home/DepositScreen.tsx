@@ -169,7 +169,7 @@ export default function DepositScreen() {
             {/* Inputs */}
             <TextInput
               style={styles.input}
-              placeholder="Sender Wallet / Tx Hash"
+              placeholder="Sender Wallet"
               value={txHash}
               onChangeText={setTxHash}
               autoCapitalize="none"

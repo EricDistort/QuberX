@@ -162,7 +162,7 @@ export default function WithdrawalScreen() {
               <Text style={styles.withdrawableText}>
                 Current Withdrawable Amount{' '}
                 <Text style={styles.boldAmount}>
-                  ₹{user?.withdrawal_amount || 0}
+                  ${user?.withdrawal_amount || 0}
                 </Text>
               </Text>
             </View>
@@ -190,7 +190,7 @@ export default function WithdrawalScreen() {
                     >
                       <View style={styles.withdrawCard}>
                         <View>
-                          <Text style={styles.withdrawAmount}>₹{wd.amount}</Text>
+                          <Text style={styles.withdrawAmount}>${wd.amount}</Text>
                           <Text style={styles.withdrawDate}>
                             {new Date(wd.created_at).toLocaleDateString()}
                           </Text>
