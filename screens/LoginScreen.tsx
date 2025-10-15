@@ -131,7 +131,7 @@ export default function LoginRegister() {
         {loading && (
           <View style={styles.fullScreenContainer}>
             <LottieView
-              source={require('./LoginMedia/loginanimation.json')}
+              source={require('./LoginMedia/loginanimation2.json')}
               autoPlay
               loop
               style={styles.fullScreenAnimation}
@@ -209,6 +209,7 @@ const styles = StyleSheet.create({
   fullScreenAnimation: {
     width: s(620),
     height: s(620),
+    backgroundColor: 'black',
   },
   container: {
     justifyContent: 'center',
