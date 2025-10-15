@@ -257,12 +257,12 @@ const styles = StyleSheet.create({
   },
 
   qrContainer: {
-    height: vs(200),
+    height: vs(181),
     width: s(200),
     alignSelf: 'center',
     marginBottom: vs(16),
-    borderWidth: 1,
-    borderColor: 'rgba(0,255,255,0.3)',
+    borderWidth: 3,
+    borderColor: 'rgba(0, 255, 255, 1)',
     borderRadius: ms(10),
     overflow: 'hidden',
   },
