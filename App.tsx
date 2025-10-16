@@ -35,7 +35,7 @@ function HomeStackScreen() {
       <HomeStack.Screen name="SendMoney" component={StoreScreen} />
       <HomeStack.Screen name="RecieveMoney" component={FeedScreen} />
       <HomeStack.Screen name="OrderList" component={OrderListScreen} />
-     
+     <HomeStack.Screen name="RecieveMoneyScreen" component={RecieveMoneyScreen} />
       <HomeStack.Screen name="DepositMoney" component={DepositScreen} />
       <HomeStack.Screen name="WithdrawalMoney" component={WithdrawalScreen} />
     </HomeStack.Navigator>

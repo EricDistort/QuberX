@@ -217,7 +217,7 @@ export default function TradesScreen() {
                             styles.liveAmount,
                             {
                               color:
-                                trade.trend === 'up' ? '#00ff9d' : '#ff004c',
+                                trade.trend === 'up' ? '#48ff00ff' : '#ff0000ff',
                             },
                           ]}
                         >

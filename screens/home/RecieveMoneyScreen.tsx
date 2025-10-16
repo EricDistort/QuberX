@@ -1,120 +1,148 @@
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
+  ActivityIndicator,
   SafeAreaView,
-  Share,
+  ScrollView,
+  RefreshControl,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { supabase } from '../../utils/supabaseClient';
 import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
-import LinearGradient from 'react-native-linear-gradient';
 import {
   scale as s,
   verticalScale as vs,
   moderateScale as ms,
 } from 'react-native-size-matters';
 
-export default function ReceiveMoneyScreen() {
+export default function DirectReferralsScreen() {
   const { user } = useUser();
+  const [referrals, setReferrals] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const handleShare = async () => {
-    try {
-      const message = `Here are my account details:\n\nUsername: ${user?.username}\nAccount No: ${user?.account_number}`;
-      await Share.share({ message });
-    } catch (error) {
-      console.log('Error sharing:', error);
-    }
+  const fetchReferrals = async () => {
+    if (!user?.account_number) return;
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, username, direct_business')
+      .eq('referrer_account_number', user.account_number);
+
+    if (!error && data) setReferrals(data);
+    setLoading(false);
   };
+
+  useEffect(() => {
+    fetchReferrals();
+  }, [user?.account_number]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchReferrals();
+    setRefreshing(false);
+  }, [user?.account_number]);
 
   return (
     <ScreenWrapper>
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
-          <Text style={styles.title}>Receive Money</Text>
+        <Text style={styles.header}>My Direct Referrals</Text>
 
-          <View style={styles.infoBox}>
-            <Text style={styles.label}>Username</Text>
-            <Text style={styles.value}>{user?.username || 'Guest User'}</Text>
-          </View>
+        {loading ? (
+          <ActivityIndicator size="large" color="#00ffff" />
+        ) : referrals.length === 0 ? (
+          <Text style={styles.noReferrals}>No direct referrals found</Text>
+        ) : (
+          <ScrollView
+            style={styles.scroll}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            showsVerticalScrollIndicator={false}
+          >
+            {referrals.map((ref, index) => (
+              <LinearGradient
+                key={ref.id}
+                colors={['#00c6ff', '#ff00ff']}
+                start={{ x: 1, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={styles.gradientBorder}
+              >
+                <View style={styles.referralCard}>
+                  {/* Left Side */}
+                  <View>
+                    <Text style={styles.traderName}>
+                      Direct Trader {index + 1}
+                    </Text>
+                    <Text style={styles.subscribedText}>Subscribed Trader</Text>
+                  </View>
 
-          <View style={styles.infoBox}>
-            <Text style={styles.label}>Account Number</Text>
-            <Text style={styles.value}>
-              {user?.account_number || '0000000000'}
-            </Text>
-          </View>
-
-          <TouchableOpacity onPress={handleShare} style={{ width: '80%' }}>
-            <LinearGradient
-              colors={['#8CA6DB', '#B993D6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.button}
-            >
-              <Text style={styles.btntxt}>Share</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
+                  {/* Right Side */}
+                  <Text style={styles.businessAmount}>
+                    ${ref.direct_business || 0}
+                  </Text>
+                </View>
+              </LinearGradient>
+            ))}
+          </ScrollView>
+        )}
       </SafeAreaView>
     </ScreenWrapper>
   );
 }
 
+/* ---------------------- STYLES ---------------------- */
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    padding: ms(8),
+    padding: s(10),
   },
-  container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    padding: s(14),
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    height: vs(300),
-    width: s(300),
+  header: {
+    fontSize: ms(22),
+    fontWeight: 'bold',
+    color: '#00ffff',
+    marginTop: vs(15),
+    marginBottom: vs(20),
+  },
+  scroll: {
+    width: '95%',
+  },
+  gradientBorder: {
     borderRadius: ms(14),
-    shadowColor: 'rgba(66, 0, 55, 0.32)',
-    shadowOffset: { width: 0, height: vs(4) },
-    shadowOpacity: 1,
-    shadowRadius: ms(10),
-    elevation: 15,
+    padding: ms(1),
+    marginBottom: vs(10),
   },
-  title: {
-    fontSize: ms(25),
-    marginBottom: vs(22),
-    color: '#612369ff',
-    fontWeight: 'bold',
-  },
-  infoBox: {
-    width: '80%',
-    marginBottom: vs(12),
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0,0,0,0.74)',
-    paddingBottom: vs(6),
-  },
-  label: {
-    fontSize: ms(14),
-    color: 'grey',
-  },
-  value: {
-    fontSize: ms(18),
-    fontWeight: 'bold',
-    color: 'rgba(36,0,31,0.74)',
-  },
-  button: {
-    padding: ms(14),
-    borderRadius: ms(8),
-    marginTop: vs(20),
+  referralCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    borderRadius: ms(12),
+    padding: s(14),
   },
-  btntxt: {
-    color: '#fff',
+  traderName: {
+    fontSize: ms(16),
     fontWeight: 'bold',
+    color: '#00ffff',
+  },
+  subscribedText: {
+    fontSize: ms(13),
+    color: '#ccc',
+    marginTop: vs(3),
+  },
+  businessAmount: {
     fontSize: ms(17),
+    fontWeight: 'bold',
+    color: '#00ffff',
+  },
+  noReferrals: {
+    color: '#aaa',
+    fontSize: ms(15),
+    marginTop: vs(20),
+    textAlign: 'center',
   },
 });

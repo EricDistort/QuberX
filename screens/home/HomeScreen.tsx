@@ -245,11 +245,12 @@ export default function HomeScreen({ navigation }: any) {
               </View>
             </LinearGradient>
           </View>
-
-          <Text style={styles.withdrawableText}>
-            Direct Business{' '}
-            <Text style={styles.boldAmount}>${user?.direct_business || 0}</Text>
-          </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('RecieveMoneyScreen')}>
+            <Text style={styles.withdrawableText}>
+              Direct Business{' '}
+              <Text style={styles.boldAmount}>${user?.direct_business || 0}</Text>
+            </Text>
+          </TouchableOpacity>
 
           {/* Live Traders Section */}
           <View style={styles.thirdContainer}>
@@ -292,7 +293,7 @@ export default function HomeScreen({ navigation }: any) {
                         style={[
                           styles.traderAmount,
                           {
-                            color: trader.trend === 'up' ? 'green' : 'red',
+                            color: trader.trend === 'up' ? '#48ff00ff' : '#ff0000ff',
                           },
                         ]}
                       >
