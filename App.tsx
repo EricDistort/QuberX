@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -9,7 +9,10 @@ import {
   moderateScale as ms,
 } from 'react-native-size-matters';
 import { UserProvider } from './utils/UserContext';
+import { LinearGradient } from 'react-native-linear-gradient';
 
+// Import Screens
+import SplashScreen from './SplashScreen'; // Ensure this path is correct
 import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/home/HomeScreen';
 import TransactionListScreen from './screens/home/TransactionListScreen';
@@ -21,7 +24,10 @@ import StoreScreen from './screens/Store/StoreScreen';
 import RecieveMoneyScreen from './screens/home/RecieveMoneyScreen';
 import SendMoneyScreen from './screens/home/SendMoneyScreen';
 import OrderListScreen from './screens/Store/OrderListScreen';
-import { LinearGradient } from 'react-native-linear-gradient';
+import OnboardingScreen from './screens/Onboarding';
+import Register from './screens/Register';
+import TransactionDetailsScreen from './screens/home/TransactionDetailsScreen';
+
 const RootStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
 const StoreStack = createNativeStackNavigator();
@@ -35,9 +41,10 @@ function HomeStackScreen() {
       <HomeStack.Screen name="SendMoney" component={StoreScreen} />
       <HomeStack.Screen name="RecieveMoney" component={FeedScreen} />
       <HomeStack.Screen name="OrderList" component={OrderListScreen} />
-     <HomeStack.Screen name="RecieveMoneyScreen" component={RecieveMoneyScreen} />
+      <HomeStack.Screen name="RecieveMoneyScreen" component={RecieveMoneyScreen} />
       <HomeStack.Screen name="DepositMoney" component={DepositScreen} />
       <HomeStack.Screen name="WithdrawalMoney" component={WithdrawalScreen} />
+      <HomeStack.Screen name="TransactionDetailsScreen" component={TransactionDetailsScreen} />
     </HomeStack.Navigator>
   );
 }
@@ -46,6 +53,7 @@ function FeedStackScreen() {
   return (
     <FeedStack.Navigator screenOptions={{ headerShown: false }}>
       <FeedStack.Screen name="FeedMain" component={TransactionListScreen} />
+      <FeedStack.Screen name="TransactionDetailsScreen" component={TransactionDetailsScreen} />
     </FeedStack.Navigator>
   );
 }
@@ -54,7 +62,7 @@ function StoreStackScreen() {
   return (
     <StoreStack.Navigator screenOptions={{ headerShown: false }}>
       <StoreStack.Screen name="StoreMain" component={SendMoneyScreen} />
-      
+      <StoreStack.Screen name="OrderList" component={OrderListScreen} />
     </StoreStack.Navigator>
   );
 }
@@ -80,7 +88,7 @@ function MainTabs() {
             elevation: 5,
             marginHorizontal: '5%',
             paddingBottom: vs(10),
-          paddingTop: vs(10),
+            paddingTop: vs(10),
           },
           tabBarBackground: () => (
             <LinearGradient
@@ -169,17 +177,36 @@ function MainTabs() {
   );
 }
 
-
 export default function App() {
+  // State to handle Splash Screen visibility
+  const [isShowSplash, setIsShowSplash] = useState(true);
+
+  useEffect(() => {
+    // Show splash for 3 seconds
+    const timer = setTimeout(() => {
+      setIsShowSplash(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // While splash is active, show ONLY SplashScreen component
+  if (isShowSplash) {
+    return <SplashScreen />;
+  }
+
+  // Once splash is done, load the UserProvider and Navigation
   return (
     <UserProvider>
       <StatusBar hidden={true} />
       <NavigationContainer>
         <RootStack.Navigator
-          initialRouteName="Login"
+          initialRouteName="Onboarding"
           screenOptions={{ headerShown: false }}
         >
+          <RootStack.Screen name="Onboarding" component={OnboardingScreen} />
           <RootStack.Screen name="Login" component={LoginScreen} />
+          <RootStack.Screen name="Register" component={Register} />
           <RootStack.Screen name="Main" component={MainTabs} />
           <RootStack.Screen name="Help" component={Help} />
         </RootStack.Navigator>

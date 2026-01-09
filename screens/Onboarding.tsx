@@ -1,0 +1,242 @@
+import React, { useRef, useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
+  Dimensions,
+  TouchableOpacity,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import {
+  scale as s,
+  verticalScale as vs,
+  moderateScale as ms,
+} from 'react-native-size-matters';
+import ScreenWrapper from '../utils/ScreenWrapper';
+
+const { width } = Dimensions.get('window');
+
+// Theme Colors
+const NEON_CYAN = '#00c6ff';
+const NEON_MAGENTA = '#ff00ff';
+
+const slides = [
+  {
+    id: '1',
+    title: 'Trade & Earn',
+    desc: 'Deposit funds and start trading to earn daily profits.',
+    image: require('./LoginMedia/First.png'), 
+  },
+  {
+    id: '2',
+    title: 'Fast Withdrawals',
+    desc: 'Get your earnings sent directly to your wallet quickly.',
+    image: require('./LoginMedia/Third.png'),
+  },
+  {
+    id: '3',
+    title: 'Level Income',
+    desc: 'Invite friends and earn commissions up to 10 levels deep.',
+    image: require('./LoginMedia/Second.png'),
+  },
+];
+
+export default function OnboardingScreen({ navigation }: any) {
+  const flatListRef = useRef<FlatList>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Auto-scroll every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      let nextIndex = currentIndex + 1;
+      if (nextIndex >= slides.length) nextIndex = 0;
+
+      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+      setCurrentIndex(nextIndex);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [currentIndex]);
+
+  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+    if (viewableItems[0]) {
+      setCurrentIndex(viewableItems[0].index);
+    }
+  });
+
+  return (
+    <ScreenWrapper>
+      <View style={styles.container}>
+        <View style={{ flex: 1 }}>
+          <FlatList
+            data={slides}
+            ref={flatListRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <View style={styles.slide}>
+                <View style={styles.imageContainer}>
+                    <Image
+                    source={item.image}
+                    style={styles.image}
+                    resizeMode="contain"
+                    />
+                </View>
+                <Text style={styles.title}>{item.title}</Text>
+                <Text style={styles.desc}>{item.desc}</Text>
+              </View>
+            )}
+            keyExtractor={(item) => item.id}
+            onViewableItemsChanged={onViewableItemsChanged.current}
+            viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
+          />
+        </View>
+
+        {/* Pagination dots */}
+        <View style={styles.dots}>
+          {slides.map((_, index) => (
+            <View
+              key={index}
+              style={[styles.dot, currentIndex === index && styles.activeDot]}
+            />
+          ))}
+        </View>
+
+        {/* Buttons Container */}
+        <View style={styles.buttonContainer}>
+          {/* Continue Button */}
+          <TouchableOpacity 
+            activeOpacity={0.8}
+            onPress={() => navigation.replace('Login')}
+          >
+            <LinearGradient
+              colors={['#7b0094ff', '#ff00d4ff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.continueBtn}
+            >
+              <Text style={styles.buttonText}>Get Started</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* Skip Button - Styled as Outline for contrast */}
+          
+        </View>
+      </View>
+    </ScreenWrapper>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { 
+      flex: 1, 
+      backgroundColor: 'black' 
+  },
+  slide: {
+    width: width,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: vs(80), 
+  },
+  imageContainer: {
+      width: width * 0.8,
+      height: width * 0.8,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: vs(20),
+  
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  title: {
+    color: '#ff25c8ff',
+    fontSize: ms(28),
+    fontWeight: 'bold',
+    marginBottom: vs(12),
+ 
+  },
+  desc: {
+    color: '#e0e0e0',
+    fontSize: ms(16),
+    width: '85%',
+    textAlign: 'center',
+    lineHeight: ms(24),
+    fontWeight: '400',
+  },
+  dots: {
+    flexDirection: 'row',
+    alignSelf: 'center',
+    marginBottom: vs(40),
+  },
+  dot: {
+    width: ms(8),
+    height: ms(8),
+    backgroundColor: '#333',
+    borderRadius: ms(4),
+    marginHorizontal: s(6),
+  },
+  activeDot: {
+    backgroundColor: NEON_MAGENTA,
+    width: ms(24), 
+    height: ms(8),
+    borderRadius: ms(4),
+  },
+
+  // --- Button Styles ---
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+   // paddingHorizontal: s(30),
+    marginBottom: vs(50),
+  },
+
+  // 1. CONTINUE BUTTON
+  continueBtn: {
+    width: s(280),
+    height: vs(50),
+    borderRadius: ms(20),
+    justifyContent: 'center',
+    alignItems: 'center',
+ 
+    alignSelf: 'center',
+  },
+
+  // 2. SKIP BUTTON (Gradient Border Logic)
+  skipBtnContainer: {
+      width: s(100),
+      height: vs(50),
+      borderRadius: ms(12),
+      overflow: 'hidden',
+  },
+  skipBtnBorder: {
+      flex: 1,
+      padding: ms(2), // This creates the border thickness
+      borderRadius: ms(12),
+  },
+  skipBtnInner: {
+      flex: 1,
+      backgroundColor: 'black', // Inner background matches screen bg
+      borderRadius: ms(10), // Slightly smaller radius
+      justifyContent: 'center',
+      alignItems: 'center',
+  },
+
+  buttonText: {
+    textAlign: 'center',
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: ms(18),
+  },
+  exploreButtonText: {
+    textAlign: 'center',
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: ms(16),
+  },
+});

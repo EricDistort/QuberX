@@ -36,6 +36,9 @@ export default function DepositScreen() {
   const [loadingDeposits, setLoadingDeposits] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  // ⏱️ Timer State
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+
   const fetchDepositInfo = async () => {
     const { data, error } = await supabase.rpc('get_random_deposit_info');
     if (!error && data && data.length > 0) {
@@ -62,9 +65,59 @@ export default function DepositScreen() {
       .from('deposits')
       .select('id, amount, status, created_at')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-    if (!error) setDeposits(data || []);
+      .order('created_at', { ascending: false }); // Latest first
+    
+    if (!error) {
+      setDeposits(data || []);
+      checkCooldown(data || []);
+    }
     setLoadingDeposits(false);
+  };
+
+  // 1️⃣ Check if 24 hours have passed since the last deposit
+  const checkCooldown = (depositList: any[]) => {
+    if (depositList.length > 0) {
+      // Get the most recent deposit time
+      const lastDepositTime = new Date(depositList[0].created_at).getTime();
+      const currentTime = new Date().getTime();
+      const timeDiff = currentTime - lastDepositTime;
+      const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+
+      if (timeDiff < twentyFourHoursInMs) {
+        // Calculate remaining seconds
+        const remaining = Math.floor((twentyFourHoursInMs - timeDiff) / 1000);
+        setCooldownSeconds(remaining);
+      } else {
+        setCooldownSeconds(0);
+      }
+    }
+  };
+
+  // 2️⃣ Timer Interval Effect
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+
+    const intervalId = setInterval(() => {
+      setCooldownSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(intervalId);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [cooldownSeconds]);
+
+  // 3️⃣ Helper to format seconds into HH:MM:SS
+  const formatTime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${h.toString().padStart(2, '0')}:${m
+      .toString()
+      .padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
   useEffect(() => {
@@ -102,7 +155,7 @@ export default function DepositScreen() {
       );
       setTxHash('');
       setReferrer('');
-      fetchDeposits();
+      fetchDeposits(); // This will automatically trigger checkCooldown
     } catch (err: any) {
       Alert.alert('Error', err.message);
     } finally {
@@ -147,7 +200,8 @@ export default function DepositScreen() {
 
             {/* Wallet Row */}
             <View style={styles.walletRow}>
-              <Text style={styles.walletLabel}>Wallet Address</Text>
+              <Text style={styles.walletLabel}>Deposit same amount of USDT & Siito</Text>
+               <Text style={styles.walletLabel}>within one hour of Deposit request</Text>
               <View style={styles.walletBox}>
                 <Text
                   style={styles.walletText}
@@ -177,20 +231,31 @@ export default function DepositScreen() {
               placeholderTextColor="#777"
             />
 
-            {/* Submit Button */}
+            {/* Submit Button with Timer Logic */}
             <TouchableOpacity
               onPress={submitDeposit}
-              disabled={loading}
+              disabled={loading || cooldownSeconds > 0}
               style={{ width: '100%' }}
             >
               <LinearGradient
-                colors={['#00ffff', '#007fff']}
+                colors={
+                  cooldownSeconds > 0
+                    ? ['#2e4549ff', '#c45959ff'] // Grey gradient if cooldown
+                    : ['#00ffff', '#007fff'] // Blue/Cyan if active
+                }
                 start={{ x: 0, y: 1 }}
                 end={{ x: 1, y: 0 }}
-                style={[styles.button, loading && { opacity: 0.6 }]}
+                style={[
+                  styles.button,
+                  (loading || cooldownSeconds > 0) && { opacity: 0.8 },
+                ]}
               >
                 <Text style={styles.btntxt}>
-                  {loading ? 'Submitting...' : 'Deposit'}
+                  {loading
+                    ? 'Submitting...'
+                    : cooldownSeconds > 0
+                    ? `Next Deposit ${formatTime(cooldownSeconds)}`
+                    : 'Deposit'}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -273,7 +338,9 @@ const styles = StyleSheet.create({
     color: '#00ffff',
     fontSize: ms(14),
     fontWeight: '600',
-    marginBottom: vs(6),
+    marginBottom: vs(2),
+    alignSelf: 'center',
+    textAlign: 'center',  
   },
   walletBox: {
     flexDirection: 'row',

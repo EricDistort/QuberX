@@ -1,14 +1,15 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Image,
-  TouchableOpacity,
   Alert,
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  Animated,
+  Pressable,
 } from 'react-native';
 import {
   scale as s,
@@ -20,6 +21,48 @@ import ScreenWrapper from '../../utils/ScreenWrapper';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { supabase } from '../../utils/supabaseClient';
 import LinearGradient from 'react-native-linear-gradient';
+
+// --- POP BUTTON COMPONENT (Local Definition) ---
+const PopScaleButton = ({
+  children,
+  onPress,
+  style,
+}: {
+  children: React.ReactNode;
+  onPress?: () => void;
+  style?: any;
+}) => {
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.9,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      friction: 4,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Pressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={onPress}
+      style={style}
+    >
+      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+        {children}
+      </Animated.View>
+    </Pressable>
+  );
+};
 
 export default function HomeScreen({ navigation }: any) {
   const { user, setUser } = useUser();
@@ -44,7 +87,7 @@ export default function HomeScreen({ navigation }: any) {
       .from('fake_traders')
       .select('id, name, image_url, designation');
     if (!error && data) {
-      const initialized = data.map(t => ({
+      const initialized = data.map((t: any) => ({
         ...t,
         amount: Math.floor(Math.random() * 1000) + 100,
         trend: 'up',
@@ -100,8 +143,8 @@ export default function HomeScreen({ navigation }: any) {
           filePath,
           {
             uri: file.uri,
-            type: file.type,
-            name: file.fileName,
+            type: file.type || 'image/jpeg',
+            name: file.fileName || `upload.${fileExt}`,
           },
           { upsert: true },
         );
@@ -128,14 +171,18 @@ export default function HomeScreen({ navigation }: any) {
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#ff00d4"
+          />
         }
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.container}>
           {/* Profile Section */}
           <View style={styles.firstContainer}>
-            <TouchableOpacity onPress={handleEditProfileImage}>
+            <PopScaleButton onPress={handleEditProfileImage}>
               <View
                 style={{
                   width: s(60),
@@ -143,7 +190,7 @@ export default function HomeScreen({ navigation }: any) {
                   borderRadius: ms(30),
                   marginRight: s(12),
                   borderWidth: s(2),
-                  borderColor: '#00c6ff',
+                  borderColor: '#ff00d4', // Neon Pink
                   justifyContent: 'center',
                   alignItems: 'center',
                   backgroundColor: user?.profileImage ? 'transparent' : 'grey',
@@ -170,7 +217,7 @@ export default function HomeScreen({ navigation }: any) {
                   </Text>
                 )}
               </View>
-            </TouchableOpacity>
+            </PopScaleButton>
 
             <View style={styles.userInfo}>
               <Text style={styles.name}>{user?.username || 'Guest User'}</Text>
@@ -179,7 +226,7 @@ export default function HomeScreen({ navigation }: any) {
               </Text>
             </View>
 
-            <TouchableOpacity
+            <PopScaleButton
               style={styles.editButton}
               onPress={() => navigation.navigate('Help')}
             >
@@ -187,13 +234,13 @@ export default function HomeScreen({ navigation }: any) {
                 source={require('../homeMedia/support.webp')}
                 style={styles.editImage}
               />
-            </TouchableOpacity>
+            </PopScaleButton>
           </View>
 
           {/* Balance Section */}
           <View style={styles.secondContainerWrapper}>
             <LinearGradient
-              colors={['#00c6ff', '#ff00ff']}
+              colors={['#7b0094ff', '#ff00d4ff']} // Updated Gradient
               start={{ x: 0, y: 1 }}
               end={{ x: 1, y: 0 }}
               style={{
@@ -232,32 +279,37 @@ export default function HomeScreen({ navigation }: any) {
                       onPress: () => navigation.navigate('WithdrawalMoney'),
                     },
                   ].map((btn, index) => (
-                    <TouchableOpacity
+                    <PopScaleButton
                       key={index}
                       style={styles.imageButton}
                       onPress={btn.onPress}
                     >
                       <Image source={btn.icon} style={styles.buttonIcon} />
                       <Text style={styles.buttonLabel}>{btn.name}</Text>
-                    </TouchableOpacity>
+                    </PopScaleButton>
                   ))}
                 </View>
               </View>
             </LinearGradient>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate('RecieveMoneyScreen')}>
+
+          <PopScaleButton
+            onPress={() => navigation.navigate('RecieveMoneyScreen')}
+          >
             <Text style={styles.withdrawableText}>
               Direct Business{' '}
-              <Text style={styles.boldAmount}>${user?.direct_business || 0}</Text>
+              <Text style={styles.boldAmount}>
+                ${user?.direct_business || 0}
+              </Text>
             </Text>
-          </TouchableOpacity>
+          </PopScaleButton>
 
           {/* Live Traders Section */}
           <View style={styles.thirdContainer}>
             <Text style={styles.transactionsTitle}>Live Traders</Text>
 
             {loadingTraders ? (
-              <ActivityIndicator size="small" color="#00c6ff" />
+              <ActivityIndicator size="small" color="#ff00d4" />
             ) : (
               <View style={{ height: vs(250), width: '100%' }}>
                 <ScrollView
@@ -293,7 +345,8 @@ export default function HomeScreen({ navigation }: any) {
                         style={[
                           styles.traderAmount,
                           {
-                            color: trader.trend === 'up' ? '#48ff00ff' : '#ff0000ff',
+                            color:
+                              trader.trend === 'up' ? '#48ff00ff' : '#ff0000ff',
                           },
                         ]}
                       >
@@ -323,9 +376,14 @@ const styles = StyleSheet.create({
   },
   userInfo: { flex: 1 },
   name: { fontSize: ms(18), fontWeight: 'bold', color: '#f3fcffff' },
-  accountNumber: { fontSize: ms(14), color: '#afeeff8c', marginTop: vs(2) },
+  accountNumber: { fontSize: ms(14), color: '#ffffff7a', marginTop: vs(2) }, // Updated accent
   editButton: { padding: ms(8) },
-  editImage: { width: s(30), height: s(30), resizeMode: 'contain' },
+  editImage: {
+    width: s(30),
+    height: s(30),
+    resizeMode: 'cover',
+    //tintColor: '#fff',
+  },
   secondContainerWrapper: {
     width: '92%',
     height: '30%',
@@ -334,12 +392,12 @@ const styles = StyleSheet.create({
     marginTop: vs(-32),
     borderRadius: ms(20),
     backgroundColor: '#000',
-    shadowColor: 'rgba(40, 0, 85, 1)',
+    shadowColor: '#7b0094', // Purple Shadow
     shadowOffset: { width: 0, height: vs(4) },
     shadowOpacity: 1,
     shadowRadius: ms(10),
     elevation: 10,
-    borderColor: '#00c6ff',
+    borderColor: '#ff00d4', // Pink Border
     borderWidth: ms(1),
   },
   balanceOverlay: {
@@ -352,7 +410,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: s(20),
   },
-  balanceSubHeader: { fontSize: ms(16), color: 'rgba(212, 249, 255, 0.84)' },
+  balanceSubHeader: { fontSize: ms(16), color: 'rgba(255, 255, 255, 0.9)' },
   balanceAmount: {
     fontSize: ms(50),
     fontWeight: 'bold',
@@ -375,7 +433,7 @@ const styles = StyleSheet.create({
     color: '#a5a5a5ff',
     textAlign: 'center',
   },
-  boldAmount: { fontWeight: 'bold', fontSize: ms(16), color: '#fff' },
+  boldAmount: { fontWeight: 'bold', fontSize: ms(16), color: '#ff00d4' }, // Pink Accent
   thirdContainer: {
     width: '98%',
     borderRadius: ms(12),
@@ -385,7 +443,7 @@ const styles = StyleSheet.create({
   transactionsTitle: {
     fontSize: ms(18),
     fontWeight: 'bold',
-    color: '#00c6ff',
+    color: '#ff00d4', // Pink Accent
     marginBottom: vs(10),
   },
   traderCard: {

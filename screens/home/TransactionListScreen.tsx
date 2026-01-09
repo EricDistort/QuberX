@@ -5,7 +5,9 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
 import { supabase } from '../../utils/supabaseClient';
@@ -17,6 +19,7 @@ import {
 
 export default function TransactionListScreen() {
   const { user } = useUser();
+  const navigation = useNavigation<any>();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -54,30 +57,33 @@ export default function TransactionListScreen() {
     const otherUser = isSent ? item.receiver : item.sender;
 
     return (
-      <View style={styles.card}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={styles.username}>
-            {otherUser?.username || 'Unknown User'}
-          </Text>
-          <Text style={[styles.amount, { color: isSent ? 'red' : '#00c6ff' }]}>
-            {isSent ? '-' : '+'}${Math.abs(item.amount)}
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => navigation.navigate('TransactionDetailsScreen', { transaction: item })}
+      >
+        <View style={styles.card}>
+          <View style={styles.row}>
+            <Text style={styles.username}>
+              {otherUser?.username || 'Unknown User'}
+            </Text>
+            <Text style={[styles.amount, { color: isSent ? '#ff0055' : '#00ff9d' }]}>
+              {isSent ? '-' : '+'}${Math.abs(item.amount)}
+            </Text>
+          </View>
+          <Text style={styles.dateText}>
+            {new Date(item.created_at).toLocaleString()}
           </Text>
         </View>
-        <Text style={styles.subText}>
-          Date: {new Date(item.created_at).toLocaleString()}
-        </Text>
-        <Text style={styles.subText}>Account: {otherUser?.account_number}</Text>
-        <Text style={styles.subText}>Transaction ID: {item.id}</Text>
-      </View>
+      </TouchableOpacity>
     );
   };
 
   return (
     <ScreenWrapper>
       <View style={styles.container}>
-        <Text style={styles.header}>All Transactions</Text>
+        <Text style={styles.header}>Transactions</Text>
         {loading ? (
-          <ActivityIndicator size="large" color="#8CA6DB" />
+          <ActivityIndicator size="large" color="#00c6ff" />
         ) : (
           <FlatList
             data={transactions}
@@ -96,26 +102,41 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: vs(16),
-    paddingRight: s(16),
-    paddingLeft: s(16),
+    paddingHorizontal: s(16),
     marginTop: vs(40),
   },
   header: {
-    fontSize: ms(22),
+    fontSize: ms(24),
     fontWeight: 'bold',
-    marginBottom: vs(12),
+    marginBottom: vs(15),
     color: '#00c6ff',
+    marginLeft: s(4),
   },
   card: {
-    backgroundColor: 'rgba(0, 0, 0, 1)',
-    padding: s(14),
-    borderRadius: ms(10),
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    padding: s(16),
+    borderRadius: ms(12),
     marginBottom: vs(12),
-    elevation: 2,
-    borderColor: '#00c6ff',
-    borderWidth: ms(0.5),
+    borderLeftWidth: ms(4),
+    borderLeftColor: '#00c6ff', // Simple accent line
   },
-  username: { fontSize: ms(18), fontWeight: 'bold', color: '#ffffffff' },
-  amount: { fontSize: ms(18), fontWeight: 'bold' },
-  subText: { fontSize: ms(14), color: '#555', marginTop: vs(3) },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: vs(6),
+  },
+  username: {
+    fontSize: ms(18),
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  amount: {
+    fontSize: ms(18),
+    fontWeight: 'bold',
+  },
+  dateText: {
+    fontSize: ms(13),
+    color: '#888',
+  },
 });

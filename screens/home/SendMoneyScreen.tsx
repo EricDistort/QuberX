@@ -142,17 +142,8 @@ export default function TradesScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.container}>
-            {/* 1️⃣ Top Section – Total Profit */}
-            <View style={styles.secondContainerWrapper}>
-              <View style={styles.balanceOverlay}>
-                <Text style={styles.balanceSubHeader}>Total Profit</Text>
-                <Text style={styles.balanceAmount}>
-                  ${user?.withdrawal_amount || '0'}
-                </Text>
-              </View>
-            </View>
-
-            {/* 2️⃣ Middle Section – Modern Chart */}
+            
+            {/* 1️⃣ Chart Section (Moved Up) */}
             <View style={styles.middleContainer}>
               <LineChart
                 data={{
@@ -160,7 +151,7 @@ export default function TradesScreen() {
                   datasets: [{ data: chartData }],
                 }}
                 width={screenWidth}
-                height={190}
+                height={220} // Slightly taller chart
                 withDots={false}
                 withInnerLines={false}
                 withOuterLines={false}
@@ -178,24 +169,27 @@ export default function TradesScreen() {
                 bezier
               />
 
-              {/* 🟩 New Horizontal Info Containers */}
+              {/* 🟩 Horizontal Info Containers (Level Income + Total Profit) */}
               <View style={styles.infoRow}>
+                {/* Level Income */}
                 <View style={styles.infoCard}>
                   <Text style={styles.infoTitle}>Level Income</Text>
                   <Text style={styles.infoValue}>
                     ${user?.level_income || 0}
                   </Text>
                 </View>
+                
+                {/* Total Profit (Replaced Subscription Bonus) */}
                 <View style={styles.infoCard}>
-                  <Text style={styles.infoTitle}>Subscription Bonus</Text>
+                  <Text style={styles.infoTitle}>Total Profit</Text>
                   <Text style={styles.infoValue}>
-                    ${user?.subscription_bonus || 0}
+                    ${user?.withdrawal_amount || 0}
                   </Text>
                 </View>
               </View>
             </View>
 
-            {/* 3️⃣ Running Trades Section */}
+            {/* 2️⃣ Running Trades Section */}
             <View style={styles.thirdContainer}>
               <Text style={styles.transactionsTitle}>Running Trades</Text>
 
@@ -254,35 +248,15 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   container: { flex: 1, alignItems: 'center', paddingVertical: vs(5) },
 
-  /* Top Section */
-  secondContainerWrapper: {
-    width: '97%',
-    height: '15%',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    marginTop: vs(15),
-    borderRadius: ms(20),
-    backgroundColor: '#000',
-    borderColor: '#00ffff',
-    borderWidth: ms(0),
-  },
-  balanceOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  balanceSubHeader: { fontSize: ms(16), color: '#00eaff' },
-  balanceAmount: {
-    fontSize: ms(46),
-    fontWeight: 'bold',
-    color: '#fff',
-    marginTop: vs(2),
-  },
-
   /* Chart + Info Section */
   middleContainer: {
     width: '97%',
-    height: '40%',
+    height: '45%', // Adjusted height since top header is gone
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: ms(20),
-    marginTop: vs(-15),
+    marginTop: vs(20), // Added top margin
+    //marginBottom: vs(5),
     backgroundColor: 'rgba(0, 10, 20, 0)',
   },
 
@@ -290,36 +264,38 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    width: '90%',
-    marginTop: vs(-5),
+    width: '94%',
+    marginTop: vs(10),
   },
   infoCard: {
     flex: 1,
-    backgroundColor: 'rgba(0, 255, 255, 0.04)',
+    backgroundColor: 'rgba(0, 255, 255, 0.08)', // Slightly brighter bg for visibility
     borderRadius: ms(10),
     paddingVertical: vs(5),
-    marginHorizontal: s(5),
+    marginHorizontal: s(6),
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 255, 255, 0.2)',
   },
   infoTitle: {
     color: '#00ffff',
-    fontSize: ms(13),
+    fontSize: ms(14),
     fontWeight: '600',
+    opacity: 0.8,
   },
   infoValue: {
     color: '#fff',
-    fontSize: ms(18),
+    fontSize: ms(20),
     fontWeight: 'bold',
-    marginTop: vs(3),
+    marginTop: vs(2),
   },
 
   /* Bottom Trades Section */
   thirdContainer: {
     width: '97%',
-    height: '42%',
+    height: '50%', // Fill remaining space
     borderRadius: ms(12),
     padding: s(10),
-    marginTop: vs(-20),
   },
   transactionsTitle: {
     fontSize: ms(18),

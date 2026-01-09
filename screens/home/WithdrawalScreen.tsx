@@ -22,7 +22,7 @@ import { useUser } from '../../utils/UserContext';
 import { supabase } from '../../utils/supabaseClient';
 
 export default function WithdrawalScreen() {
-  const { user } = useUser();
+  const { user, setUser } = useUser(); // Added setUser to update local balance
   const [wallet, setWallet] = useState('');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,6 +30,19 @@ export default function WithdrawalScreen() {
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [loadingWithdrawals, setLoadingWithdrawals] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Fetch updated user balance (Crucial for accurate validation)
+  const fetchUserBalance = async () => {
+    if (!user?.id) return;
+    const { data, error } = await supabase
+      .from('users')
+      .select('withdrawal_amount')
+      .eq('id', user.id)
+      .single();
+    if (data && !error) {
+      setUser({ ...user, withdrawal_amount: data.withdrawal_amount });
+    }
+  };
 
   const fetchWithdrawals = async () => {
     if (!user?.id) return;
@@ -47,28 +60,42 @@ export default function WithdrawalScreen() {
 
   useEffect(() => {
     fetchWithdrawals();
+    fetchUserBalance(); // Fetch fresh balance on load
   }, [user?.id]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchWithdrawals();
+    await Promise.all([fetchWithdrawals(), fetchUserBalance()]);
     setRefreshing(false);
   }, [user?.id]);
 
   const submitWithdrawal = async () => {
     const withdrawalAmount = parseFloat(amount);
-    if (!wallet.trim() || !withdrawalAmount) {
-      Alert.alert('Error', 'Please enter wallet and valid amount');
+
+    // 1. Basic Validation
+    if (!wallet.trim() || !withdrawalAmount || isNaN(withdrawalAmount)) {
+      Alert.alert('Error', 'Please enter a valid wallet address and amount.');
       return;
     }
 
-    if (withdrawalAmount > (user?.withdrawal_amount || 0)) {
-      Alert.alert('Error', 'Insufficient withdrawable amount');
+    if (withdrawalAmount <= 0) {
+      Alert.alert('Error', 'Amount must be greater than zero.');
+      return;
+    }
+
+    // 2. Insufficient Balance Check
+    const currentBalance = user?.withdrawal_amount || 0;
+    if (withdrawalAmount > currentBalance) {
+      Alert.alert(
+        'Insufficient Balance',
+        `You only have $${currentBalance.toFixed(2)} available for withdrawal.`,
+      );
       return;
     }
 
     setLoading(true);
     try {
+      // 3. Submit Request
       const { error } = await supabase.from('withdrawals').insert([
         {
           user_id: user.id,
@@ -79,12 +106,15 @@ export default function WithdrawalScreen() {
       if (error) throw error;
 
       Alert.alert(
-        'Withdrawal Request Submitted',
-        'Your withdrawal request is pending admin approval.',
+        'Success',
+        'Your withdrawal request has been submitted successfully.',
       );
+
       setWallet('');
       setAmount('');
       fetchWithdrawals();
+      // Optionally fetch balance again if your backend deducts pending amounts immediately
+      // fetchUserBalance();
     } catch (err: any) {
       Alert.alert('Error', err.message);
     } finally {
@@ -114,7 +144,10 @@ export default function WithdrawalScreen() {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
-          contentContainerStyle={{ alignItems: 'center', paddingBottom: vs(30) }}
+          contentContainerStyle={{
+            alignItems: 'center',
+            paddingBottom: vs(30),
+          }}
         >
           <LinearGradient
             colors={['#00c6ff', '#ff00ff']}
@@ -190,7 +223,9 @@ export default function WithdrawalScreen() {
                     >
                       <View style={styles.withdrawCard}>
                         <View>
-                          <Text style={styles.withdrawAmount}>${wd.amount}</Text>
+                          <Text style={styles.withdrawAmount}>
+                            ${wd.amount}
+                          </Text>
                           <Text style={styles.withdrawDate}>
                             {new Date(wd.created_at).toLocaleDateString()}
                           </Text>
