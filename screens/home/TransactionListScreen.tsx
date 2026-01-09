@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,12 @@ import {
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+  RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
 import { supabase } from '../../utils/supabaseClient';
@@ -22,10 +26,16 @@ export default function TransactionListScreen() {
   const navigation = useNavigation<any>();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false); // 1️⃣ New State
+
+  // The requested gradient colors
+  const THEME_GRADIENT = ['#7b0094ff', '#ff00d4ff'];
 
   const fetchAllTransactions = async () => {
     if (!user?.account_number) return;
-    setLoading(true);
+    // Only show full loading spinner on initial load, not on refresh
+    if (!refreshing) setLoading(true);
+    
     const { data, error } = await supabase
       .from('transactions')
       .select(
@@ -52,27 +62,68 @@ export default function TransactionListScreen() {
     fetchAllTransactions();
   }, [user?.account_number]);
 
+  // 2️⃣ Pull to Refresh Handler
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchAllTransactions();
+    setRefreshing(false);
+  }, [user?.account_number]);
+
   const renderItem = ({ item }: { item: any }) => {
     const isSent = item.sender_acc === user.account_number;
     const otherUser = isSent ? item.receiver : item.sender;
 
     return (
       <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={() => navigation.navigate('TransactionDetailsScreen', { transaction: item })}
+        activeOpacity={0.9}
+        onPress={() =>
+          navigation.navigate('TransactionDetailsScreen', { transaction: item })
+        }
       >
-        <View style={styles.card}>
-          <View style={styles.row}>
-            <Text style={styles.username}>
-              {otherUser?.username || 'Unknown User'}
-            </Text>
-            <Text style={[styles.amount, { color: isSent ? '#ff0055' : '#00ff9d' }]}>
-              {isSent ? '-' : '+'}${Math.abs(item.amount)}
-            </Text>
+        <View style={styles.cardContainer}>
+          {/* Card Background */}
+          <View style={styles.cardBg}>
+            <View style={styles.cardContent}>
+              {/* Icon with Gradient */}
+              <LinearGradient
+                colors={THEME_GRADIENT}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.iconContainer}
+              >
+                <Text style={styles.iconText}>{isSent ? '↗' : '↙'}</Text>
+              </LinearGradient>
+
+              {/* Text Info */}
+              <View style={styles.textColumn}>
+                <Text style={styles.username} numberOfLines={1}>
+                  {otherUser?.username || 'Unknown User'}
+                </Text>
+                <Text style={styles.dateText}>
+                  {new Date(item.created_at).toLocaleDateString()}
+                </Text>
+              </View>
+
+              {/* Amount & Time (AM/PM) */}
+              <View style={styles.amountColumn}>
+                <Text
+                  style={[
+                    styles.amount,
+                    { color: isSent ? '#ff4d4d' : '#00e676' }, // Soft Red / Bright Green
+                  ]}
+                >
+                  {isSent ? '-' : '+'}${Math.abs(item.amount)}
+                </Text>
+                <Text style={styles.timeText}>
+                  {new Date(item.created_at).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true,
+                  })}
+                </Text>
+              </View>
+            </View>
           </View>
-          <Text style={styles.dateText}>
-            {new Date(item.created_at).toLocaleString()}
-          </Text>
         </View>
       </TouchableOpacity>
     );
@@ -80,63 +131,181 @@ export default function TransactionListScreen() {
 
   return (
     <ScreenWrapper>
-      <View style={styles.container}>
-        <Text style={styles.header}>Transactions</Text>
-        {loading ? (
-          <ActivityIndicator size="large" color="#00c6ff" />
-        ) : (
-          <FlatList
-            data={transactions}
-            keyExtractor={item => item.id.toString()}
-            renderItem={renderItem}
-            contentContainerStyle={{ paddingBottom: vs(80) }}
-            showsVerticalScrollIndicator={false}
-          />
-        )}
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="light-content" />
+        <View style={styles.container}>
+          
+          {/* Modern Header Section */}
+          <View style={styles.headerContainer}>
+            <Text style={styles.headerTitle}>Transactions</Text>
+            <Text style={styles.headerSubtitle}>Recent activity</Text>
+            
+            {/* Gradient Underline */}
+            <LinearGradient
+              colors={THEME_GRADIENT}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.headerLine}
+            />
+          </View>
+
+          {loading && !refreshing ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#ff00d4" />
+            </View>
+          ) : (
+            <FlatList
+              data={transactions}
+              keyExtractor={item => item.id.toString()}
+              renderItem={renderItem}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+              // 3️⃣ Refresh Control Component
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  tintColor="#ff00d4" // Neon Pink Spinner (iOS)
+                  colors={['#ff00d4', '#7b0094']} // Neon Gradient Spinner (Android)
+                  progressBackgroundColor="#1a1a1a" // Dark background for spinner (Android)
+                />
+              }
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyIcon}>📂</Text>
+                  <Text style={styles.emptyText}>No transactions yet</Text>
+                </View>
+              }
+            />
+          )}
+        </View>
+      </SafeAreaView>
     </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1 },
   container: {
     flex: 1,
-    paddingTop: vs(16),
-    paddingHorizontal: s(16),
-    marginTop: vs(40),
+    paddingHorizontal: s(10),
   },
-  header: {
-    fontSize: ms(24),
-    fontWeight: 'bold',
-    marginBottom: vs(15),
-    color: '#00c6ff',
-    marginLeft: s(4),
+  
+  /* Header Styles */
+  headerContainer: {
+    marginTop: vs(20),
+    marginBottom: vs(20),
   },
-  card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    padding: s(16),
-    borderRadius: ms(12),
-    marginBottom: vs(12),
-    borderLeftWidth: ms(4),
-    borderLeftColor: '#00c6ff', // Simple accent line
+  headerTitle: {
+    fontSize: ms(32),
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: 0.5,
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  headerSubtitle: {
+    fontSize: ms(14),
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: vs(2),
+    marginBottom: vs(10),
+  },
+  headerLine: {
+    height: vs(4),
+    width: s(60),
+    borderRadius: ms(2),
+  },
+
+  /* List Styles */
+  listContent: {
+    paddingBottom: vs(300),
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: vs(6),
+  },
+
+  /* Card Styles */
+  cardContainer: {
+    marginBottom: vs(12),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  cardBg: {
+    backgroundColor: '#1a1a1a', // Dark modern grey
+    borderRadius: ms(20),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)', // Subtle light border
+  },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: s(15),
+  },
+
+  /* Icon Styles */
+  iconContainer: {
+    width: ms(48),
+    height: ms(48),
+    borderRadius: ms(16), // Squircle shape
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: s(15),
+  },
+  iconText: {
+    color: '#fff',
+    fontSize: ms(22),
+    fontWeight: 'bold',
+  },
+
+  /* Text Layout */
+  textColumn: {
+    flex: 1,
+    justifyContent: 'center',
   },
   username: {
-    fontSize: ms(18),
-    fontWeight: 'bold',
+    fontSize: ms(16),
+    fontWeight: '700',
     color: '#fff',
-  },
-  amount: {
-    fontSize: ms(18),
-    fontWeight: 'bold',
+    marginBottom: vs(4),
   },
   dateText: {
-    fontSize: ms(13),
-    color: '#888',
+    fontSize: ms(12),
+    color: 'rgba(255,255,255,0.4)',
+  },
+
+  /* Amount Layout */
+  amountColumn: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  amount: {
+    fontSize: ms(16),
+    fontWeight: '700',
+    marginBottom: vs(4),
+  },
+  timeText: {
+    fontSize: ms(11),
+    color: 'rgba(255,255,255,0.3)',
+    fontWeight: '500',
+    marginTop: vs(2),
+  },
+
+  /* Empty State */
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: vs(80),
+    opacity: 0.5,
+  },
+  emptyIcon: {
+    fontSize: ms(40),
+    marginBottom: vs(10),
+  },
+  emptyText: {
+    color: '#fff',
+    fontSize: ms(16),
+    fontWeight: '500',
   },
 });

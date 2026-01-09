@@ -10,6 +10,9 @@ import {
   TextInput,
   Alert,
   Dimensions,
+  SafeAreaView,
+  StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { supabase } from '../../utils/supabaseClient';
@@ -22,7 +25,7 @@ import {
 } from 'react-native-size-matters';
 
 const { width } = Dimensions.get('window');
-const cardWidth = width / 2 - 20;
+const cardWidth = width / 2 - s(24); // Adjusted for better spacing
 
 export default function StoreScreen({ navigation }: any) {
   const { user } = useUser();
@@ -30,6 +33,10 @@ export default function StoreScreen({ navigation }: any) {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [mobileNumber, setMobileNumber] = useState('');
   const [location, setLocation] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Theme Gradient
+  const THEME_GRADIENT = ['#7b0094ff', '#ff00d4ff'];
 
   useEffect(() => {
     fetchProducts();
@@ -42,7 +49,7 @@ export default function StoreScreen({ navigation }: any) {
 
   const handleBuyPress = async (product: any) => {
     if (user.withdrawal_amount < product.price) {
-      Alert.alert('Error', 'Insufficient withdrawal balance!');
+      Alert.alert('Insufficient Balance', 'You need more balance to claim this item.');
       return;
     }
     setSelectedProduct(product);
@@ -50,10 +57,11 @@ export default function StoreScreen({ navigation }: any) {
 
   const confirmPurchase = async () => {
     if (!mobileNumber.trim() || !location.trim()) {
-      Alert.alert('Error', 'Please fill in all details');
+      Alert.alert('Missing Details', 'Please fill in your mobile number and location.');
       return;
     }
 
+    setLoading(true);
     const { error } = await supabase.from('purchases').insert([
       {
         user_id: user.id,
@@ -64,252 +72,408 @@ export default function StoreScreen({ navigation }: any) {
       },
     ]);
 
+    setLoading(false);
+
     if (error) {
       Alert.alert('Error', error.message);
     } else {
       setSelectedProduct(null);
       setMobileNumber('');
       setLocation('');
-      Alert.alert('Success', 'Purchased Successfully!');
+      Alert.alert('Success', 'Claim request submitted successfully!');
     }
   };
 
   const renderItem = ({ item }: any) => (
-    <LinearGradient
-      colors={['#00c6ff', '#ff00ff']}
-      start={{ x: 1, y: 0 }}
-      end={{ x: 0, y: 1 }}
-      style={styles.gradientBorder}
-    >
-      <View style={styles.card}>
-        <Image source={{ uri: item.image_url }} style={styles.image} />
-        <View
-          style={{
-            flex: 1,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginTop: 6,
-            width: '100%',
-          }}
-        >
-          <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.price}>${item.price}</Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => handleBuyPress(item)}
-          style={{ marginTop: 8 }}
-        >
-          <LinearGradient
-            colors={['#00ffff', '#007fff']}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.buyBtn}
+    <View style={styles.cardContainer}>
+      {/* Gradient Border Wrapper */}
+      <LinearGradient
+        colors={THEME_GRADIENT}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientBorder}
+      >
+        <View style={styles.cardInner}>
+          {/* Product Image */}
+          <View style={styles.imageContainer}>
+            <Image source={{ uri: item.image_url }} style={styles.image} resizeMode="cover" />
+          </View>
+
+          {/* Product Info */}
+          <View style={styles.cardContent}>
+            <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
+            <Text style={styles.price}>${item.price}</Text>
+          </View>
+
+          {/* Claim Button */}
+          <TouchableOpacity
+            onPress={() => handleBuyPress(item)}
+            activeOpacity={0.8}
+            style={styles.buyBtnContainer}
           >
-            <Text style={styles.buyText}>Claim</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-    </LinearGradient>
+            <LinearGradient
+              colors={THEME_GRADIENT}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.buyBtn}
+            >
+              <Text style={styles.buyText}>Claim</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
+    </View>
   );
 
   return (
     <ScreenWrapper>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Achievements</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('OrderList')}>
-            <Text style={styles.orderList}>Order List</Text>
-          </TouchableOpacity>
-        </View>
-
-        <FlatList
-          data={products}
-          renderItem={renderItem}
-          keyExtractor={item => item.id.toString()}
-          numColumns={2}
-          columnWrapperStyle={{
-            justifyContent: 'space-between',
-            marginBottom: vs(16),
-          }}
-          showsVerticalScrollIndicator={false}
-        />
-
-        {/* Purchase Modal */}
-        <Modal visible={!!selectedProduct} transparent animationType="slide">
-          <ScreenWrapper>
-            <TouchableOpacity
-              style={styles.modalOverlay}
-              activeOpacity={1}
-              onPress={() => setSelectedProduct(null)}
+      <StatusBar barStyle="light-content" />
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          
+          {/* Header */}
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.title}>Store</Text>
+              <Text style={styles.subtitle}>Redeem your rewards</Text>
+            </View>
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('OrderList')}
+              style={styles.historyBtn}
             >
-              <TouchableOpacity activeOpacity={1} style={styles.modalCard}>
-                {selectedProduct && (
-                  <>
-                    <Image
-                      source={{ uri: selectedProduct.image_url }}
-                      style={styles.modalImage}
-                    />
-                    <Text style={styles.modalTitle}>
-                      {selectedProduct.name}
-                    </Text>
-                    <Text style={styles.modalPrice}>
-                      ${selectedProduct.price}
-                    </Text>
-
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Mobile Number"
-                      placeholderTextColor="#777"
-                      value={mobileNumber}
-                      onChangeText={setMobileNumber}
-                    />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Location"
-                      placeholderTextColor="#777"
-                      value={location}
-                      onChangeText={setLocation}
-                    />
-
-                    <TouchableOpacity
-                      onPress={confirmPurchase}
-                      style={{ width: '100%', marginTop: vs(10) }}
-                    >
-                      <LinearGradient
-                        colors={['#00ffff', '#007fff']}
-                        start={{ x: 0, y: 1 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.buyNowBtn}
-                      >
-                        <Text style={styles.buyNowText}>Claim Now</Text>
-                      </LinearGradient>
-                    </TouchableOpacity>
-                  </>
-                )}
-              </TouchableOpacity>
+              <Text style={styles.orderList}>My Orders</Text>
             </TouchableOpacity>
-          </ScreenWrapper>
-        </Modal>
-      </View>
+          </View>
+
+          {/* Product Grid */}
+          <FlatList
+            data={products}
+            renderItem={renderItem}
+            keyExtractor={item => item.id.toString()}
+            numColumns={2}
+            columnWrapperStyle={styles.columnWrapper}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+
+          {/* Purchase Modal */}
+          <Modal visible={!!selectedProduct} transparent animationType="fade">
+            <View style={styles.modalOverlay}>
+              {/* Tap background to close */}
+              <TouchableOpacity 
+                style={styles.modalBackdrop} 
+                activeOpacity={1} 
+                onPress={() => setSelectedProduct(null)} 
+              />
+              
+              <View style={styles.modalContent}>
+                <LinearGradient
+                  colors={['#1a1a1a', '#0d0d0d']}
+                  style={styles.modalCard}
+                >
+                  {selectedProduct && (
+                    <>
+                      {/* Modal Header */}
+                      <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>Confirm Claim</Text>
+                        <TouchableOpacity onPress={() => setSelectedProduct(null)}>
+                          <Text style={styles.closeIcon}>✕</Text>
+                        </TouchableOpacity>
+                      </View>
+
+                      {/* Product Summary */}
+                      <View style={styles.productSummary}>
+                        <Image
+                          source={{ uri: selectedProduct.image_url }}
+                          style={styles.modalImage}
+                        />
+                        <View style={styles.summaryText}>
+                          <Text style={styles.summaryName}>{selectedProduct.name}</Text>
+                          <Text style={styles.summaryPrice}>${selectedProduct.price}</Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.divider} />
+
+                      {/* Inputs */}
+                      <Text style={styles.inputLabel}>Mobile Number</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Enter contact number"
+                        placeholderTextColor="rgba(255,255,255,0.3)"
+                        value={mobileNumber}
+                        onChangeText={setMobileNumber}
+                        keyboardType="phone-pad"
+                      />
+
+                      <Text style={styles.inputLabel}>Delivery Address</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Enter full address"
+                        placeholderTextColor="rgba(255,255,255,0.3)"
+                        value={location}
+                        onChangeText={setLocation}
+                      />
+
+                      {/* Confirm Button */}
+                      <TouchableOpacity
+                        onPress={confirmPurchase}
+                        disabled={loading}
+                        style={styles.confirmBtnContainer}
+                      >
+                        <LinearGradient
+                          colors={THEME_GRADIENT}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          style={styles.buyNowBtn}
+                        >
+                          {loading ? (
+                            <ActivityIndicator color="#fff" size="small" />
+                          ) : (
+                            <Text style={styles.buyNowText}>Confirm & Claim</Text>
+                          )}
+                        </LinearGradient>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </LinearGradient>
+              </View>
+            </View>
+          </Modal>
+
+        </View>
+      </SafeAreaView>
     </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1 },
   container: {
     flex: 1,
-    paddingTop: vs(12),
-    paddingHorizontal: s(14),
-    marginBottom: vs(80),
+    paddingHorizontal: s(16),
   },
+
+  /* Header */
   header: {
-    marginTop: vs(40),
+    marginTop: vs(20),
+    marginBottom: vs(20),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   title: {
-    fontSize: ms(24),
-    fontWeight: 'bold',
-    color: '#00ffff',
-    marginBottom: vs(12),
+    fontSize: ms(28),
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: 0.5,
+  },
+  subtitle: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: ms(12),
+  },
+  historyBtn: {
+    paddingVertical: vs(6),
+    paddingHorizontal: s(12),
+    backgroundColor: 'rgba(255, 0, 212, 0.1)',
+    borderRadius: ms(20),
+    borderWidth: 1,
+    borderColor: 'rgba(255, 0, 212, 0.3)',
   },
   orderList: {
-    fontSize: ms(15),
-    color: '#00ffff',
-    marginBottom: vs(8),
+    fontSize: ms(12),
+    color: '#ff00d4',
+    fontWeight: '700',
+  },
+
+  /* Grid Layout */
+  listContent: {
+    paddingBottom: vs(80),
+  },
+  columnWrapper: {
+    justifyContent: 'space-between',
+  },
+
+  /* Card Styling */
+  cardContainer: {
+    marginBottom: vs(16),
+    width: cardWidth,
+    shadowColor: '#ff00d4',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   gradientBorder: {
-    borderRadius: ms(14),
-    //padding: ms(2),
-    width: cardWidth,
+    borderRadius: ms(16),
+    padding: 1, // Thin border
   },
-  card: {
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    borderRadius: ms(14),
-    padding: s(10),
+  cardInner: {
+    backgroundColor: '#121212',
+    borderRadius: ms(15), // Slightly smaller than border
+    padding: s(8),
     alignItems: 'center',
+  },
+  imageContainer: {
+    width: '100%',
+    height: vs(110),
+    borderRadius: ms(10),
+    overflow: 'hidden',
+    marginBottom: vs(8),
+    backgroundColor: '#000',
   },
   image: {
     width: '100%',
-    height: vs(120),
-    borderRadius: ms(8),
-    borderWidth: 1,
-    borderColor: '#00ffff',
-    resizeMode: 'cover',
+    height: '100%',
+  },
+  cardContent: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: vs(8),
+    paddingHorizontal: s(2),
   },
   name: {
-    fontSize: ms(14),
-    fontWeight: 'bold',
+    fontSize: ms(13),
+    fontWeight: '700',
     color: '#fff',
-    alignSelf: 'flex-start',
+    flex: 1,
+    marginRight: s(4),
   },
   price: {
-    fontSize: ms(14),
-    color: '#00ffff',
-    alignSelf: 'flex-end',
-    fontWeight: 'bold',
+    fontSize: ms(13),
+    color: '#ff00d4',
+    fontWeight: '800',
+  },
+  buyBtnContainer: {
+    width: '100%',
   },
   buyBtn: {
     borderRadius: ms(8),
-    width: s(120),
-    height: vs(35),
+    width: '100%',
+    paddingVertical: vs(6),
     alignItems: 'center',
     justifyContent: 'center',
   },
   buyText: {
     color: '#fff',
-    fontWeight: 'bold',
-    fontSize: ms(14),
+    fontWeight: '700',
+    fontSize: ms(12),
+    textTransform: 'uppercase',
   },
+
+  /* Modal Styling */
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.8)',
+  },
+  modalBackdrop: {
+    position: 'absolute',
+    top: 0, 
+    left: 0, 
+    right: 0, 
+    bottom: 0,
+  },
+  modalContent: {
+    width: '90%',
+    zIndex: 1,
   },
   modalCard: {
-    width: '85%',
-    backgroundColor: 'rgba(0,0,0,0.9)',
-    borderRadius: ms(16),
-    padding: s(16),
-    alignItems: 'center',
+    borderRadius: ms(20),
+    padding: s(20),
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  modalImage: {
-    width: s(160),
-    height: s(120),
-    borderRadius: ms(10),
-    marginBottom: vs(10),
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: vs(15),
   },
   modalTitle: {
     fontSize: ms(18),
-    fontWeight: 'bold',
+    fontWeight: '800',
     color: '#fff',
   },
-  modalPrice: {
+  closeIcon: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: ms(20),
+    fontWeight: 'bold',
+  },
+  
+  /* Product Summary in Modal */
+  productSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: vs(15),
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    padding: s(10),
+    borderRadius: ms(12),
+  },
+  modalImage: {
+    width: s(60),
+    height: s(60),
+    borderRadius: ms(8),
+    marginRight: s(12),
+    backgroundColor: '#000',
+  },
+  summaryText: {
+    flex: 1,
+  },
+  summaryName: {
+    color: '#fff',
     fontSize: ms(16),
-    color: '#00ffff',
-    marginBottom: vs(10),
+    fontWeight: '700',
+    marginBottom: vs(2),
+  },
+  summaryPrice: {
+    color: '#ff00d4',
+    fontSize: ms(16),
+    fontWeight: '800',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    marginBottom: vs(15),
+  },
+
+  /* Inputs */
+  inputLabel: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: ms(12),
+    marginBottom: vs(6),
+    marginLeft: s(4),
   },
   input: {
     width: '100%',
-    borderRadius: ms(8),
-    marginTop: vs(8),
-    backgroundColor: 'rgba(0,255,255,0.05)',
+    borderRadius: ms(12),
+    marginBottom: vs(15),
+    backgroundColor: '#000',
     borderWidth: 1,
-    borderColor: 'rgba(0,255,255,0.2)',
+    borderColor: 'rgba(255,255,255,0.15)',
     color: '#fff',
-    padding: ms(10),
-    fontSize: ms(15),
+    paddingHorizontal: s(15),
+    paddingVertical: vs(10),
+    fontSize: ms(14),
+  },
+  
+  /* Confirm Button */
+  confirmBtnContainer: {
+    marginTop: vs(10),
+    width: '100%',
   },
   buyNowBtn: {
-    paddingVertical: ms(12),
-    borderRadius: ms(10),
+    paddingVertical: vs(14),
+    borderRadius: ms(12),
     alignItems: 'center',
   },
   buyNowText: {
     color: '#fff',
-    fontWeight: 'bold',
-    fontSize: ms(17),
+    fontWeight: '800',
+    fontSize: ms(16),
+    letterSpacing: 0.5,
   },
 });

@@ -12,6 +12,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
+import LinearGradient from 'react-native-linear-gradient';
 import { supabase } from '../../utils/supabaseClient';
 import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
@@ -71,7 +72,6 @@ export default function TradesScreen() {
     fetchTrades();
   }, [user?.id]);
 
-  // 🔁 Simulate live chart data
   useEffect(() => {
     const interval = setInterval(() => {
       setChartData(prev => {
@@ -85,7 +85,6 @@ export default function TradesScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  // 🔁 Simulate live trade value updates
   useEffect(() => {
     const interval = setInterval(() => {
       setTrades(prev =>
@@ -110,25 +109,12 @@ export default function TradesScreen() {
     setRefreshing(false);
   }, [user?.id]);
 
-  const endTrade = async (tradeId: number) => {
-    Alert.alert('Confirm', 'Are you sure you want to end this trade?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'End',
-        onPress: async () => {
-          setEndingTrade(tradeId);
-          const { error } = await supabase.rpc('end_trade', {
-            trade_id: tradeId,
-          });
-          if (error) Alert.alert('Error', error.message);
-          else {
-            Alert.alert('Success', 'Trade ended successfully!');
-            fetchTrades();
-          }
-          setEndingTrade(null);
-        },
-      },
-    ]);
+  // 🛑 Updated endTrade Function
+  const endTrade = (tradeId: number) => {
+    Alert.alert(
+      'Restricted Action',
+      'Trades are live can not be closed at this moment'
+    );
   };
 
   return (
@@ -137,50 +123,71 @@ export default function TradesScreen() {
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#ff00d4"
+            />
           }
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.container}>
-            
-            {/* 1️⃣ Chart Section (Moved Up) */}
+            {/* 1️⃣ Chart Section */}
             <View style={styles.middleContainer}>
-              <LineChart
-                data={{
-                  labels: [],
-                  datasets: [{ data: chartData }],
-                }}
-                width={screenWidth}
-                height={220} // Slightly taller chart
-                withDots={false}
-                withInnerLines={false}
-                withOuterLines={false}
-                withVerticalLines={false}
-                withHorizontalLabels={true}
-                chartConfig={{
-                  backgroundGradientFrom: 'transparent',
-                  backgroundGradientTo: 'transparent',
-                  color: () => '#00ffff',
-                  strokeWidth: 3,
-                  propsForBackgroundLines: {
-                    stroke: 'transparent',
-                  },
-                }}
-                bezier
-              />
+              <LinearGradient
+                colors={['rgba(123, 0, 148, 0)', 'rgba(0,0,0,0)']}
+                style={styles.chartBackground}
+              >
+                <LineChart
+                  data={{
+                    labels: [],
+                    datasets: [{ data: chartData }],
+                  }}
+                  width={screenWidth}
+                  height={220}
+                  withDots={false}
+                  withInnerLines={false}
+                  withOuterLines={false}
+                  withVerticalLines={false}
+                  withHorizontalLabels={true}
+                  yAxisInterval={1}
+                  chartConfig={{
+                    backgroundGradientFrom: '#000',
+                    backgroundGradientFromOpacity: 0,
+                    backgroundGradientTo: '#000',
+                    backgroundGradientToOpacity: 0,
+                    fillShadowGradientFrom: '#ff00d4',
+                    fillShadowGradientTo: '#7b0094',
+                    fillShadowGradientOpacity: 0.6,
+                    color: (opacity = 1) => `rgba(255, 0, 212, ${opacity})`, // Neon Pink Line
+                    labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                    strokeWidth: 2,
+                    propsForBackgroundLines: {
+                      stroke: 'transparent',
+                    },
+                  }}
+                  bezier
+                  style={{
+                    paddingRight: 0,
+                    paddingLeft: 0,
+                  }}
+                />
+              </LinearGradient>
 
-              {/* 🟩 Horizontal Info Containers (Level Income + Total Profit) */}
+              {/* 🟩 Horizontal Info Containers */}
               <View style={styles.infoRow}>
                 {/* Level Income */}
-                <View style={styles.infoCard}>
+                <View
+                  style={styles.infoCard}
+                >
                   <Text style={styles.infoTitle}>Level Income</Text>
-                  <Text style={styles.infoValue}>
-                    ${user?.level_income || 0}
-                  </Text>
+                  <Text style={styles.infoValue}>${user?.level_income || 0}</Text>
                 </View>
-                
-                {/* Total Profit (Replaced Subscription Bonus) */}
-                <View style={styles.infoCard}>
+
+                {/* Total Profit */}
+                <View
+                  style={styles.infoCard}
+                >
                   <Text style={styles.infoTitle}>Total Profit</Text>
                   <Text style={styles.infoValue}>
                     ${user?.withdrawal_amount || 0}
@@ -191,47 +198,71 @@ export default function TradesScreen() {
 
             {/* 2️⃣ Running Trades Section */}
             <View style={styles.thirdContainer}>
-              <Text style={styles.transactionsTitle}>Running Trades</Text>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.transactionsTitle}>Running Trades</Text>
+                <View style={styles.liveIndicator} />
+              </View>
 
               {loading ? (
-                <ActivityIndicator size="large" color="#00c6ff" />
+                <ActivityIndicator size="large" color="#ff00d4" />
               ) : trades.length === 0 ? (
-                <Text style={styles.noTrades}>No running trades found</Text>
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.noTrades}>No Active Trades</Text>
+                </View>
               ) : (
                 <ScrollView
                   style={{ width: '100%' }}
                   showsVerticalScrollIndicator={false}
                 >
                   {trades.map(trade => (
-                    <View key={trade.id} style={styles.tradeCard}>
+                    <LinearGradient
+                      key={trade.id}
+                      colors={['rgba(20, 20, 30, 0.8)', 'rgba(123, 0, 148, 0.2)']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.tradeCard}
+                    >
                       <View>
                         <Text style={styles.amount}>USDT {trade.amount}</Text>
-                        <Text
-                          style={[
-                            styles.liveAmount,
-                            {
-                              color:
-                                trade.trend === 'up' ? '#48ff00ff' : '#ff0000ff',
-                            },
-                          ]}
-                        >
-                          {trade.trend === 'up' ? '▲' : '▼'}$
-                          {trade.liveAmount.toFixed(2)}
-                        </Text>
+                        <View style={styles.trendContainer}>
+                          <Text
+                            style={[
+                              styles.liveAmount,
+                              {
+                                color:
+                                  trade.trend === 'up'
+                                    ? '#00ff88'
+                                    : '#ff3366',
+                              },
+                            ]}
+                          >
+                            {trade.trend === 'up' ? '▲' : '▼'} $
+                            {trade.liveAmount.toFixed(2)}
+                          </Text>
+                        </View>
                       </View>
+
                       <TouchableOpacity
-                        style={[
-                          styles.endButton,
-                          endingTrade === trade.id && { opacity: 0.6 },
-                        ]}
                         onPress={() => endTrade(trade.id)}
                         disabled={endingTrade === trade.id}
                       >
-                        <Text style={styles.endText}>
-                          {endingTrade === trade.id ? 'Ending...' : 'End Trade'}
-                        </Text>
+                        <LinearGradient
+                          colors={['#7b0094', '#ff00d4']}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          style={[
+                            styles.endButton,
+                            endingTrade === trade.id && { opacity: 0.6 },
+                          ]}
+                        >
+                          <Text style={styles.endText}>
+                            {endingTrade === trade.id
+                              ? 'Closing...'
+                              : 'Close Trade'}
+                          </Text>
+                        </LinearGradient>
                       </TouchableOpacity>
-                    </View>
+                    </LinearGradient>
                   ))}
                 </ScrollView>
               )}
@@ -246,90 +277,140 @@ export default function TradesScreen() {
 /* --------------------------- STYLES --------------------------- */
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  container: { flex: 1, alignItems: 'center', paddingVertical: vs(5) },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: vs(5),
+  },
 
   /* Chart + Info Section */
   middleContainer: {
-    width: '97%',
-    height: '45%', // Adjusted height since top header is gone
-    justifyContent: 'center',
+    width: '100%',
     alignItems: 'center',
-    borderRadius: ms(20),
-    marginTop: vs(20), // Added top margin
-    //marginBottom: vs(5),
-    backgroundColor: 'rgba(0, 10, 20, 0)',
+    marginTop: vs(30),
+  },
+  chartBackground: {
+    width: '100%',
+    alignItems: 'center',
+    paddingBottom: vs(10),
+    
   },
 
   /* Horizontal Info Row */
   infoRow: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    width: '94%',
-    marginTop: vs(10),
+    justifyContent: 'space-between',
+    width: '92%',
+    marginTop: vs(-20), // Pull up to overlap chart slightly
+    zIndex: 10,
   },
   infoCard: {
     flex: 1,
-    backgroundColor: 'rgba(0, 255, 255, 0.08)', // Slightly brighter bg for visibility
-    borderRadius: ms(10),
-    paddingVertical: vs(5),
+    borderRadius: ms(16),
+    paddingVertical: vs(8),
     marginHorizontal: s(6),
     alignItems: 'center',
+    backgroundColor: 'rgba(163, 0, 155, 0.14)',
     borderWidth: 1,
-    borderColor: 'rgba(0, 255, 255, 0.2)',
+    borderColor: 'rgba(255, 0, 170, 0.43)', // Pink border
+    
   },
   infoTitle: {
-    color: '#00ffff',
-    fontSize: ms(14),
-    fontWeight: '600',
-    opacity: 0.8,
+    color: '#rgba(255,255,255,0.7)',
+    fontSize: ms(12),
+    fontWeight: '500',
+    letterSpacing: 0.5,
+    marginBottom: vs(4),
   },
   infoValue: {
     color: '#fff',
-    fontSize: ms(20),
-    fontWeight: 'bold',
-    marginTop: vs(2),
+    fontSize: ms(22),
+    fontWeight: '800',
   },
 
   /* Bottom Trades Section */
   thirdContainer: {
-    width: '97%',
-    height: '50%', // Fill remaining space
-    borderRadius: ms(12),
-    padding: s(10),
+    width: '92%',
+    flex: 1,
+    marginTop: vs(25),
+    paddingBottom: vs(20),
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: vs(15),
   },
   transactionsTitle: {
-    fontSize: ms(18),
-    fontWeight: 'bold',
-    color: '#00ffff',
-    marginBottom: vs(10),
-    marginLeft: s(5),
+    fontSize: ms(20),
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: 0.5,
   },
+  liveIndicator: {
+    width: ms(8),
+    height: ms(8),
+    borderRadius: ms(4),
+    backgroundColor: '#00ff88',
+    marginLeft: s(8),
+    shadowColor: '#00ff88',
+    shadowOpacity: 1,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  
+  /* Trade Card */
   tradeCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    borderRadius: ms(10),
-    padding: s(12),
-    marginBottom: vs(10),
+    borderRadius: ms(16),
+    padding: s(16),
+    marginBottom: vs(12),
     borderWidth: 1,
-    borderColor: 'rgba(0,255,255,0.15)',
+    borderColor: 'rgba(123, 0, 148, 0.5)', // Purple border
   },
-  amount: { fontSize: ms(17), fontWeight: 'bold', color: '#fff' },
-  liveAmount: { fontSize: ms(14), fontWeight: '600' },
+  amount: {
+    fontSize: ms(18),
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: vs(4),
+  },
+  trendContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  liveAmount: {
+    fontSize: ms(14),
+    fontWeight: '600',
+  },
+  
+  /* Buttons */
   endButton: {
-    backgroundColor: 'rgba(255, 17, 0, 0.15)',
-    borderRadius: ms(8),
-    paddingVertical: ms(8),
-    paddingHorizontal: s(16),
-    borderWidth: 1,
-    borderColor: '#ff3300ff',
+    borderRadius: ms(25), // Pill shape
+    paddingVertical: vs(8),
+    paddingHorizontal: s(20),
+    shadowColor: '#ff00d4',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  endText: { color: '#fff', fontWeight: 'bold', fontSize: ms(15) },
+  endText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: ms(13),
+    textTransform: 'uppercase',
+  },
+  
+  /* Empty States */
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: vs(30),
+  },
   noTrades: {
-    color: '#aaa',
-    fontSize: ms(15),
-    textAlign: 'center',
-    marginTop: vs(20),
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: ms(16),
+    fontWeight: '500',
   },
 });

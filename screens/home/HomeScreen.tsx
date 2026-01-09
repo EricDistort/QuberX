@@ -10,6 +10,7 @@ import {
   RefreshControl,
   Animated,
   Pressable,
+  TouchableOpacity,
 } from 'react-native';
 import {
   scale as s,
@@ -266,7 +267,7 @@ export default function HomeScreen({ navigation }: any) {
                     {
                       name: 'Rewards',
                       icon: require('../homeMedia/send.webp'),
-                      onPress: () => navigation.navigate('SendMoney'),
+                      onPress: () => navigation.navigate('StoreMain'),
                     },
                     {
                       name: 'News',
@@ -321,7 +322,9 @@ export default function HomeScreen({ navigation }: any) {
                   nestedScrollEnabled={true}
                 >
                   {traders.map(trader => (
-                    <View key={trader.id} style={styles.traderCard}>
+                    <TouchableOpacity key={trader.id} style={styles.traderCard} onPress={() =>
+          navigation.navigate('SendMoney')
+        } >
                       <View
                         style={{ flexDirection: 'row', alignItems: 'center' }}
                       >
@@ -353,7 +356,7 @@ export default function HomeScreen({ navigation }: any) {
                         {trader.trend === 'up' ? '▲' : '▼'}$
                         {trader.amount.toFixed(2)}
                       </Text>
-                    </View>
+                    </TouchableOpacity>
                   ))}
                 </ScrollView>
               </View>

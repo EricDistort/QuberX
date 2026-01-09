@@ -5,6 +5,9 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
+  SafeAreaView,
+  StatusBar,
+  Dimensions,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -23,10 +26,15 @@ import packedAnim from './StoreMedia/Confirmed.json';
 import outForDeliveryAnim from './StoreMedia/OutForDelivery.json';
 import deliveredAnim from './StoreMedia/Delivered.json';
 
+const { width } = Dimensions.get('window');
+
 export default function OrdersScreen() {
   const { user } = useUser();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Theme Gradient
+  const THEME_GRADIENT = ['#7b0094ff', '#ff00d4ff'];
 
   const fetchOrders = async () => {
     if (!user?.id) return;
@@ -56,183 +64,343 @@ export default function OrdersScreen() {
 
   const getLottieByStatus = (status: string) => {
     switch (status) {
-      case 'pending':
-        return pendingAnim;
-      case 'packed':
-        return packedAnim;
-      case 'out for delivery':
-        return outForDeliveryAnim;
-      case 'delivered':
-        return deliveredAnim;
-      default:
-        return pendingAnim;
+      case 'pending': return pendingAnim;
+      case 'packed': return packedAnim;
+      case 'out for delivery': return outForDeliveryAnim;
+      case 'delivered': return deliveredAnim;
+      default: return pendingAnim;
     }
   };
 
-  const renderItem = ({ item }: any) => (
-    <LinearGradient
-      colors={['#00c6ff', '#ff00ff']}
-      start={{ x: 1, y: 0 }}
-      end={{ x: 0, y: 1 }}
-      style={styles.gradientBorder}
-    >
-      <View style={styles.card}>
-        {/* Top Half */}
-        <View style={styles.topHalf}>
-          <LottieView
-            source={getLottieByStatus(item.status)}
-            autoPlay
-            loop
-            style={styles.lottie}
-          />
-          <View style={styles.statusBox}>
-            <Text style={styles.statusText}>
-              {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-            </Text>
-          </View>
-        </View>
+  // Helper to determine progress bar height/color
+  const getStatusConfig = (status: string) => {
+    switch (status) {
+      case 'pending': return { color: '#ffb300', percent: '25%', label: 'Order Placed' };
+      case 'packed': return { color: '#00e676', percent: '50%', label: 'Packed' };
+      case 'out for delivery': return { color: '#ff00d4', percent: '75%', label: 'On The Way' };
+      case 'delivered': return { color: '#00c6ff', percent: '100%', label: 'Delivered' };
+      default: return { color: '#666', percent: '0%', label: 'Unknown' };
+    }
+  };
 
-        {/* Bottom Half */}
-        <View style={styles.bottomHalf}>
-          <View style={styles.row}>
-            <Text style={styles.productName}>{item.product?.name}</Text>
-            <Text style={styles.price}>${item.product?.price}</Text>
+  const renderItem = ({ item }: any) => {
+    const config = getStatusConfig(item.status);
+    const formattedDate = new Date(item.created_at).toLocaleDateString(undefined, {
+      month: 'short', day: 'numeric'
+    });
+
+    return (
+      <View style={styles.cardWrapper}>
+        {/* Glow Effect behind card */}
+        <LinearGradient
+          colors={['rgba(123, 0, 148, 0.3)', 'transparent']}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={styles.cardGlow}
+        />
+
+        <View style={styles.card}>
+          
+          {/* Left Side: Timeline Strip */}
+          <View style={styles.timelineContainer}>
+            <View style={styles.timelineTrack} />
+            <LinearGradient
+              colors={[config.color, '#7b0094']}
+              style={[styles.timelineFill, { height: config.percent }]}
+            />
           </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Username</Text>
-            <Text style={styles.value}>{item.user?.username || 'Unknown'}</Text>
+
+          {/* Right Side: Content */}
+          <View style={styles.contentContainer}>
+            
+            {/* Header: Date & Status */}
+            <View style={styles.headerRow}>
+              <View style={[styles.statusPill, { borderColor: config.color }]}>
+                <View style={[styles.statusDot, { backgroundColor: config.color }]} />
+                <Text style={[styles.statusText, { color: config.color }]}>
+                  {config.label.toUpperCase()}
+                </Text>
+              </View>
+              <Text style={styles.dateText}>{formattedDate}</Text>
+            </View>
+
+            {/* Animation Stage */}
+            <View style={styles.animationStage}>
+               {/* Spotlight Gradient */}
+               <LinearGradient
+                  colors={[`${config.color}20`, 'transparent']}
+                  style={styles.spotlight}
+               />
+               <LottieView
+                  source={getLottieByStatus(item.status)}
+                  autoPlay
+                  loop
+                  style={styles.lottie}
+                  resizeMode="contain"
+               />
+            </View>
+
+            {/* Product Details */}
+            <View style={styles.detailsBlock}>
+              <View style={styles.productRow}>
+                <Text style={styles.productName} numberOfLines={1}>
+                  {item.product?.name}
+                </Text>
+                <Text style={styles.price}>${item.product?.price}</Text>
+              </View>
+
+              {/* Divider */}
+              <View style={styles.divider} />
+
+              {/* Delivery Info */}
+              <View style={styles.infoRow}>
+                <View style={styles.infoBox}>
+                  <Text style={styles.label}>Location</Text>
+                  <Text style={styles.value} numberOfLines={1}>{item.location}</Text>
+                </View>
+                <View style={[styles.infoBox, { alignItems: 'flex-end' }]}>
+                  <Text style={styles.label}>Contact</Text>
+                  <Text style={styles.value}>{item.mobile}</Text>
+                </View>
+              </View>
+            </View>
+
           </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Mobile Number</Text>
-            <Text style={styles.value}>{item.mobile}</Text>
-          </View>
-          <Text style={styles.centeredText}>{item.location}</Text>
-          <Text style={styles.orderedOn}>
-            Ordered on: {new Date(item.created_at).toLocaleString()}
-          </Text>
         </View>
       </View>
-    </LinearGradient>
-  );
+    );
+  };
 
   return (
     <ScreenWrapper>
-      <View style={styles.container}>
-        <Text style={styles.title}>My Orders</Text>
-        {loading ? (
-          <ActivityIndicator size="large" color="#00ffff" />
-        ) : orders.length === 0 ? (
-          <Text style={styles.noOrders}>You have no orders yet.</Text>
-        ) : (
-          <FlatList
-            data={orders}
-            renderItem={renderItem}
-            keyExtractor={item => item.id.toString()}
-            contentContainerStyle={{ paddingBottom: vs(30) }}
-            showsVerticalScrollIndicator={false}
-          />
-        )}
-      </View>
+      <StatusBar barStyle="light-content" />
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          
+          {/* Modern Header */}
+          <View style={styles.screenHeader}>
+            <Text style={styles.title}>Track Orders</Text>
+            <LinearGradient
+              colors={THEME_GRADIENT}
+              start={{x:0, y:0}} end={{x:1, y:0}}
+              style={styles.headerLine}
+            />
+          </View>
+
+          {loading ? (
+            <View style={styles.centerContainer}>
+              <ActivityIndicator size="large" color="#ff00d4" />
+            </View>
+          ) : orders.length === 0 ? (
+            <View style={styles.centerContainer}>
+              <Text style={styles.noOrdersText}>No active orders found</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={orders}
+              renderItem={renderItem}
+              keyExtractor={item => item.id.toString()}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+            />
+          )}
+        </View>
+      </SafeAreaView>
     </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1 },
   container: {
     flex: 1,
-    padding: s(10),
-    paddingBottom: vs(55),
-    paddingLeft: s(25),
-   
+    paddingHorizontal: s(16),
+  },
+
+  /* Header */
+  screenHeader: {
+    marginTop: vs(20),
+    marginBottom: vs(20),
   },
   title: {
-    fontSize: ms(22),
-    fontWeight: 'bold',
-    color: '#00ffff',
-    textAlign: 'center',
-    marginBottom: vs(16),
-    marginTop: vs(10),
+    fontSize: ms(28),
+    fontWeight: '900',
+    color: '#fff',
+    letterSpacing: 0.5,
+    marginBottom: vs(5),
   },
-  gradientBorder: {
-    borderRadius: ms(14),
-    //padding: ms(2),
-    marginBottom: vs(14),
-    width: '95%',
+  headerLine: {
+    width: s(60),
+    height: vs(4),
+    borderRadius: ms(2),
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noOrdersText: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: ms(16),
+  },
+
+  /* Card Wrapper */
+  listContent: {
+    paddingBottom: vs(50),
+  },
+  cardWrapper: {
+    marginBottom: vs(25),
+    position: 'relative',
+  },
+  cardGlow: {
+    position: 'absolute',
+    top: 0,
+    left: s(20),
+    right: s(20),
+    height: vs(100),
+    borderRadius: ms(40),
+    opacity: 0.8,
   },
   card: {
-    backgroundColor: 'rgba(0, 0, 0, 0.81)',
-    borderRadius: ms(14),
+    backgroundColor: '#050505', // Deep Black
+    borderRadius: ms(24),
+    flexDirection: 'row',
     overflow: 'hidden',
-  },
-  topHalf: {
-    alignItems: 'center',
-    paddingVertical: vs(8),
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-  },
-  lottie: {
-    width: s(300),
-    height: s(300),
-  },
-  statusBox: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,0,255,0.2)',
-    borderColor: '#ff00ff',
     borderWidth: 1,
-    justifyContent: 'center',
-    borderRadius: ms(16),
-    paddingHorizontal: s(12),
-    paddingVertical: vs(4),
-    marginBottom: vs(4),
+    borderColor: 'rgba(255,255,255,0.08)',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
   },
-  statusText: {
-    fontSize: ms(15),
-    fontWeight: 'bold',
-    color: '#fff',
+
+  /* Timeline Strip (Left) */
+  timelineContainer: {
+    width: s(6),
+    backgroundColor: '#1a1a1a',
+    marginVertical: vs(20),
+    marginLeft: s(15),
+    borderRadius: ms(3),
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
   },
-  bottomHalf: {
-    padding: s(12),
+  timelineTrack: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
-  row: {
+  timelineFill: {
+    width: '100%',
+    borderRadius: ms(3),
+  },
+
+  /* Content (Right) */
+  contentContainer: {
+    flex: 1,
+    padding: s(15),
+    paddingLeft: s(20),
+  },
+
+  /* Header Row */
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: vs(6),
-    marginHorizontal: s(6),
+    alignItems: 'center',
+    marginBottom: vs(10),
+  },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    paddingHorizontal: s(10),
+    paddingVertical: vs(4),
+    borderRadius: ms(20),
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  statusDot: {
+    width: s(6),
+    height: s(6),
+    borderRadius: s(3),
+    marginRight: s(6),
+  },
+  statusText: {
+    fontSize: ms(10),
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  dateText: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: ms(12),
+    fontWeight: '600',
+  },
+
+  /* Animation Stage */
+  animationStage: {
+    height: vs(140),
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: vs(10),
+    position: 'relative',
+  },
+  spotlight: {
+    position: 'absolute',
+    width: s(120),
+    height: s(120),
+    borderRadius: s(60),
+    top: vs(10),
+  },
+  lottie: {
+    width: s(180),
+    height: s(180),
+  },
+
+  /* Details Block */
+  detailsBlock: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: ms(16),
+    padding: s(12),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  productRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: vs(10),
   },
   productName: {
-    fontSize: ms(15),
-    fontWeight: '600',
-    color: '#00ffff',
+    color: '#fff',
+    fontSize: ms(16),
+    fontWeight: '700',
+    flex: 1,
+    marginRight: s(10),
   },
   price: {
-    fontSize: ms(15),
-    fontWeight: 'bold',
-    color: '#ff00ff',
+    color: '#ff00d4',
+    fontSize: ms(18),
+    fontWeight: '800',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    marginBottom: vs(10),
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  infoBox: {
+    flex: 1,
   },
   label: {
-    fontWeight: '600',
-    color: '#bbb',
+    fontSize: ms(10),
+    color: 'rgba(255,255,255,0.4)',
+    textTransform: 'uppercase',
+    marginBottom: vs(2),
   },
   value: {
-    color: '#fff',
-  },
-  centeredText: {
-    textAlign: 'center',
-    fontSize: ms(14),
-    color: '#00ffff',
-    marginTop: vs(15),
-    fontWeight: '600',
-  },
-  orderedOn: {
     fontSize: ms(12),
-    color: '#aaa',
-    textAlign: 'center',
-    marginTop: vs(2),
-  },
-  noOrders: {
-    textAlign: 'center',
-    color: '#aaa',
-    fontSize: ms(15),
-    marginTop: vs(30),
+    color: '#fff',
+    fontWeight: '500',
   },
 });

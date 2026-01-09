@@ -15,7 +15,11 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { scale as s, verticalScale as vs, moderateScale as ms } from 'react-native-size-matters';
+import {
+  scale as s,
+  verticalScale as vs,
+  moderateScale as ms,
+} from 'react-native-size-matters';
 import LinearGradient from 'react-native-linear-gradient';
 import LottieView from 'lottie-react-native';
 
@@ -33,13 +37,13 @@ type RootStackParamList = {
 };
 
 // --- MODERN POP BUTTON COMPONENT ---
-const ModernPopButton = ({ 
-  onPress, 
-  title, 
-  disabled 
-}: { 
-  onPress: () => void; 
-  title: string; 
+const ModernPopButton = ({
+  onPress,
+  title,
+  disabled,
+}: {
+  onPress: () => void;
+  title: string;
   disabled?: boolean;
 }) => {
   const scaleValue = useRef(new Animated.Value(1)).current;
@@ -68,7 +72,9 @@ const ModernPopButton = ({
       disabled={disabled}
       style={{ width: '100%' }}
     >
-      <Animated.View style={{ transform: [{ scale: scaleValue }], width: '100%' }}>
+      <Animated.View
+        style={{ transform: [{ scale: scaleValue }], width: '100%' }}
+      >
         <LinearGradient
           colors={['#7b0094ff', '#ff00d4ff']}
           start={{ x: 0, y: 0 }}
@@ -83,14 +89,15 @@ const ModernPopButton = ({
 };
 
 export default function Login() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { setUser } = useUser();
   const [accountNumber, setAccountNumber] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Animation for the input focus line (optional polish)
-  const fadeAnim = useRef(new Animated.Value(0)).current; 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const navigateToApp = (userData: any) => {
     setUser(userData);
@@ -133,7 +140,6 @@ export default function Login() {
     <ScreenWrapper>
       <StatusBar barStyle="light-content" />
       <View style={styles.mainContainer}>
-        
         {/* Background Glow Effect */}
         <View style={styles.backgroundGlow} />
 
@@ -154,17 +160,17 @@ export default function Login() {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.keyboardView}
           >
-            
             {/* Header Section */}
             <View style={styles.headerContainer}>
               <Text style={styles.welcomeText}>Welcome</Text>
               <Text style={styles.subWelcomeText}>Back!</Text>
-              <Text style={styles.instructionText}>Please sign in to access your account.</Text>
+              <Text style={styles.instructionText}>
+                Please sign in to access your account.
+              </Text>
             </View>
 
             {/* Form Section */}
             <View style={styles.formContainer}>
-              
               <View style={styles.inputWrapper}>
                 <Text style={styles.inputLabel}>ACCOUNT NUMBER</Text>
                 <TextInput
@@ -191,9 +197,9 @@ export default function Login() {
               </View>
 
               <View style={styles.actionContainer}>
-                <ModernPopButton 
-                  title="LOG IN" 
-                  onPress={handleLogin} 
+                <ModernPopButton
+                  title="LOG IN"
+                  onPress={handleLogin}
                   disabled={loading}
                 />
 
@@ -202,11 +208,11 @@ export default function Login() {
                   style={styles.registerLink}
                 >
                   <Text style={styles.registerText}>
-                    Don't have an account? <Text style={styles.registerHighlight}>Register</Text>
+                    Don't have an account?{' '}
+                    <Text style={styles.registerHighlight}>Register</Text>
                   </Text>
                 </Pressable>
               </View>
-
             </View>
           </KeyboardAvoidingView>
         </SafeAreaView>

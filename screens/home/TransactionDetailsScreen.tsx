@@ -4,11 +4,10 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  TouchableOpacity,
-  ScrollView,
+  StatusBar,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import {
   scale as s,
@@ -19,7 +18,6 @@ import ScreenWrapper from '../../utils/ScreenWrapper';
 import { useUser } from '../../utils/UserContext';
 
 export default function TransactionDetailsScreen() {
-  const navigation = useNavigation();
   const route = useRoute<any>();
   const { user } = useUser();
   const { transaction } = route.params || {};
@@ -27,79 +25,96 @@ export default function TransactionDetailsScreen() {
   if (!transaction) return null;
 
   const isSent = transaction.sender_acc === user.account_number;
-  const otherUser = isSent ? transaction.receiver : transaction.sender;
-  const statusColor = '#00ff9d'; // Assuming transactions in this table are successful
+  const THEME_GRADIENT = ['#7b0094ff', '#ff00d4ff'];
+
+  // Formatted Data
+  const formattedDate = new Date(transaction.created_at).toLocaleDateString();
+  const formattedTime = new Date(transaction.created_at).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
 
   return (
     <ScreenWrapper>
-      <SafeAreaView style={styles.container}>
-        {/* 1️⃣ Animation Area (Top 60%) */}
-        <View style={styles.animationContainer}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <View style={styles.container}>
+        
+        {/* 1️⃣ TOP CONTAINER (60%) - Animation Only */}
+        <View style={styles.topContainer}>
+          <LinearGradient
+            colors={['rgba(123, 0, 148, 0.4)', 'transparent']}
+            style={styles.glowBackground}
+            start={{ x: 0.5, y: 0.5 }}
+            end={{ x: 0.5, y: 1 }}
+          />
           <LottieView
-            // Use your receipt or checkmark animation here. 
-            // If you don't have one, use the login one or download a checkmark json.
-            source={require('../LoginMedia/loginanimation2.json')} 
+            source={require('../LoginMedia/loginanimation2.json')}
             autoPlay
             loop
             style={styles.lottie}
+            resizeMode="contain"
           />
         </View>
 
-        {/* 2️⃣ Details Area (Bottom 40%) */}
-        <View style={styles.detailsContainer}>
-          <ScrollView showsVerticalScrollIndicator={false}>
+        {/* 2️⃣ BOTTOM CONTAINER (40%) - All Text Info */}
+        <View style={styles.bottomContainer}>
+          
+          {/* Top Border Line */}
+          <LinearGradient
+            colors={THEME_GRADIENT}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.gradientLine}
+          />
+
+          <View style={styles.textWrapper}>
             
-            {/* Header / Amount */}
-            <View style={styles.headerRow}>
-              <Text style={styles.statusText}>Transaction Successful</Text>
-              <Text style={[styles.amountText, { color: isSent ? '#ff0055' : '#00ff9d' }]}>
-                {isSent ? '-' : '+'}${Math.abs(transaction.amount)}
-              </Text>
-              <Text style={styles.dateText}>
-                {new Date(transaction.created_at).toLocaleString()}
+            {/* Main Status & Amount */}
+            <View style={styles.headerTextContainer}>
+              <Text style={styles.statusText}>TRANSACTION SUCCESSFUL</Text>
+              <Text style={[styles.amountText, { color: isSent ? '#ff4d4d' : '#00ff88' }]}>
+                {isSent ? '-' : '+'}${Math.abs(transaction.amount).toFixed(2)}
               </Text>
             </View>
 
-            <View style={styles.divider} />
-
-            {/* Info Grid */}
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Transaction ID</Text>
-              <Text style={styles.value}>{transaction.id}</Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Sender</Text>
-              <View style={{alignItems:'flex-end'}}>
-                <Text style={styles.value}>{isSent ? 'You' : transaction.sender?.username}</Text>
-                <Text style={styles.subValue}>Acc: {transaction.sender_acc}</Text>
+            {/* Details Grid */}
+            <View style={styles.detailsGrid}>
+              
+              {/* Row 1: Sender & Receiver */}
+              <View style={styles.row}>
+                <View style={styles.colLeft}>
+                  <Text style={styles.label}>Sender</Text>
+                  <Text style={styles.value}>{isSent ? 'You' : transaction.sender?.username}</Text>
+                  <Text style={styles.subValue}>Acc: {transaction.sender_acc}</Text>
+                </View>
+                
+                <View style={styles.colRight}>
+                  <Text style={styles.label}>Receiver</Text>
+                  <Text style={styles.value}>{!isSent ? 'You' : transaction.receiver?.username}</Text>
+                  <Text style={styles.subValue}>Acc: {transaction.receiver_acc}</Text>
+                </View>
               </View>
-            </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Receiver</Text>
-              <View style={{alignItems:'flex-end'}}>
-                <Text style={styles.value}>{!isSent ? 'You' : transaction.receiver?.username}</Text>
-                <Text style={styles.subValue}>Acc: {transaction.receiver_acc}</Text>
+              {/* Row 2: Date & Ref ID */}
+              <View style={[styles.row, { marginTop: vs(15) }]}>
+                <View style={styles.colLeft}>
+                  <Text style={styles.label}>Date & Time</Text>
+                  <Text style={styles.value}>{formattedDate}</Text>
+                  <Text style={styles.subValue}>{formattedTime}</Text>
+                </View>
+
+                <View style={styles.colRight}>
+                  <Text style={styles.label}>Ref ID</Text>
+                  <Text style={styles.valueMono}>#{transaction.id}</Text>
+                </View>
               </View>
+
             </View>
-
-            {/* Back Button */}
-            <TouchableOpacity 
-                style={styles.closeButton} 
-                onPress={() => navigation.goBack()}
-            >
-              <LinearGradient
-                colors={['#00c6ff', '#0072ff']}
-                style={styles.gradientBtn}
-              >
-                <Text style={styles.btnText}>Close</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-          </ScrollView>
+          </View>
         </View>
-      </SafeAreaView>
+
+      </View>
     </ScreenWrapper>
   );
 }
@@ -107,93 +122,110 @@ export default function TransactionDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
-  },
-  
-  /* Top Animation Area */
-  animationContainer: {
-    height: '55%', // Slightly less than 60 to leave room for content
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,255,255,0.05)', // Subtle glow background
-    borderBottomLeftRadius: ms(30),
-    borderBottomRightRadius: ms(30),
-    overflow: 'hidden',
-  },
-  lottie: {
-    width: s(300),
-    height: s(300),
+    backgroundColor: '#000', // Deep black background
   },
 
-  /* Bottom Details Area */
-  detailsContainer: {
-    flex: 1,
-    padding: s(20),
-  },
-  headerRow: {
+  /* ---------------- TOP CONTAINER (60%) ---------------- */
+  topContainer: {
+    height: '60%',
+    width: '100%',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: vs(15),
+    position: 'relative',
+  },
+  glowBackground: {
+    position: 'absolute',
+    width: s(350),
+    height: s(350),
+    borderRadius: s(175),
+    opacity: 0.3,
+  },
+  lottie: {
+    width: s(350),
+    height: s(350),
+  },
+
+  /* ---------------- BOTTOM CONTAINER (40%) ---------------- */
+  bottomContainer: {
+    height: '40%',
+    width: '100%',
+    backgroundColor: '#121212', // Modern dark grey
+    borderTopLeftRadius: ms(30),
+    borderTopRightRadius: ms(30),
+    overflow: 'hidden',
+  },
+  gradientLine: {
+    height: vs(3),
+    width: '100%',
+    opacity: 0.8,
+  },
+  textWrapper: {
+    flex: 1,
+    paddingHorizontal: s(25),
+    paddingTop: vs(20),
+  },
+
+  /* Header Section (Status + Amount) */
+  headerTextContainer: {
+    alignItems: 'center',
+    marginBottom: vs(20),
   },
   statusText: {
-    color: '#00ff9d',
-    fontSize: ms(16),
-    fontWeight: '600',
-    marginBottom: vs(5),
+    color: '#888',
+    fontSize: ms(12),
+    fontWeight: '700',
+    letterSpacing: 2,
+    marginBottom: vs(4),
     textTransform: 'uppercase',
-    letterSpacing: 1,
   },
   amountText: {
     fontSize: ms(36),
-    fontWeight: 'bold',
-    marginBottom: vs(5),
-  },
-  dateText: {
-    color: '#666',
-    fontSize: ms(14),
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    marginVertical: vs(15),
-    width: '100%',
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
 
-  /* Info Rows */
-  infoRow: {
+  /* Details Grid */
+  detailsGrid: {
+    flex: 1,
+    justifyContent: 'flex-start',
+  },
+  row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: vs(20),
+    width: '100%',
   },
+  colLeft: {
+    flex: 1,
+    alignItems: 'flex-start',
+  },
+  colRight: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  
+  /* Typography */
   label: {
-    color: '#888',
-    fontSize: ms(15),
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: ms(11),
+    textTransform: 'uppercase',
+    fontWeight: '600',
+    marginBottom: vs(2),
   },
   value: {
     color: '#fff',
-    fontSize: ms(16),
-    fontWeight: 'bold',
+    fontSize: ms(15),
+    fontWeight: '700',
+  },
+  valueMono: {
+    color: '#fff',
+    fontSize: ms(14),
+    fontFamily: 'Courier', // Monospace for IDs
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   subValue: {
-    color: '#555',
+    color: '#666',
     fontSize: ms(12),
-    marginTop: vs(2),
-  },
-
-  /* Button */
-  closeButton: {
-    marginTop: vs(10),
-    width: '100%',
-    alignItems: 'center',
-  },
-  gradientBtn: {
-    width: '100%',
-    paddingVertical: vs(14),
-    borderRadius: ms(12),
-    alignItems: 'center',
-  },
-  btnText: {
-    color: '#fff',
-    fontSize: ms(16),
-    fontWeight: 'bold',
+    marginTop: vs(1),
   },
 });

@@ -2,17 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StatusBar, Image, View } from 'react-native';
+import { StatusBar, Image, View, StyleSheet } from 'react-native';
 import {
   scale as s,
   verticalScale as vs,
   moderateScale as ms,
 } from 'react-native-size-matters';
 import { UserProvider } from './utils/UserContext';
-import { LinearGradient } from 'react-native-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 
 // Import Screens
-import SplashScreen from './SplashScreen'; // Ensure this path is correct
+import SplashScreen from './SplashScreen';
 import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/home/HomeScreen';
 import TransactionListScreen from './screens/home/TransactionListScreen';
@@ -34,17 +34,21 @@ const StoreStack = createNativeStackNavigator();
 const FeedStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// Theme Constants
+const THEME_GRADIENT = ['#7b0094ff', '#ff00d4ff'];
+
 function HomeStackScreen() {
   return (
     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
-      <HomeStack.Screen name="SendMoney" component={StoreScreen} />
+      <HomeStack.Screen name="SendMoney" component={SendMoneyScreen} />
       <HomeStack.Screen name="RecieveMoney" component={FeedScreen} />
       <HomeStack.Screen name="OrderList" component={OrderListScreen} />
       <HomeStack.Screen name="RecieveMoneyScreen" component={RecieveMoneyScreen} />
       <HomeStack.Screen name="DepositMoney" component={DepositScreen} />
       <HomeStack.Screen name="WithdrawalMoney" component={WithdrawalScreen} />
       <HomeStack.Screen name="TransactionDetailsScreen" component={TransactionDetailsScreen} />
+      <HomeStack.Screen name="StoreMain" component={StoreScreen} />
     </HomeStack.Navigator>
   );
 }
@@ -61,115 +65,85 @@ function FeedStackScreen() {
 function StoreStackScreen() {
   return (
     <StoreStack.Navigator screenOptions={{ headerShown: false }}>
-      <StoreStack.Screen name="StoreMain" component={SendMoneyScreen} />
-      <StoreStack.Screen name="OrderList" component={OrderListScreen} />
+      <StoreStack.Screen name="SendMoney" component={SendMoneyScreen} />
     </StoreStack.Navigator>
   );
 }
 
 function MainTabs() {
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.tabContainer}>
       <Tab.Navigator
         initialRouteName="Home"
         screenOptions={{
           headerShown: false,
-          tabBarStyle: {
-            position: 'absolute',
-            bottom: vs(16),
-            left: 0,
-            right: 0,
-            height: vs(65),
-            backgroundColor: 'rgba(0, 0, 0, 1)',
-            borderRadius: ms(35),
-            borderWidth: ms(2),
-            borderColor: 'transparent',
-            overflow: 'hidden',
-            elevation: 5,
-            marginHorizontal: '5%',
-            paddingBottom: vs(10),
-            paddingTop: vs(10),
-          },
+          tabBarShowLabel: false,
+          tabBarStyle: styles.tabBar,
           tabBarBackground: () => (
             <LinearGradient
-              colors={['#00c6ff', '#ff00ff']}
-              style={{
-                flex: 1,
-                borderRadius: ms(35),
-                padding: ms(2),
-              }}
-            >
-              <View
-                style={{
-                  flex: 1,
-                  backgroundColor: 'rgba(0, 0, 0, 1)',
-                  borderRadius: ms(35),
-                }}
-              />
-            </LinearGradient>
+              colors={THEME_GRADIENT}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.gradientBackground}
+            />
           ),
-          tabBarActiveTintColor: '#00c6ff',
-          tabBarInactiveTintColor: '#00c8ff77',
         }}
       >
         <Tab.Screen
           name="Trades"
           component={StoreStackScreen}
           options={{
-            tabBarIcon: ({ focused }) => {
-              const size = focused ? s(29) : s(24);
-              return (
+            tabBarIcon: ({ focused }) => (
+              <View style={styles.iconContainer}>
                 <Image
                   source={require('./screens/tabMedia/store.webp')}
-                  style={{
-                    width: size,
-                    height: size,
-                    tintColor: '#00c6ff',
-                    opacity: focused ? 1 : 0.5,
-                  }}
+                  style={[
+                    styles.icon,
+                    focused ? styles.activeIcon : styles.inactiveIcon,
+                  ]}
+                  resizeMode="contain"
                 />
-              );
-            },
+                {focused && <View style={styles.activeDot} />}
+              </View>
+            ),
           }}
         />
         <Tab.Screen
           name="Home"
           component={HomeStackScreen}
           options={{
-            tabBarIcon: ({ focused }) => {
-              const size = focused ? s(29) : s(24);
-              return (
+            tabBarIcon: ({ focused }) => (
+              <View style={styles.iconContainer}>
                 <Image
                   source={require('./screens/tabMedia/home.webp')}
-                  style={{
-                    width: size,
-                    height: size,
-                    tintColor: '#00c6ff',
-                    opacity: focused ? 1 : 0.5,
-                  }}
+                  style={[
+                    styles.icon,
+                    focused ? styles.activeIcon : styles.inactiveIcon,
+                  ]}
+                  resizeMode="contain"
                 />
-              );
-            },
+                 {focused && <View style={styles.activeDot} />}
+              </View>
+            ),
           }}
         />
         <Tab.Screen
           name="Receipt"
           component={FeedStackScreen}
           options={{
-            tabBarIcon: ({ focused }) => {
-              const size = focused ? s(29) : s(24);
-              return (
+            tabBarIcon: ({ focused }) => (
+              <View style={styles.iconContainer}>
                 <Image
                   source={require('./screens/tabMedia/feed.webp')}
-                  style={{
-                    width: size,
-                    height: size,
-                    tintColor: '#00c6ff',
-                    opacity: focused ? 1 : 0.5,
-                  }}
+                  style={[
+                    styles.icon,
+                    focused ? styles.activeIcon : styles.inactiveIcon,
+                  ]}
+                  resizeMode="contain"
                 />
-              );
-            },
+                 {focused && <View style={styles.activeDot} />}
+              </View>
+            ),
           }}
         />
       </Tab.Navigator>
@@ -178,24 +152,19 @@ function MainTabs() {
 }
 
 export default function App() {
-  // State to handle Splash Screen visibility
   const [isShowSplash, setIsShowSplash] = useState(true);
 
   useEffect(() => {
-    // Show splash for 3 seconds
     const timer = setTimeout(() => {
       setIsShowSplash(false);
     }, 3000);
-
     return () => clearTimeout(timer);
   }, []);
 
-  // While splash is active, show ONLY SplashScreen component
   if (isShowSplash) {
     return <SplashScreen />;
   }
 
-  // Once splash is done, load the UserProvider and Navigation
   return (
     <UserProvider>
       <StatusBar hidden={true} />
@@ -214,3 +183,75 @@ export default function App() {
     </UserProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  tabContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  
+  /* Floating Tab Bar */
+  tabBar: {
+    position: 'absolute',
+    bottom: vs(20),
+    left: s(0),
+    right: s(0),
+    height: vs(65),
+    borderRadius: ms(35),
+    backgroundColor: 'transparent',
+    borderTopWidth: 0,
+    elevation: 0,
+    marginHorizontal: s(30),
+    paddingHorizontal: s(20),
+  },
+
+  /* Gradient Background */
+  gradientBackground: {
+    flex: 1,
+    borderRadius: ms(35),
+    elevation: 10,
+    shadowColor: '#ff00d4',
+  },
+
+  /* Icons */
+  iconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%',
+    width: '100%',
+    top: vs(20), // Micro adjustment to center optically with the dot
+  },
+  
+  icon: {
+    width: s(27),
+    height: s(27),
+    marginBottom: vs(4),
+    //marginTop : vs(20),
+  },
+
+  activeIcon: {
+    width: s(32), // Slightly larger when active
+    height: s(32),
+    tintColor: '#fff',
+  },
+
+  inactiveIcon: {
+    tintColor: 'rgba(255, 255, 255, 0.5)',
+  },
+
+  /* The White Dot */
+  activeDot: {
+    //position: 'relative',
+    bottom: vs(8), // Pinned to bottom of the container
+    width: s(15),
+    height: s(4),
+    borderRadius: s(2.5),
+    marginTop: vs(7), 
+    backgroundColor: '#fff',
+    shadowColor: '#fff',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+});
