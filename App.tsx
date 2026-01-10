@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  NavigationContainer,
+  DarkTheme as NavigationDarkTheme,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import {
@@ -45,13 +48,34 @@ const Tab = createBottomTabNavigator();
 // Theme Constants
 const THEME_GRADIENT = ['#7b0094ff', '#ff00d4ff'];
 
+// 1️⃣ FORCE PURE BLACK THEME
+const MyDarkTheme = {
+  ...NavigationDarkTheme,
+  colors: {
+    ...NavigationDarkTheme.colors,
+    background: '#000000', // Absolute Black
+    card: '#000000',
+    text: '#ffffff',
+    border: '#000000',
+    notification: '#ff00d4',
+  },
+};
+
+// 2️⃣ SHARED SCREEN OPTIONS (Apply to ALL Stacks)
+const globalScreenOptions = {
+  headerShown: false,
+  // This sets the background of the screen container to black immediately
+  contentStyle: { backgroundColor: '#000000' },
+  animation: 'slide_from_right' as const, // Smooth slide prevents some flickering
+};
+
 // --- CUSTOM POP TAB BUTTON ---
 const PopTabButton = (props: any) => {
   const scaleValue = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
     Animated.spring(scaleValue, {
-      toValue: 0.8, // Scales down to 80%
+      toValue: 0.8,
       useNativeDriver: true,
     }).start();
   };
@@ -94,7 +118,7 @@ const PopTabButton = (props: any) => {
 
 function HomeStackScreen() {
   return (
-    <HomeStack.Navigator screenOptions={{ headerShown: false }}>
+    <HomeStack.Navigator screenOptions={globalScreenOptions}>
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
       <HomeStack.Screen name="SendMoney" component={SendMoneyScreen} />
       <HomeStack.Screen name="RecieveMoney" component={FeedScreen} />
@@ -117,7 +141,7 @@ function HomeStackScreen() {
 
 function FeedStackScreen() {
   return (
-    <FeedStack.Navigator screenOptions={{ headerShown: false }}>
+    <FeedStack.Navigator screenOptions={globalScreenOptions}>
       <FeedStack.Screen name="FeedMain" component={TransactionListScreen} />
       <FeedStack.Screen
         name="TransactionDetailsScreen"
@@ -129,7 +153,7 @@ function FeedStackScreen() {
 
 function StoreStackScreen() {
   return (
-    <StoreStack.Navigator screenOptions={{ headerShown: false }}>
+    <StoreStack.Navigator screenOptions={globalScreenOptions}>
       <StoreStack.Screen name="SendMoney" component={SendMoneyScreen} />
     </StoreStack.Navigator>
   );
@@ -140,6 +164,7 @@ function MainTabs() {
     <View style={styles.tabContainer}>
       <Tab.Navigator
         initialRouteName="Home"
+        sceneContainerStyle={{ backgroundColor: '#000000' }} // IMPORTANT: Tab scene background
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: false,
@@ -158,7 +183,6 @@ function MainTabs() {
           name="Trades"
           component={StoreStackScreen}
           options={{
-            // Apply Pop Animation Button
             tabBarButton: props => <PopTabButton {...props} />,
             tabBarIcon: ({ focused }) => (
               <View style={styles.iconContainer}>
@@ -179,7 +203,6 @@ function MainTabs() {
           name="Home"
           component={HomeStackScreen}
           options={{
-            // Apply Pop Animation Button
             tabBarButton: props => <PopTabButton {...props} />,
             tabBarIcon: ({ focused }) => (
               <View style={styles.iconContainer}>
@@ -200,7 +223,6 @@ function MainTabs() {
           name="Receipt"
           component={FeedStackScreen}
           options={{
-            // Apply Pop Animation Button
             tabBarButton: props => <PopTabButton {...props} />,
             tabBarIcon: ({ focused }) => (
               <View style={styles.iconContainer}>
@@ -238,19 +260,24 @@ export default function App() {
 
   return (
     <UserProvider>
-      <StatusBar hidden={true} />
-      <NavigationContainer>
-        <RootStack.Navigator
-          initialRouteName="Onboarding"
-          screenOptions={{ headerShown: false }}
-        >
-          <RootStack.Screen name="Onboarding" component={OnboardingScreen} />
-          <RootStack.Screen name="Login" component={LoginScreen} />
-          <RootStack.Screen name="Register" component={Register} />
-          <RootStack.Screen name="Main" component={MainTabs} />
-          <RootStack.Screen name="Help" component={Help} />
-        </RootStack.Navigator>
-      </NavigationContainer>
+      {/* 3️⃣ StatusBar must match background */}
+      <StatusBar backgroundColor="#000000" barStyle="light-content" />
+
+      {/* 4️⃣ Root View Background */}
+      <View style={{ flex: 1, backgroundColor: '#000000' }}>
+        <NavigationContainer theme={MyDarkTheme}>
+          <RootStack.Navigator
+            initialRouteName="Onboarding"
+            screenOptions={globalScreenOptions} // Apply global black options
+          >
+            <RootStack.Screen name="Onboarding" component={OnboardingScreen} />
+            <RootStack.Screen name="Login" component={LoginScreen} />
+            <RootStack.Screen name="Register" component={Register} />
+            <RootStack.Screen name="Main" component={MainTabs} />
+            <RootStack.Screen name="Help" component={Help} />
+          </RootStack.Navigator>
+        </NavigationContainer>
+      </View>
     </UserProvider>
   );
 }
@@ -258,10 +285,8 @@ export default function App() {
 const styles = StyleSheet.create({
   tabContainer: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: '#000000', // Ensure absolute black
   },
-
-  /* Floating Tab Bar */
   tabBar: {
     position: 'absolute',
     bottom: vs(20),
@@ -275,50 +300,39 @@ const styles = StyleSheet.create({
     marginHorizontal: s(30),
     paddingHorizontal: s(15),
   },
-
-  /* Gradient Background */
   gradientBackground: {
     flex: 1,
     borderRadius: ms(35),
     elevation: 10,
     shadowColor: '#ff00d4',
   },
-
-  /* Pop Button Container */
   tabBtnContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-
-  /* Icons */
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
     width: '100%',
-    top: vs(10), // Micro adjustment to center optically with the dot
+    top: vs(10),
   },
-
   icon: {
     width: s(27),
     height: s(27),
     marginBottom: vs(4),
   },
-
   activeIcon: {
-    width: s(32), // Slightly larger when active
+    width: s(32),
     height: s(32),
     tintColor: '#fff',
   },
-
   inactiveIcon: {
     tintColor: 'rgba(255, 255, 255, 0.5)',
   },
-
-  /* The White Dot */
   activeDot: {
-    bottom: vs(8), // Pinned to bottom of the container
+    bottom: vs(8),
     width: s(15),
     height: s(4),
     borderRadius: s(2.5),
