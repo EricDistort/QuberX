@@ -4,13 +4,11 @@ import {
   Text,
   StyleSheet,
   Image,
-  Alert,
   ScrollView,
   ActivityIndicator,
   RefreshControl,
   Animated,
   Pressable,
-  TouchableOpacity,
 } from 'react-native';
 import {
   scale as s,
@@ -19,29 +17,18 @@ import {
 } from 'react-native-size-matters';
 import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
-import { launchImageLibrary } from 'react-native-image-picker';
 import { supabase } from '../../utils/supabaseClient';
 import LinearGradient from 'react-native-linear-gradient';
 
-// --- POP BUTTON COMPONENT (Local Definition) ---
-const PopScaleButton = ({
-  children,
-  onPress,
-  style,
-}: {
-  children: React.ReactNode;
-  onPress?: () => void;
-  style?: any;
-}) => {
+// --- POP BUTTON COMPONENT ---
+const PopScaleButton = ({ children, onPress, style }: any) => {
   const scaleValue = useRef(new Animated.Value(1)).current;
-
   const handlePressIn = () => {
     Animated.spring(scaleValue, {
       toValue: 0.9,
       useNativeDriver: true,
     }).start();
   };
-
   const handlePressOut = () => {
     Animated.spring(scaleValue, {
       toValue: 1,
@@ -50,7 +37,6 @@ const PopScaleButton = ({
       useNativeDriver: true,
     }).start();
   };
-
   return (
     <Pressable
       onPressIn={handlePressIn}
@@ -58,7 +44,15 @@ const PopScaleButton = ({
       onPress={onPress}
       style={style}
     >
-      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+      <Animated.View 
+        style={{ 
+          transform: [{ scale: scaleValue }], 
+          width: '100%',
+          // Added centering to ensure icons/text don't drift left
+          alignItems: 'center', 
+          justifyContent: 'center' 
+        }}
+      >
         {children}
       </Animated.View>
     </Pressable>
@@ -101,7 +95,6 @@ export default function HomeScreen({ navigation }: any) {
   useEffect(() => {
     fetchUserData();
     fetchTraders();
-
     const interval = setInterval(() => {
       setTraders(prev =>
         prev.map(t => {
@@ -115,7 +108,6 @@ export default function HomeScreen({ navigation }: any) {
         }),
       );
     }, 1000);
-
     return () => clearInterval(interval);
   }, [user?.account_number]);
 
@@ -126,45 +118,8 @@ export default function HomeScreen({ navigation }: any) {
     setRefreshing(false);
   }, [user?.account_number]);
 
-  const handleEditProfileImage = async () => {
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
-      quality: 0.7,
-    });
-    if (result.didCancel || !result.assets) return;
-
-    const file = result.assets[0];
-    const fileExt = file.fileName?.split('.').pop() || 'jpg';
-    const filePath = `avatars/${user.id}.${fileExt}`;
-
-    try {
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(
-          filePath,
-          {
-            uri: file.uri,
-            type: file.type || 'image/jpeg',
-            name: file.fileName || `upload.${fileExt}`,
-          },
-          { upsert: true },
-        );
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-      const publicUrl = data.publicUrl;
-
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ profileImage: publicUrl })
-        .eq('id', user.id);
-      if (updateError) throw updateError;
-
-      setUser({ ...user, profileImage: publicUrl });
-      Alert.alert('Success', 'Profile picture updated!');
-    } catch (err: any) {
-      Alert.alert('Error', err.message);
-    }
+  const handleProfilePress = () => {
+    navigation.navigate('ProfileScreen');
   };
 
   return (
@@ -183,40 +138,17 @@ export default function HomeScreen({ navigation }: any) {
         <View style={styles.container}>
           {/* Profile Section */}
           <View style={styles.firstContainer}>
-            <PopScaleButton onPress={handleEditProfileImage}>
-              <View
-                style={{
-                  width: s(60),
-                  height: s(60),
-                  borderRadius: ms(30),
-                  marginRight: s(12),
-                  borderWidth: s(2),
-                  borderColor: '#ff00d4', // Neon Pink
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  backgroundColor: user?.profileImage ? 'transparent' : 'grey',
-                }}
-              >
-                {user?.profileImage ? (
-                  <Image
-                    source={{ uri: user.profileImage }}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      borderRadius: ms(30),
-                    }}
-                  />
-                ) : (
-                  <Text
-                    style={{
-                      color: 'white',
-                      fontSize: ms(12),
-                      textAlign: 'center',
-                    }}
-                  >
-                    Add Image
-                  </Text>
-                )}
+            <PopScaleButton onPress={handleProfilePress}>
+              <View style={styles.avatarContainer}>
+                <Image
+                  source={
+                    user?.profileImage
+                      ? { uri: user.profileImage }
+                      : require('../homeMedia/Avatar.png')
+                  }
+                  style={styles.avatarImage}
+                  resizeMode="cover"
+                />
               </View>
             </PopScaleButton>
 
@@ -241,15 +173,10 @@ export default function HomeScreen({ navigation }: any) {
           {/* Balance Section */}
           <View style={styles.secondContainerWrapper}>
             <LinearGradient
-              colors={['#7b0094ff', '#ff00d4ff']} // Updated Gradient
+              colors={['#7b0094ff', '#ff00d4ff']}
               start={{ x: 0, y: 1 }}
               end={{ x: 1, y: 0 }}
-              style={{
-                width: '100%',
-                height: '100%',
-                borderRadius: ms(20),
-                alignSelf: 'center',
-              }}
+              style={styles.gradientCard}
             >
               <View style={styles.balanceOverlay}>
                 <Text style={styles.balanceSubHeader}>Trading Balance</Text>
@@ -308,7 +235,6 @@ export default function HomeScreen({ navigation }: any) {
           {/* Live Traders Section */}
           <View style={styles.thirdContainer}>
             <Text style={styles.transactionsTitle}>Live Traders</Text>
-
             {loadingTraders ? (
               <ActivityIndicator size="small" color="#ff00d4" />
             ) : (
@@ -322,41 +248,42 @@ export default function HomeScreen({ navigation }: any) {
                   nestedScrollEnabled={true}
                 >
                   {traders.map(trader => (
-                    <TouchableOpacity key={trader.id} style={styles.traderCard} onPress={() =>
-          navigation.navigate('SendMoney')
-        } >
-                      <View
-                        style={{ flexDirection: 'row', alignItems: 'center' }}
-                      >
-                        <Image
-                          source={{ uri: trader.image_url }}
-                          style={styles.traderImage}
-                        />
+                    <PopScaleButton
+                      key={trader.id}
+                      style={styles.traderCard}
+                      onPress={() => navigation.navigate('SendMoney')}
+                    >
+                      <View style={styles.traderCardInner}>
                         <View
-                          style={{
-                            alignItems: 'flex-start',
-                            backgroundColor: 'transparent',
-                          }}
+                          style={{ flexDirection: 'row', alignItems: 'center' }}
                         >
-                          <Text style={styles.traderName}>{trader.name}</Text>
-                          <Text style={styles.traderDesignation}>
-                            {trader.designation}
-                          </Text>
+                          <Image
+                            source={{ uri: trader.image_url }}
+                            style={styles.traderImage}
+                          />
+                          <View style={{ alignItems: 'flex-start' }}>
+                            <Text style={styles.traderName}>{trader.name}</Text>
+                            <Text style={styles.traderDesignation}>
+                              {trader.designation}
+                            </Text>
+                          </View>
                         </View>
+                        <Text
+                          style={[
+                            styles.traderAmount,
+                            {
+                              color:
+                                trader.trend === 'up'
+                                  ? '#48ff00ff'
+                                  : '#ff0000ff',
+                            },
+                          ]}
+                        >
+                          {trader.trend === 'up' ? '▲' : '▼'}$
+                          {trader.amount.toFixed(2)}
+                        </Text>
                       </View>
-                      <Text
-                        style={[
-                          styles.traderAmount,
-                          {
-                            color:
-                              trader.trend === 'up' ? '#48ff00ff' : '#ff0000ff',
-                          },
-                        ]}
-                      >
-                        {trader.trend === 'up' ? '▲' : '▼'}$
-                        {trader.amount.toFixed(2)}
-                      </Text>
-                    </TouchableOpacity>
+                    </PopScaleButton>
                   ))}
                 </ScrollView>
               </View>
@@ -379,29 +306,46 @@ const styles = StyleSheet.create({
   },
   userInfo: { flex: 1 },
   name: { fontSize: ms(18), fontWeight: 'bold', color: '#f3fcffff' },
-  accountNumber: { fontSize: ms(14), color: '#ffffff7a', marginTop: vs(2) }, // Updated accent
+  accountNumber: { fontSize: ms(14), color: '#ffffff7a', marginTop: vs(2) },
   editButton: { padding: ms(8) },
-  editImage: {
-    width: s(30),
-    height: s(30),
-    resizeMode: 'cover',
-    //tintColor: '#fff',
+  editImage: { width: s(30), height: s(30), resizeMode: 'cover' },
+
+  // Avatar Styles
+  avatarContainer: {
+    width: s(60),
+    height: s(60),
+    borderRadius: ms(30),
+    marginRight: s(12),
+    borderWidth: s(2),
+    borderColor: '#ff00d4',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#333',
+    overflow: 'hidden',
   },
+  avatarImage: { width: '100%', height: '100%' },
+
   secondContainerWrapper: {
     width: '92%',
     height: '30%',
     justifyContent: 'center',
     overflow: 'hidden',
     marginTop: vs(-32),
-    borderRadius: ms(20),
+    borderRadius: ms(50),
     backgroundColor: '#000',
-    shadowColor: '#7b0094', // Purple Shadow
+    shadowColor: '#7b0094',
     shadowOffset: { width: 0, height: vs(4) },
     shadowOpacity: 1,
     shadowRadius: ms(10),
     elevation: 10,
-    borderColor: '#ff00d4', // Pink Border
+    borderColor: '#ff00d4',
     borderWidth: ms(1),
+  },
+  gradientCard: {
+    width: '100%',
+    height: '100%',
+    borderRadius: ms(20),
+    alignSelf: 'center',
   },
   balanceOverlay: {
     position: 'absolute',
@@ -433,10 +377,16 @@ const styles = StyleSheet.create({
     marginTop: vs(8),
     marginBottom: vs(5),
     fontSize: ms(13),
-    color: '#a5a5a5ff',
+    color: '#d6d6d6ff',
     textAlign: 'center',
+    backgroundColor: '#ff00d41f',
+    paddingHorizontal: s(10),
+    paddingVertical: vs(2),
+    borderRadius: ms(20),
+    borderWidth: 0.5,
+    borderColor: '#ff00d4',
   },
-  boldAmount: { fontWeight: 'bold', fontSize: ms(16), color: '#ff00d4' }, // Pink Accent
+  boldAmount: { fontWeight: 'bold', fontSize: ms(16), color: '#ff33ddff' },
   thirdContainer: {
     width: '98%',
     borderRadius: ms(12),
@@ -446,17 +396,20 @@ const styles = StyleSheet.create({
   transactionsTitle: {
     fontSize: ms(18),
     fontWeight: 'bold',
-    color: '#ff00d4', // Pink Accent
+    color: '#ff00d4',
     marginBottom: vs(10),
   },
   traderCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    borderRadius: ms(25),
+    marginBottom: vs(10),
+    width: '100%',
+  },
+  traderCardInner: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: ms(10),
     padding: s(10),
-    marginBottom: vs(10),
     width: '100%',
   },
   traderImage: {

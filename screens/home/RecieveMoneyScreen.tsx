@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   ScrollView,
   RefreshControl,
+  StatusBar,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { supabase } from '../../utils/supabaseClient';
@@ -23,6 +24,9 @@ export default function DirectReferralsScreen() {
   const [referrals, setReferrals] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Theme Gradient
+  const THEME_GRADIENT = ['#7b0094ff', '#ff00d4ff'];
 
   const fetchReferrals = async () => {
     if (!user?.account_number) return;
@@ -48,101 +52,211 @@ export default function DirectReferralsScreen() {
 
   return (
     <ScreenWrapper>
+      <StatusBar barStyle="light-content" />
       <SafeAreaView style={styles.safeArea}>
-        <Text style={styles.header}>My Direct Referrals</Text>
+        <View style={styles.container}>
+          
+          {/* Header */}
+          <View style={styles.headerContainer}>
+            <Text style={styles.headerTitle}>My Network</Text>
+            <Text style={styles.headerSubtitle}>Direct Referrals</Text>
+            <LinearGradient
+              colors={THEME_GRADIENT}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.headerLine}
+            />
+          </View>
 
-        {loading ? (
-          <ActivityIndicator size="large" color="#00ffff" />
-        ) : referrals.length === 0 ? (
-          <Text style={styles.noReferrals}>No direct referrals found</Text>
-        ) : (
-          <ScrollView
-            style={styles.scroll}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            showsVerticalScrollIndicator={false}
-          >
-            {referrals.map((ref, index) => (
-              <LinearGradient
-                key={ref.id}
-                colors={['#00c6ff', '#ff00ff']}
-                start={{ x: 1, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                style={styles.gradientBorder}
-              >
-                <View style={styles.referralCard}>
-                  {/* Left Side */}
-                  <View>
-                    <Text style={styles.traderName}>
-                      Direct Trader {index + 1}
-                    </Text>
-                    <Text style={styles.subscribedText}>Subscribed Trader</Text>
+          {loading && !refreshing ? (
+            <View style={styles.loaderContainer}>
+              <ActivityIndicator size="large" color="#ff00d4" />
+            </View>
+          ) : referrals.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.noReferrals}>No direct referrals found</Text>
+            </View>
+          ) : (
+            <ScrollView
+              style={styles.scroll}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  tintColor="#ff00d4"
+                  colors={['#ff00d4', '#7b0094']}
+                  progressBackgroundColor="#1a1a1a"
+                />
+              }
+            >
+              {referrals.map((ref, index) => (
+                <View key={ref.id} style={styles.cardContainer}>
+                  {/* Glass Card */}
+                  <View style={styles.card}>
+                    
+                    {/* Left: User Info */}
+                    <View style={styles.userInfo}>
+                      <View style={styles.avatarPlaceholder}>
+                        <Text style={styles.avatarText}>
+                          {ref.username ? ref.username.charAt(0).toUpperCase() : 'U'}
+                        </Text>
+                      </View>
+                      <View>
+                        <Text style={styles.username}>
+                          {ref.username || `Trader ${index + 1}`}
+                        </Text>
+                        <View style={styles.statusBadge}>
+                          <Text style={styles.statusText}>ACTIVE MEMBER</Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Right: Business Volume */}
+                    <View style={styles.businessInfo}>
+                      <Text style={styles.businessLabel}>Volume</Text>
+                      <Text style={styles.businessAmount}>
+                        ${ref.direct_business || 0}
+                      </Text>
+                    </View>
+
                   </View>
-
-                  {/* Right Side */}
-                  <Text style={styles.businessAmount}>
-                    ${ref.direct_business || 0}
-                  </Text>
                 </View>
-              </LinearGradient>
-            ))}
-          </ScrollView>
-        )}
+              ))}
+            </ScrollView>
+          )}
+        </View>
       </SafeAreaView>
     </ScreenWrapper>
   );
 }
 
-/* ---------------------- STYLES ---------------------- */
 const styles = StyleSheet.create({
-  safeArea: {
+  safeArea: { flex: 1 },
+  container: {
     flex: 1,
-    alignItems: 'center',
-    padding: s(10),
+    paddingHorizontal: s(16),
   },
-  header: {
-    fontSize: ms(22),
-    fontWeight: 'bold',
-    color: '#00ffff',
-    marginTop: vs(15),
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  /* Header */
+  headerContainer: {
+    marginTop: vs(20),
     marginBottom: vs(20),
   },
-  scroll: {
-    width: '95%',
+  headerTitle: {
+    fontSize: ms(28),
+    fontWeight: '900',
+    color: '#fff',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginTop: vs(15),
   },
-  gradientBorder: {
-    borderRadius: ms(14),
-    padding: ms(1),
+  headerSubtitle: {
+    fontSize: ms(14),
+    color: 'rgba(255,255,255,0.5)',
     marginBottom: vs(10),
   },
-  referralCard: {
+  headerLine: {
+    width: s(50),
+    height: vs(4),
+    borderRadius: ms(2),
+  },
+
+  /* List */
+  scroll: { width: '100%' },
+  scrollContent: { paddingBottom: vs(40) },
+
+  /* Card */
+  cardContainer: {
+    marginBottom: vs(15),
+    shadowColor: '#ff00d4',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  card: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: ms(16),
+    padding: s(16),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-    borderRadius: ms(12),
-    padding: s(14),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
-  traderName: {
+
+  /* Left Side */
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatarPlaceholder: {
+    width: s(40),
+    height: s(40),
+    borderRadius: s(20),
+    backgroundColor: 'rgba(255, 0, 212, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: s(12),
+    borderWidth: 1,
+    borderColor: 'rgba(255, 0, 212, 0.3)',
+  },
+  avatarText: {
+    color: '#ff00d4',
     fontSize: ms(16),
-    fontWeight: 'bold',
-    color: '#00ffff',
+    fontWeight: '800',
   },
-  subscribedText: {
-    fontSize: ms(13),
-    color: '#ccc',
-    marginTop: vs(3),
+  username: {
+    color: '#fff',
+    fontSize: ms(16),
+    fontWeight: '700',
+    marginBottom: vs(4),
+  },
+  statusBadge: {
+    backgroundColor: 'rgba(0, 230, 118, 0.1)',
+    paddingHorizontal: s(6),
+    paddingVertical: vs(2),
+    borderRadius: ms(4),
+    alignSelf: 'flex-start',
+  },
+  statusText: {
+    color: '#00e676',
+    fontSize: ms(9),
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+
+  /* Right Side */
+  businessInfo: {
+    alignItems: 'flex-end',
+  },
+  businessLabel: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: ms(10),
+    textTransform: 'uppercase',
+    marginBottom: vs(2),
   },
   businessAmount: {
-    fontSize: ms(17),
-    fontWeight: 'bold',
-    color: '#00ffff',
+    color: '#fff',
+    fontSize: ms(18),
+    fontWeight: '800',
+  },
+
+  /* Empty State */
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   noReferrals: {
-    color: '#aaa',
-    fontSize: ms(15),
-    marginTop: vs(20),
-    textAlign: 'center',
+    color: 'rgba(255,255,255,0.3)',
+    fontSize: ms(16),
   },
 });

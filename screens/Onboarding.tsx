@@ -6,7 +6,8 @@ import {
   FlatList,
   Image,
   Dimensions,
-  TouchableOpacity,
+  Animated,
+  Pressable,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {
@@ -27,7 +28,7 @@ const slides = [
     id: '1',
     title: 'Trade & Earn',
     desc: 'Deposit funds and start trading to earn daily profits.',
-    image: require('./LoginMedia/First.png'), 
+    image: require('./LoginMedia/First.png'),
   },
   {
     id: '2',
@@ -42,6 +43,40 @@ const slides = [
     image: require('./LoginMedia/Second.png'),
   },
 ];
+
+// --- MODERN POP BUTTON COMPONENT ---
+const PopButton = ({ onPress, children, style }: any) => {
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      friction: 4,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Pressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={onPress}
+      style={style}
+    >
+      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+        {children}
+      </Animated.View>
+    </Pressable>
+  );
+};
 
 export default function OnboardingScreen({ navigation }: any) {
   const flatListRef = useRef<FlatList>(null);
@@ -79,11 +114,11 @@ export default function OnboardingScreen({ navigation }: any) {
             renderItem={({ item }) => (
               <View style={styles.slide}>
                 <View style={styles.imageContainer}>
-                    <Image
+                  <Image
                     source={item.image}
                     style={styles.image}
                     resizeMode="contain"
-                    />
+                  />
                 </View>
                 <Text style={styles.title}>{item.title}</Text>
                 <Text style={styles.desc}>{item.desc}</Text>
@@ -107,11 +142,8 @@ export default function OnboardingScreen({ navigation }: any) {
 
         {/* Buttons Container */}
         <View style={styles.buttonContainer}>
-          {/* Continue Button */}
-          <TouchableOpacity 
-            activeOpacity={0.8}
-            onPress={() => navigation.replace('Login')}
-          >
+          {/* Continue Button with Pop Effect */}
+          <PopButton onPress={() => navigation.replace('Login')}>
             <LinearGradient
               colors={['#7b0094ff', '#ff00d4ff']}
               start={{ x: 0, y: 0 }}
@@ -120,10 +152,7 @@ export default function OnboardingScreen({ navigation }: any) {
             >
               <Text style={styles.buttonText}>Get Started</Text>
             </LinearGradient>
-          </TouchableOpacity>
-
-          {/* Skip Button - Styled as Outline for contrast */}
-          
+          </PopButton>
         </View>
       </View>
     </ScreenWrapper>
@@ -131,23 +160,22 @@ export default function OnboardingScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-      flex: 1, 
-      backgroundColor: 'black' 
+  container: {
+    flex: 1,
+    backgroundColor: 'black',
   },
   slide: {
     width: width,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: vs(80), 
+    marginTop: vs(80),
   },
   imageContainer: {
-      width: width * 0.8,
-      height: width * 0.8,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: vs(20),
-  
+    width: width * 0.8,
+    height: width * 0.8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: vs(20),
   },
   image: {
     width: '100%',
@@ -158,7 +186,6 @@ const styles = StyleSheet.create({
     fontSize: ms(28),
     fontWeight: 'bold',
     marginBottom: vs(12),
- 
   },
   desc: {
     color: '#e0e0e0',
@@ -182,7 +209,7 @@ const styles = StyleSheet.create({
   },
   activeDot: {
     backgroundColor: NEON_MAGENTA,
-    width: ms(24), 
+    width: ms(24),
     height: ms(8),
     borderRadius: ms(4),
   },
@@ -192,7 +219,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-   // paddingHorizontal: s(30),
     marginBottom: vs(50),
   },
 
@@ -203,28 +229,7 @@ const styles = StyleSheet.create({
     borderRadius: ms(20),
     justifyContent: 'center',
     alignItems: 'center',
- 
     alignSelf: 'center',
-  },
-
-  // 2. SKIP BUTTON (Gradient Border Logic)
-  skipBtnContainer: {
-      width: s(100),
-      height: vs(50),
-      borderRadius: ms(12),
-      overflow: 'hidden',
-  },
-  skipBtnBorder: {
-      flex: 1,
-      padding: ms(2), // This creates the border thickness
-      borderRadius: ms(12),
-  },
-  skipBtnInner: {
-      flex: 1,
-      backgroundColor: 'black', // Inner background matches screen bg
-      borderRadius: ms(10), // Slightly smaller radius
-      justifyContent: 'center',
-      alignItems: 'center',
   },
 
   buttonText: {
@@ -232,11 +237,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: ms(18),
-  },
-  exploreButtonText: {
-    textAlign: 'center',
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: ms(16),
   },
 });

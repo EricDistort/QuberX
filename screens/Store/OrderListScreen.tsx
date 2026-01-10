@@ -23,8 +23,8 @@ import {
 // Import Lottie animations
 import pendingAnim from './StoreMedia/Confirmed.json';
 import packedAnim from './StoreMedia/Confirmed.json';
-import outForDeliveryAnim from './StoreMedia/OutForDelivery.json';
-import deliveredAnim from './StoreMedia/Delivered.json';
+import outForDeliveryAnim from './StoreMedia/Confirmed.json';
+import deliveredAnim from './StoreMedia/Confirmed.json';
 
 const { width } = Dimensions.get('window');
 
@@ -128,15 +128,15 @@ export default function OrdersScreen() {
             <View style={styles.animationStage}>
                {/* Spotlight Gradient */}
                <LinearGradient
-                  colors={[`${config.color}20`, 'transparent']}
-                  style={styles.spotlight}
+                 colors={[`${config.color}20`, 'transparent']}
+                 style={styles.spotlight}
                />
                <LottieView
-                  source={getLottieByStatus(item.status)}
-                  autoPlay
-                  loop
-                  style={styles.lottie}
-                  resizeMode="contain"
+                 source={getLottieByStatus(item.status)}
+                 autoPlay
+                 loop
+                 style={styles.lottie}
+                 resizeMode="contain"
                />
             </View>
 

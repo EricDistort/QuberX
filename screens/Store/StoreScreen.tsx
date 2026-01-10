@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   Image,
-  TouchableOpacity,
   Modal,
   TextInput,
   Alert,
@@ -13,6 +12,8 @@ import {
   SafeAreaView,
   StatusBar,
   ActivityIndicator,
+  Animated,
+  Pressable,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { supabase } from '../../utils/supabaseClient';
@@ -26,6 +27,41 @@ import {
 
 const { width } = Dimensions.get('window');
 const cardWidth = width / 2 - s(24); // Adjusted for better spacing
+
+// --- POP BUTTON COMPONENT ---
+const PopButton = ({ onPress, children, style, disabled }: any) => {
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      friction: 4,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Pressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={onPress}
+      disabled={disabled}
+      style={style}
+    >
+      <Animated.View style={{ transform: [{ scale: scaleValue }], width: '100%' }}>
+        {children}
+      </Animated.View>
+    </Pressable>
+  );
+};
 
 export default function StoreScreen({ navigation }: any) {
   const { user } = useUser();
@@ -105,10 +141,9 @@ export default function StoreScreen({ navigation }: any) {
             <Text style={styles.price}>${item.price}</Text>
           </View>
 
-          {/* Claim Button */}
-          <TouchableOpacity
+          {/* Claim Button with Pop Effect */}
+          <PopButton
             onPress={() => handleBuyPress(item)}
-            activeOpacity={0.8}
             style={styles.buyBtnContainer}
           >
             <LinearGradient
@@ -119,7 +154,7 @@ export default function StoreScreen({ navigation }: any) {
             >
               <Text style={styles.buyText}>Claim</Text>
             </LinearGradient>
-          </TouchableOpacity>
+          </PopButton>
         </View>
       </LinearGradient>
     </View>
@@ -137,12 +172,12 @@ export default function StoreScreen({ navigation }: any) {
               <Text style={styles.title}>Store</Text>
               <Text style={styles.subtitle}>Redeem your rewards</Text>
             </View>
-            <TouchableOpacity 
+            <PopButton 
               onPress={() => navigation.navigate('OrderList')}
               style={styles.historyBtn}
             >
               <Text style={styles.orderList}>My Orders</Text>
-            </TouchableOpacity>
+            </PopButton>
           </View>
 
           {/* Product Grid */}
@@ -160,9 +195,8 @@ export default function StoreScreen({ navigation }: any) {
           <Modal visible={!!selectedProduct} transparent animationType="fade">
             <View style={styles.modalOverlay}>
               {/* Tap background to close */}
-              <TouchableOpacity 
+              <Pressable 
                 style={styles.modalBackdrop} 
-                activeOpacity={1} 
                 onPress={() => setSelectedProduct(null)} 
               />
               
@@ -176,9 +210,9 @@ export default function StoreScreen({ navigation }: any) {
                       {/* Modal Header */}
                       <View style={styles.modalHeader}>
                         <Text style={styles.modalTitle}>Confirm Claim</Text>
-                        <TouchableOpacity onPress={() => setSelectedProduct(null)}>
+                        <PopButton onPress={() => setSelectedProduct(null)}>
                           <Text style={styles.closeIcon}>✕</Text>
-                        </TouchableOpacity>
+                        </PopButton>
                       </View>
 
                       {/* Product Summary */}
@@ -215,8 +249,8 @@ export default function StoreScreen({ navigation }: any) {
                         onChangeText={setLocation}
                       />
 
-                      {/* Confirm Button */}
-                      <TouchableOpacity
+                      {/* Confirm Button with Pop Effect */}
+                      <PopButton
                         onPress={confirmPurchase}
                         disabled={loading}
                         style={styles.confirmBtnContainer}
@@ -233,7 +267,7 @@ export default function StoreScreen({ navigation }: any) {
                             <Text style={styles.buyNowText}>Confirm & Claim</Text>
                           )}
                         </LinearGradient>
-                      </TouchableOpacity>
+                      </PopButton>
                     </>
                   )}
                 </LinearGradient>
@@ -306,7 +340,7 @@ const styles = StyleSheet.create({
   },
   gradientBorder: {
     borderRadius: ms(16),
-    padding: 1, // Thin border
+    //padding: 1, // Thin border
   },
   cardInner: {
     backgroundColor: '#121212',

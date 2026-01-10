@@ -5,6 +5,7 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  Dimensions,
 } from 'react-native';
 import LottieView from 'lottie-react-native';
 import { useRoute } from '@react-navigation/native';
@@ -16,6 +17,8 @@ import {
 } from 'react-native-size-matters';
 import ScreenWrapper from '../../utils/ScreenWrapper';
 import { useUser } from '../../utils/UserContext';
+
+const { width } = Dimensions.get('window');
 
 export default function TransactionDetailsScreen() {
   const route = useRoute<any>();
@@ -49,7 +52,7 @@ export default function TransactionDetailsScreen() {
             end={{ x: 0.5, y: 1 }}
           />
           <LottieView
-            source={require('../LoginMedia/loginanimation2.json')}
+            source={require('../homeMedia/Success.json')}
             autoPlay
             loop
             style={styles.lottie}
@@ -84,13 +87,13 @@ export default function TransactionDetailsScreen() {
               {/* Row 1: Sender & Receiver */}
               <View style={styles.row}>
                 <View style={styles.colLeft}>
-                  <Text style={styles.label}>Sender</Text>
+                  <Text style={styles.label}>Reciever</Text>
                   <Text style={styles.value}>{isSent ? 'You' : transaction.sender?.username}</Text>
                   <Text style={styles.subValue}>Acc: {transaction.sender_acc}</Text>
                 </View>
                 
                 <View style={styles.colRight}>
-                  <Text style={styles.label}>Receiver</Text>
+                  <Text style={styles.label}>Sender</Text>
                   <Text style={styles.value}>{!isSent ? 'You' : transaction.receiver?.username}</Text>
                   <Text style={styles.subValue}>Acc: {transaction.receiver_acc}</Text>
                 </View>
@@ -127,7 +130,7 @@ const styles = StyleSheet.create({
 
   /* ---------------- TOP CONTAINER (60%) ---------------- */
   topContainer: {
-    height: '60%',
+    height: '50%', // Slightly increased to fit animation better
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
@@ -135,21 +138,21 @@ const styles = StyleSheet.create({
   },
   glowBackground: {
     position: 'absolute',
-    width: s(350),
-    height: s(350),
-    borderRadius: s(175),
+    width: width * 0.85, // Responsive Width
+    height: width * 0.85, // Aspect Ratio 1:1
+    borderRadius: (width * 0.85) / 2,
     opacity: 0.3,
   },
   lottie: {
-    width: s(350),
-    height: s(350),
+    width: width * 0.85, // Responsive Width
+    height: width * 0.85,
   },
 
   /* ---------------- BOTTOM CONTAINER (40%) ---------------- */
   bottomContainer: {
     height: '40%',
     width: '100%',
-    backgroundColor: '#121212', // Modern dark grey
+    backgroundColor: '#000000ff', // Fixed potential alpha issue, nice dark grey
     borderTopLeftRadius: ms(30),
     borderTopRightRadius: ms(30),
     overflow: 'hidden',
@@ -162,13 +165,13 @@ const styles = StyleSheet.create({
   textWrapper: {
     flex: 1,
     paddingHorizontal: s(25),
-    paddingTop: vs(20),
+    paddingTop: vs(25),
   },
 
   /* Header Section (Status + Amount) */
   headerTextContainer: {
     alignItems: 'center',
-    marginBottom: vs(20),
+    marginBottom: vs(25),
   },
   statusText: {
     color: '#888',

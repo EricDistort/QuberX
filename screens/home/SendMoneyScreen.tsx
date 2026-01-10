@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   Alert,
   ScrollView,
@@ -10,6 +9,8 @@ import {
   ActivityIndicator,
   SafeAreaView,
   Dimensions,
+  Animated,
+  Pressable,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import LinearGradient from 'react-native-linear-gradient';
@@ -23,6 +24,41 @@ import {
 } from 'react-native-size-matters';
 
 const screenWidth = Dimensions.get('window').width;
+
+// --- POP BUTTON COMPONENT ---
+const PopButton = ({ onPress, children, style, disabled }: any) => {
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      friction: 4,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Pressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={onPress}
+      disabled={disabled}
+      style={style}
+    >
+      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+        {children}
+      </Animated.View>
+    </Pressable>
+  );
+};
 
 export default function TradesScreen() {
   const { user, setUser } = useUser();
@@ -72,7 +108,12 @@ export default function TradesScreen() {
     fetchTrades();
   }, [user?.id]);
 
+  // 1️⃣ Chart Animation: Only runs if there are active trades
+  const hasActiveTrades = trades.length > 0;
+
   useEffect(() => {
+    if (!hasActiveTrades) return; // Stop animation if no trades
+
     const interval = setInterval(() => {
       setChartData(prev => {
         const next = [...prev.slice(-29)];
@@ -83,9 +124,12 @@ export default function TradesScreen() {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [hasActiveTrades]); // Dependency ensures toggle based on trade existence
 
+  // 2️⃣ Trade Value Simulation
   useEffect(() => {
+    if (!hasActiveTrades) return;
+
     const interval = setInterval(() => {
       setTrades(prev =>
         prev.map(t => {
@@ -100,7 +144,7 @@ export default function TradesScreen() {
       );
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [hasActiveTrades]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -109,11 +153,10 @@ export default function TradesScreen() {
     setRefreshing(false);
   }, [user?.id]);
 
-  // 🛑 Updated endTrade Function
   const endTrade = (tradeId: number) => {
     Alert.alert(
       'Restricted Action',
-      'Trades are live can not be closed at this moment'
+      'Trades are live can not be closed at this moment',
     );
   };
 
@@ -160,7 +203,8 @@ export default function TradesScreen() {
                     fillShadowGradientTo: '#7b0094',
                     fillShadowGradientOpacity: 0.6,
                     color: (opacity = 1) => `rgba(255, 0, 212, ${opacity})`, // Neon Pink Line
-                    labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                    labelColor: (opacity = 1) =>
+                      `rgba(255, 255, 255, ${opacity})`,
                     strokeWidth: 2,
                     propsForBackgroundLines: {
                       stroke: 'transparent',
@@ -177,17 +221,15 @@ export default function TradesScreen() {
               {/* 🟩 Horizontal Info Containers */}
               <View style={styles.infoRow}>
                 {/* Level Income */}
-                <View
-                  style={styles.infoCard}
-                >
+                <View style={styles.infoCard}>
                   <Text style={styles.infoTitle}>Level Income</Text>
-                  <Text style={styles.infoValue}>${user?.level_income || 0}</Text>
+                  <Text style={styles.infoValue}>
+                    ${user?.level_income || 0}
+                  </Text>
                 </View>
 
                 {/* Total Profit */}
-                <View
-                  style={styles.infoCard}
-                >
+                <View style={styles.infoCard}>
                   <Text style={styles.infoTitle}>Total Profit</Text>
                   <Text style={styles.infoValue}>
                     ${user?.withdrawal_amount || 0}
@@ -200,7 +242,8 @@ export default function TradesScreen() {
             <View style={styles.thirdContainer}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.transactionsTitle}>Running Trades</Text>
-                <View style={styles.liveIndicator} />
+                {/* Indicator only shows if trades are active */}
+                {hasActiveTrades && <View style={styles.liveIndicator} />}
               </View>
 
               {loading ? (
@@ -217,7 +260,10 @@ export default function TradesScreen() {
                   {trades.map(trade => (
                     <LinearGradient
                       key={trade.id}
-                      colors={['rgba(20, 20, 30, 0.8)', 'rgba(123, 0, 148, 0.2)']}
+                      colors={[
+                        'rgba(20, 20, 30, 0.8)',
+                        'rgba(123, 0, 148, 0.2)',
+                      ]}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0 }}
                       style={styles.tradeCard}
@@ -230,9 +276,7 @@ export default function TradesScreen() {
                               styles.liveAmount,
                               {
                                 color:
-                                  trade.trend === 'up'
-                                    ? '#00ff88'
-                                    : '#ff3366',
+                                  trade.trend === 'up' ? '#00ff88' : '#ff3366',
                               },
                             ]}
                           >
@@ -242,7 +286,8 @@ export default function TradesScreen() {
                         </View>
                       </View>
 
-                      <TouchableOpacity
+                      {/* Close Button with Pop Effect */}
+                      <PopButton
                         onPress={() => endTrade(trade.id)}
                         disabled={endingTrade === trade.id}
                       >
@@ -261,7 +306,7 @@ export default function TradesScreen() {
                               : 'Close Trade'}
                           </Text>
                         </LinearGradient>
-                      </TouchableOpacity>
+                      </PopButton>
                     </LinearGradient>
                   ))}
                 </ScrollView>
@@ -293,7 +338,6 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     paddingBottom: vs(10),
-    
   },
 
   /* Horizontal Info Row */
@@ -306,14 +350,13 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     flex: 1,
-    borderRadius: ms(16),
+    borderRadius: ms(25),
     paddingVertical: vs(8),
     marginHorizontal: s(6),
     alignItems: 'center',
     backgroundColor: 'rgba(163, 0, 155, 0.14)',
     borderWidth: 1,
     borderColor: 'rgba(255, 0, 170, 0.43)', // Pink border
-    
   },
   infoTitle: {
     color: '#rgba(255,255,255,0.7)',
@@ -339,6 +382,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: vs(15),
+    justifyContent: 'center',
   },
   transactionsTitle: {
     fontSize: ms(20),
@@ -357,13 +401,13 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 5,
   },
-  
+
   /* Trade Card */
   tradeCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: ms(16),
+    borderRadius: ms(25),
     padding: s(16),
     marginBottom: vs(12),
     borderWidth: 1,
@@ -383,7 +427,7 @@ const styles = StyleSheet.create({
     fontSize: ms(14),
     fontWeight: '600',
   },
-  
+
   /* Buttons */
   endButton: {
     borderRadius: ms(25), // Pill shape
@@ -401,7 +445,7 @@ const styles = StyleSheet.create({
     fontSize: ms(13),
     textTransform: 'uppercase',
   },
-  
+
   /* Empty States */
   emptyContainer: {
     alignItems: 'center',

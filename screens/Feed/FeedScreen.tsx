@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
+  Animated,
+  Pressable,
 } from 'react-native';
 import { supabase } from '../../utils/supabaseClient';
 import ScreenWrapper from '../../utils/ScreenWrapper';
@@ -22,6 +24,40 @@ import Video from 'react-native-video';
 import LinearGradient from 'react-native-linear-gradient';
 
 const { width } = Dimensions.get('window');
+
+// --- POP CARD COMPONENT ---
+const PopCard = ({ children, style }: any) => {
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.97, // Very subtle shrink for large cards
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      friction: 4,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Pressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      // onPress event can be added here later for navigation
+      style={style}
+    >
+      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+        {children}
+      </Animated.View>
+    </Pressable>
+  );
+};
 
 export default function FeedScreen() {
   const [feeds, setFeeds] = useState<any[]>([]);
@@ -62,7 +98,7 @@ export default function FeedScreen() {
     });
 
     return (
-      <View style={styles.cardContainer}>
+      <PopCard style={styles.cardContainer}>
         {/* Shadow Layer */}
         <View style={styles.cardShadow} />
 
@@ -75,7 +111,7 @@ export default function FeedScreen() {
                 style={styles.media}
                 resizeMode="cover"
                 repeat
-                muted={true} // Auto-play videos should usually be muted in feeds
+                muted={true}
                 paused={false}
               />
             ) : (
@@ -120,7 +156,7 @@ export default function FeedScreen() {
             </Text>
           </View>
         </View>
-      </View>
+      </PopCard>
     );
   };
 
@@ -135,7 +171,7 @@ export default function FeedScreen() {
             <Text style={styles.mainTitle}>Trending News</Text>
           </View>
 
-          {loading ? (
+          {loading && !refreshing ? (
             <View style={styles.loaderContainer}>
               <ActivityIndicator size="large" color="#ff00d4" />
             </View>
@@ -146,7 +182,13 @@ export default function FeedScreen() {
               renderItem={renderItem}
               showsVerticalScrollIndicator={false}
               refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ff00d4" />
+                <RefreshControl 
+                  refreshing={refreshing} 
+                  onRefresh={onRefresh} 
+                  tintColor="#ff00d4" 
+                  colors={['#ff00d4', '#7b0094']}
+                  progressBackgroundColor="#1a1a1a"
+                />
               }
               contentContainerStyle={styles.listContent}
             />
@@ -234,7 +276,6 @@ const styles = StyleSheet.create({
     paddingVertical: vs(6),
     paddingHorizontal: s(12),
     borderRadius: ms(20),
-    //backdropFilter: 'blur(10px)', // Works on some versions, creates glass effect
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
   },

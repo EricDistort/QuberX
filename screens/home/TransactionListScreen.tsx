@@ -1,14 +1,15 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   ActivityIndicator,
-  TouchableOpacity,
   SafeAreaView,
   StatusBar,
   RefreshControl,
+  Animated,
+  Pressable,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -21,12 +22,46 @@ import {
   moderateScale as ms,
 } from 'react-native-size-matters';
 
+// --- POP CARD COMPONENT ---
+const PopCard = ({ onPress, children, style }: any) => {
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.96, // Subtle shrink for list items
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      friction: 4,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Pressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={onPress}
+      style={style}
+    >
+      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+        {children}
+      </Animated.View>
+    </Pressable>
+  );
+};
+
 export default function TransactionListScreen() {
   const { user } = useUser();
   const navigation = useNavigation<any>();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false); // 1️⃣ New State
+  const [refreshing, setRefreshing] = useState(false);
 
   // The requested gradient colors
   const THEME_GRADIENT = ['#7b0094ff', '#ff00d4ff'];
@@ -62,7 +97,7 @@ export default function TransactionListScreen() {
     fetchAllTransactions();
   }, [user?.account_number]);
 
-  // 2️⃣ Pull to Refresh Handler
+  // Pull to Refresh Handler
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await fetchAllTransactions();
@@ -74,11 +109,11 @@ export default function TransactionListScreen() {
     const otherUser = isSent ? item.receiver : item.sender;
 
     return (
-      <TouchableOpacity
-        activeOpacity={0.9}
+      <PopCard
         onPress={() =>
           navigation.navigate('TransactionDetailsScreen', { transaction: item })
         }
+        style={{ marginBottom: vs(12) }} // Spacing handled here for list items
       >
         <View style={styles.cardContainer}>
           {/* Card Background */}
@@ -125,7 +160,7 @@ export default function TransactionListScreen() {
             </View>
           </View>
         </View>
-      </TouchableOpacity>
+      </PopCard>
     );
   };
 
@@ -160,7 +195,7 @@ export default function TransactionListScreen() {
               renderItem={renderItem}
               contentContainerStyle={styles.listContent}
               showsVerticalScrollIndicator={false}
-              // 3️⃣ Refresh Control Component
+              // Refresh Control Component
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
@@ -226,7 +261,6 @@ const styles = StyleSheet.create({
 
   /* Card Styles */
   cardContainer: {
-    marginBottom: vs(12),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -234,10 +268,9 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   cardBg: {
-    backgroundColor: '#1a1a1a', // Dark modern grey
-    borderRadius: ms(20),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)', // Subtle light border
+    backgroundColor: '#1a1a1a98', // Dark modern grey
+    borderRadius: ms(30),
+    
   },
   cardContent: {
     flexDirection: 'row',

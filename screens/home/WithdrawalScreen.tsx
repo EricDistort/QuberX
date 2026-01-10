@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   Alert,
   SafeAreaView,
@@ -14,8 +13,11 @@ import {
   Platform,
   Keyboard,
   RefreshControl,
+  Animated,
+  Pressable,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import LottieView from 'lottie-react-native';
 import {
   scale as s,
   verticalScale as vs,
@@ -25,6 +27,46 @@ import ScreenWrapper from '../../utils/ScreenWrapper';
 import { useUser } from '../../utils/UserContext';
 import { supabase } from '../../utils/supabaseClient';
 
+// --- POP BUTTON COMPONENT ---
+const PopButton = ({ onPress, children, style, disabled, contentStyle }: any) => {
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      friction: 4,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Pressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={onPress}
+      disabled={disabled}
+      style={style}
+    >
+      <Animated.View 
+        style={[
+          { transform: [{ scale: scaleValue }], width: '100%', alignItems: 'center', justifyContent: 'center' },
+          contentStyle 
+        ]}
+      >
+        {children}
+      </Animated.View>
+    </Pressable>
+  );
+};
+
 export default function WithdrawalScreen() {
   const { user, setUser } = useUser();
   const [wallet, setWallet] = useState('');
@@ -33,10 +75,9 @@ export default function WithdrawalScreen() {
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [loadingWithdrawals, setLoadingWithdrawals] = useState(false);
   
-  // 1️⃣ Refresh State
   const [refreshing, setRefreshing] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  // Theme Gradient
   const THEME_GRADIENT = ['#7b0094ff', '#ff00d4ff'];
 
   const fetchUserBalance = async () => {
@@ -53,7 +94,7 @@ export default function WithdrawalScreen() {
 
   const fetchWithdrawals = async () => {
     if (!user?.id) return;
-    if (!refreshing) setLoadingWithdrawals(true); // Don't show double spinners
+    if (!refreshing) setLoadingWithdrawals(true);
     const { data, error } = await supabase
       .from('withdrawals')
       .select('id, receiving_wallet, amount, status, created_at')
@@ -70,7 +111,6 @@ export default function WithdrawalScreen() {
     fetchUserBalance();
   }, [user?.id]);
 
-  // 2️⃣ Refresh Logic
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await Promise.all([fetchUserBalance(), fetchWithdrawals()]);
@@ -112,15 +152,13 @@ export default function WithdrawalScreen() {
       ]);
       if (error) throw error;
 
-      Alert.alert('Success', 'Withdrawal request submitted.');
+      setShowSuccess(true); 
+
       setWallet('');
       setAmount('');
-      
-      // Auto Refresh after submit
       onRefresh(); 
       
     } catch (err: any) {
-        // Handle the specific SQL trigger error
         if (err.message.includes('Insufficient withdrawal balance')) {
             Alert.alert('Failed', 'Insufficient funds. Balance updated.');
             fetchUserBalance();
@@ -164,8 +202,7 @@ export default function WithdrawalScreen() {
     </View>
   );
 
-  // 3️⃣ Header Component (Balance + Forms)
-  const ListHeader = () => (
+  const renderHeader = () => (
     <View style={styles.headerContainer}>
       <Text style={styles.pageTitle}>Withdraw</Text>
 
@@ -191,7 +228,6 @@ export default function WithdrawalScreen() {
 
       {/* Input Forms */}
       <View style={styles.formContainer}>
-        {/* Wallet Address */}
         <View style={styles.inputWrapper}>
           <TextInput
             style={styles.input}
@@ -203,7 +239,6 @@ export default function WithdrawalScreen() {
           />
         </View>
 
-        {/* Amount + Max Button */}
         <View style={styles.inputWrapper}>
           <View style={styles.amountInputContainer}>
             <TextInput
@@ -214,17 +249,21 @@ export default function WithdrawalScreen() {
               onChangeText={setAmount}
               keyboardType="numeric"
             />
-            <TouchableOpacity onPress={handleMaxAmount}>
+            {/* MAX Button with Pop Effect */}
+            <PopButton 
+              onPress={handleMaxAmount} 
+              style={{ marginRight: s(15) }}
+              contentStyle={{ width: 'auto' }} // Allow width to fit text
+            >
               <Text style={styles.maxText}>MAX</Text>
-            </TouchableOpacity>
+            </PopButton>
           </View>
         </View>
 
-        {/* Submit Button */}
-        <TouchableOpacity
+        {/* Submit Button with Pop Effect */}
+        <PopButton
           onPress={submitWithdrawal}
           disabled={loading}
-          activeOpacity={0.8}
           style={styles.submitBtnContainer}
         >
           <LinearGradient
@@ -239,10 +278,9 @@ export default function WithdrawalScreen() {
               <Text style={styles.btnText}>CONFIRM WITHDRAWAL</Text>
             )}
           </LinearGradient>
-        </TouchableOpacity>
+        </PopButton>
       </View>
 
-      {/* History Header Title */}
       <View style={styles.historyHeader}>
         <Text style={styles.sectionTitle}>Recent Transactions</Text>
         <View style={styles.line} />
@@ -254,6 +292,20 @@ export default function WithdrawalScreen() {
     <ScreenWrapper>
       <StatusBar barStyle="light-content" />
       <SafeAreaView style={styles.safeArea}>
+        
+        {showSuccess && (
+          <View style={styles.successOverlay}>
+            <LottieView
+              source={require('../homeMedia/Success.json')}
+              autoPlay
+              loop={false}
+              onAnimationFinish={() => setShowSuccess(false)}
+              style={styles.successLottie}
+              resizeMode="contain"
+            />
+          </View>
+        )}
+
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.container}
@@ -265,8 +317,8 @@ export default function WithdrawalScreen() {
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             
-            // 4️⃣ Attach Header & Refresh Control
-            ListHeaderComponent={ListHeader}
+            ListHeaderComponent={renderHeader()} 
+            
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -298,8 +350,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  
-  /* --- Header Component Styles --- */
+  successOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 1)',
+    zIndex: 9999,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  successLottie: {
+    width: s(300),
+    height: s(300),
+  },
   headerContainer: {
     paddingHorizontal: s(20),
     marginBottom: vs(10),
@@ -313,10 +374,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginTop: vs(15),
   },
-  
-  /* Balance Card */
   balanceCard: {
-    borderRadius: ms(20),
+    borderRadius: ms(35),
     padding: s(20),
     marginBottom: vs(20),
     shadowColor: '#ff00d4',
@@ -355,8 +414,6 @@ const styles = StyleSheet.create({
     fontSize: ms(20),
     fontWeight: 'bold',
   },
-
-  /* Form Container */
   formContainer: {
     gap: vs(12),
     marginBottom: vs(25),
@@ -366,31 +423,33 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: '#1a1a1a',
-    borderRadius: ms(14),
+    borderRadius: ms(20),
     height: vs(50),
     paddingHorizontal: s(15),
     color: '#fff',
     fontSize: ms(15),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    
   },
   amountInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#1a1a1a',
-    borderRadius: ms(14),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderRadius: ms(20),
+   
     height: vs(50),
-    paddingRight: s(15),
+    paddingRight: 0, // Removed padding right as it's handled by margin in button
   },
   maxText: {
     color: '#ff00d4',
     fontWeight: '800',
     fontSize: ms(12),
+    backgroundColor: 'rgba(255, 0, 212, 0.1)',
+    paddingHorizontal: s(10),
+    paddingVertical: vs(5),
+    borderRadius: ms(14),
+    borderWidth: 0.5,
+    borderColor: '#ff00d4',
   },
-  
-  /* Submit Button */
   submitBtnContainer: {
     marginTop: vs(5),
     shadowColor: '#ff00d4',
@@ -398,12 +457,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5,
+    width: '100%',
   },
   submitBtn: {
     height: vs(50),
-    borderRadius: ms(14),
+    borderRadius: ms(20),
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
   },
   btnText: {
     color: '#fff',
@@ -411,8 +472,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 1,
   },
-
-  /* History Header */
   historyHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -429,18 +488,14 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: 'rgba(255,255,255,0.1)',
   },
-
-  /* --- List Styles --- */
   listContent: {
     paddingBottom: vs(20),
   },
-  
-  /* History Card */
   historyCard: {
     marginBottom: vs(12),
-    marginHorizontal: s(20), // Added horizontal margin since it's now part of main list
+    marginHorizontal: s(20),
     backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: ms(12),
+    borderRadius: ms(20),
     padding: s(12),
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
@@ -463,7 +518,7 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingHorizontal: s(8),
     paddingVertical: vs(2),
-    borderRadius: ms(6),
+    borderRadius: ms(10),
     borderWidth: 1,
     marginBottom: vs(4),
   },
@@ -477,8 +532,6 @@ const styles = StyleSheet.create({
     maxWidth: s(100),
     textAlign: 'right',
   },
-  
-  /* Empty State */
   emptyState: {
     marginTop: vs(20),
     alignItems: 'center',

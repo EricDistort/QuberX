@@ -12,6 +12,9 @@ import {
   Platform,
   Dimensions,
   StatusBar,
+  Keyboard,
+  TouchableWithoutFeedback,
+  ScrollView, // 1️⃣ Import ScrollView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -36,15 +39,17 @@ type RootStackParamList = {
   Main: undefined;
 };
 
-// --- MODERN POP BUTTON COMPONENT ---
-const ModernPopButton = ({
+// --- GENERIC POP BUTTON COMPONENT ---
+const PopButton = ({
   onPress,
-  title,
+  children,
   disabled,
+  style,
 }: {
   onPress: () => void;
-  title: string;
+  children: React.ReactNode;
   disabled?: boolean;
+  style?: any;
 }) => {
   const scaleValue = useRef(new Animated.Value(1)).current;
 
@@ -70,19 +75,12 @@ const ModernPopButton = ({
       onPressOut={handlePressOut}
       onPress={onPress}
       disabled={disabled}
-      style={{ width: '100%' }}
+      style={style}
     >
       <Animated.View
         style={{ transform: [{ scale: scaleValue }], width: '100%' }}
       >
-        <LinearGradient
-          colors={['#7b0094ff', '#ff00d4ff']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.gradientButton}
-        >
-          <Text style={styles.btnText}>{title}</Text>
-        </LinearGradient>
+        {children}
       </Animated.View>
     </Pressable>
   );
@@ -96,9 +94,6 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Animation for the input focus line (optional polish)
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
   const navigateToApp = (userData: any) => {
     setUser(userData);
     navigation.replace('Main');
@@ -106,9 +101,11 @@ export default function Login() {
 
   const handleLogin = async () => {
     if (!accountNumber.trim() || !password.trim())
-      return Alert.alert('Error', 'Please fill all fields');
+      return Alert.alert('Missing Details', 'Please fill in all fields.');
 
     setLoading(true);
+    const startTime = Date.now();
+
     try {
       const { data: user, error } = await supabase
         .from('users')
@@ -118,9 +115,19 @@ export default function Login() {
 
       if (error) throw error;
 
+      const elapsedTime = Date.now() - startTime;
+      const minDuration = 3000;
+      const remainingTime = Math.max(0, minDuration - elapsedTime);
+
+      await new Promise(resolve => setTimeout(resolve, remainingTime));
+
       if (!user) {
         setLoading(false);
-        return Alert.alert('Error', 'Account number not found');
+        setTimeout(
+          () => Alert.alert('Login Failed', 'Account number not found.'),
+          100,
+        );
+        return;
       }
 
       if (user.password === password.trim()) {
@@ -128,95 +135,127 @@ export default function Login() {
         navigateToApp(user);
       } else {
         setLoading(false);
-        Alert.alert('Error', 'Invalid password');
+        setTimeout(() => Alert.alert('Login Failed', 'Invalid password.'), 100);
       }
     } catch (error: any) {
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 3000 - elapsedTime);
+      await new Promise(resolve => setTimeout(resolve, remainingTime));
+
       setLoading(false);
-      Alert.alert('Login Error', error.message);
+      setTimeout(() => Alert.alert('Error', error.message), 100);
     }
   };
 
   return (
     <ScreenWrapper>
-      <StatusBar barStyle="light-content" />
-      <View style={styles.mainContainer}>
-        {/* Background Glow Effect */}
-        <View style={styles.backgroundGlow} />
+      <StatusBar barStyle="light-content" backgroundColor="#050505" />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.mainContainer}>
+          {/* Ambient Background Glows */}
+          <LinearGradient
+            colors={['rgba(123, 0, 148, 0.4)', 'transparent']}
+            style={styles.topGlow}
+          />
+          <View style={styles.bottomGlow} />
 
-        {/* Loading Overlay */}
-        {loading && (
-          <View style={styles.loadingOverlay}>
-            <LottieView
-              source={require('./LoginMedia/loginanimation2.json')}
-              autoPlay
-              loop
-              style={styles.loadingAnimation}
-            />
-          </View>
-        )}
-
-        <SafeAreaView style={{ flex: 1 }}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.keyboardView}
-          >
-            {/* Header Section */}
-            <View style={styles.headerContainer}>
-              <Text style={styles.welcomeText}>Welcome</Text>
-              <Text style={styles.subWelcomeText}>Back!</Text>
-              <Text style={styles.instructionText}>
-                Please sign in to access your account.
-              </Text>
+          {/* Loading Overlay */}
+          {loading && (
+            <View style={styles.loadingOverlay}>
+              <LottieView
+                source={require('./LoginMedia/Loading.json')}
+                autoPlay
+                loop
+                style={styles.loadingAnimation}
+              />
             </View>
+          )}
 
-            {/* Form Section */}
-            <View style={styles.formContainer}>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.inputLabel}>ACCOUNT NUMBER</Text>
-                <TextInput
-                  placeholder="12345678"
-                  style={styles.modernInput}
-                  value={accountNumber}
-                  onChangeText={setAccountNumber}
-                  keyboardType="numeric"
-                  placeholderTextColor="#666"
-                />
-              </View>
+          <SafeAreaView style={{ flex: 1 }}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // Changed 'undefined' to 'height' for Android fix
+              style={{ flex: 1 }}
+            >
+              {/* 2️⃣ Added ScrollView to handle keyboard overlap */}
+              <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                <View style={styles.contentContainer}>
+                  {/* Header Typography */}
+                  <View style={styles.header}>
+                    <Text style={styles.titleOutline}>Welcome</Text>
+                    <Text style={styles.titleFilled}>Back</Text>
+                    <Text style={styles.subtitle}>
+                      Sign in to access your portfolio.
+                    </Text>
+                  </View>
 
-              <View style={styles.inputWrapper}>
-                <Text style={styles.inputLabel}>PASSWORD</Text>
-                <TextInput
-                  placeholder="••••••••"
-                  style={styles.modernInput}
-                  value={password}
-                  secureTextEntry
-                  onChangeText={setPassword}
-                  autoCapitalize="none"
-                  placeholderTextColor="#666"
-                />
-              </View>
+                  {/* Form Fields */}
+                  <View style={styles.formSection}>
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>ACCOUNT NUMBER</Text>
+                      <TextInput
+                        placeholder="e.g. 12345678"
+                        style={styles.input}
+                        value={accountNumber}
+                        onChangeText={setAccountNumber}
+                        keyboardType="numeric"
+                        placeholderTextColor="rgba(255,255,255,0.2)"
+                      />
+                    </View>
 
-              <View style={styles.actionContainer}>
-                <ModernPopButton
-                  title="LOG IN"
-                  onPress={handleLogin}
-                  disabled={loading}
-                />
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>PASSWORD</Text>
+                      <TextInput
+                        placeholder="••••••••••••"
+                        style={styles.input}
+                        value={password}
+                        secureTextEntry
+                        onChangeText={setPassword}
+                        autoCapitalize="none"
+                        placeholderTextColor="rgba(255,255,255,0.2)"
+                      />
+                    </View>
 
-                <Pressable
-                  onPress={() => navigation.navigate('Register')}
-                  style={styles.registerLink}
-                >
-                  <Text style={styles.registerText}>
-                    Don't have an account?{' '}
-                    <Text style={styles.registerHighlight}>Register</Text>
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-          </KeyboardAvoidingView>
-        </SafeAreaView>
-      </View>
+                    <View style={styles.spacer} />
+
+                    {/* MAIN ACTION BUTTON */}
+                    <PopButton
+                      onPress={handleLogin}
+                      disabled={loading}
+                      style={{ width: '100%' }}
+                    >
+                      <LinearGradient
+                        colors={['#7b0094ff', '#ff00d4ff']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.gradientButton}
+                      >
+                        <Text style={styles.btnText}>ACCESS ACCOUNT</Text>
+                      </LinearGradient>
+                    </PopButton>
+
+                    {/* REGISTER LINK */}
+                    <PopButton
+                      onPress={() => navigation.navigate('Register')}
+                      style={styles.registerLink}
+                    >
+                      <Text style={styles.registerText}>
+                        New here?{' '}
+                        <Text style={styles.registerHighlight}>
+                          Create Account
+                        </Text>
+                      </Text>
+                    </PopButton>
+                  </View>
+                </View>
+              </ScrollView>
+            </KeyboardAvoidingView>
+          </SafeAreaView>
+        </View>
+      </TouchableWithoutFeedback>
     </ScreenWrapper>
   );
 }
@@ -224,111 +263,141 @@ export default function Login() {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: '#050505', // Deep Black
+    backgroundColor: '#050505', // Deepest Black
   },
-  // Creates a purple/pink ambient glow at the top left
-  backgroundGlow: {
+
+  /* 3️⃣ Updated Scroll Content Style */
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center', // Centers content when keyboard is hidden
+    paddingBottom: vs(50), // Extra padding for scroll
+  },
+
+  /* Ambient Effects */
+  topGlow: {
     position: 'absolute',
-    top: -height * 0.2,
+    top: -height * 0.15,
     left: -width * 0.2,
-    width: width * 0.8,
-    height: width * 0.8,
-    backgroundColor: '#7b0094',
-    opacity: 0.15,
+    width: width * 1.2,
+    height: width * 1.2,
     borderRadius: width,
+    opacity: 0.3,
+  },
+  bottomGlow: {
+    position: 'absolute',
+    bottom: vs(-100),
+    right: s(-50),
+    width: s(200),
+    height: s(200),
+    borderRadius: s(100),
+    backgroundColor: '#ff00d4',
+    opacity: 0.08,
     transform: [{ scale: 1.5 }],
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.85)',
+    backgroundColor: 'rgba(0, 0, 0, 1)',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 100,
+    zIndex: 999,
   },
   loadingAnimation: {
-    width: s(200),
-    height: s(200),
+    width: s(300),
+    height: s(300),
   },
-  keyboardView: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: ms(24),
-  },
-  headerContainer: {
-    marginBottom: vs(40),
-  },
-  welcomeText: {
-    fontSize: ms(36),
-    color: '#FFF',
-    fontWeight: '300', // Thin weight
-    letterSpacing: 1,
-  },
-  subWelcomeText: {
-    fontSize: ms(38),
-    color: '#FFF',
-    fontWeight: '800', // Heavy weight
-    marginTop: -5,
-  },
-  instructionText: {
-    color: '#888',
-    marginTop: vs(10),
-    fontSize: ms(14),
-  },
-  formContainer: {
+
+  /* Layout */
+  contentContainer: {
+    paddingHorizontal: s(24),
     width: '100%',
   },
-  inputWrapper: {
+
+  /* Header Typography */
+  header: {
+    marginBottom: vs(40),
+  },
+  titleOutline: {
+    fontSize: ms(42),
+    fontWeight: '300',
+    color: 'transparent',
+    textShadowColor: 'rgba(255,255,255,0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 1,
+    letterSpacing: 2,
+    marginBottom: -8,
+  },
+  titleFilled: {
+    fontSize: ms(42),
+    fontWeight: '900',
+    color: '#fff',
+    letterSpacing: 2,
+  },
+  subtitle: {
+    fontSize: ms(14),
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: vs(5),
+    fontWeight: '400',
+  },
+
+  /* Form */
+  formSection: {
+    width: '100%',
+  },
+  inputContainer: {
     marginBottom: vs(20),
   },
-  inputLabel: {
-    color: '#ff00d4', // Neon Pink label
+  label: {
     fontSize: ms(10),
-    fontWeight: 'bold',
+    fontWeight: '700',
+    color: '#ff00d4', // Theme Pink
     marginBottom: vs(8),
     letterSpacing: 1,
+    textTransform: 'uppercase',
   },
-  modernInput: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: ms(12),
-    paddingVertical: ms(16),
-    paddingHorizontal: ms(16),
+  input: {
+    backgroundColor: 'rgba(255,255,255,0.03)', // Glass effect
+    borderRadius: ms(22),
+    paddingHorizontal: s(16),
+    paddingVertical: vs(14),
+    color: '#fff',
     fontSize: ms(16),
-    color: '#FFF',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  actionContainer: {
-    marginTop: vs(20),
-    alignItems: 'center',
+
+  /* Actions */
+  spacer: {
+    height: vs(10),
   },
   gradientButton: {
-    paddingVertical: ms(18),
-    borderRadius: ms(16),
+    paddingVertical: vs(18),
+    borderRadius: ms(25),
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#ff00d4',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOpacity: 0.4,
+    shadowRadius: 15,
+    elevation: 10,
+    width: '100%',
   },
   btnText: {
-    color: '#FFF',
+    color: '#fff',
     fontSize: ms(16),
-    fontWeight: 'bold',
+    fontWeight: '900',
     letterSpacing: 2,
-    textTransform: 'uppercase',
   },
   registerLink: {
-    marginTop: vs(20),
-    padding: ms(10),
+    marginTop: vs(15),
+    alignSelf: 'center',
+    padding: s(10),
   },
   registerText: {
-    color: '#888',
+    color: 'rgba(255,255,255,0.5)',
     fontSize: ms(14),
   },
   registerHighlight: {
-    color: '#ff00d4',
-    fontWeight: 'bold',
+    color: '#fff',
+    fontWeight: '700',
   },
 });

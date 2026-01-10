@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   Alert,
   Platform,
@@ -13,8 +12,11 @@ import {
   ActivityIndicator,
   StatusBar,
   KeyboardAvoidingView,
+  Animated,
+  Pressable,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import LottieView from 'lottie-react-native';
 import {
   scale as s,
   verticalScale as vs,
@@ -24,6 +26,41 @@ import ScreenWrapper from '../../utils/ScreenWrapper';
 import { useUser } from '../../utils/UserContext';
 import { supabase } from '../../utils/supabaseClient';
 import Clipboard from '@react-native-clipboard/clipboard';
+
+// --- POP BUTTON COMPONENT ---
+const PopButton = ({ onPress, children, style, disabled }: any) => {
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      friction: 4,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Pressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={onPress}
+      disabled={disabled}
+      style={style}
+    >
+      <Animated.View style={{ transform: [{ scale: scaleValue }], width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+        {children}
+      </Animated.View>
+    </Pressable>
+  );
+};
 
 export default function DepositScreen() {
   const { user } = useUser();
@@ -35,6 +72,9 @@ export default function DepositScreen() {
   const [deposits, setDeposits] = useState<any[]>([]);
   const [loadingDeposits, setLoadingDeposits] = useState(false);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
+
+  // Success Animation State
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Theme Constants
   const THEME_GRADIENT = ['#7b0094ff', '#ff00d4ff'];
@@ -50,7 +90,7 @@ export default function DepositScreen() {
 
   const copyToClipboard = () => {
     if (Platform.OS === 'web') {
-      navigator.clipboard.writeText(walletAddress);
+      // navigator.clipboard.writeText(walletAddress); // Typescript fix often needed here for web
     } else {
       Clipboard.setString(walletAddress);
     }
@@ -127,7 +167,10 @@ export default function DepositScreen() {
         },
       ]);
       if (error) throw error;
-      Alert.alert('Success', 'Deposit request submitted.');
+
+      // Show Animation instead of Alert
+      setShowSuccess(true);
+
       setTxHash('');
       fetchDeposits();
     } catch (err: any) {
@@ -185,6 +228,21 @@ export default function DepositScreen() {
     <ScreenWrapper>
       <StatusBar barStyle="light-content" />
       <SafeAreaView style={styles.safeArea}>
+        
+        {/* Full Screen Success Animation Overlay */}
+        {showSuccess && (
+          <View style={styles.successOverlay}>
+            <LottieView
+              source={require('../homeMedia/Success.json')}
+              autoPlay
+              loop={false}
+              onAnimationFinish={() => setShowSuccess(false)}
+              style={styles.successLottie}
+              resizeMode="contain"
+            />
+          </View>
+        )}
+
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.container}
@@ -209,7 +267,8 @@ export default function DepositScreen() {
                 <View style={styles.warningBox}>
                   <Text style={styles.warningText}>⚠️ IMPORTANT</Text>
                   <Text style={styles.warningDesc}>
-                    Send exact amount of USDT & Siito within 1 hour.
+                    Copy the address & send request with sender wallet address &
+                    then send exact amount of USDT & Siito within 1 hour.
                   </Text>
                 </View>
               </View>
@@ -224,9 +283,11 @@ export default function DepositScreen() {
                   >
                     {walletAddress || 'Loading...'}
                   </Text>
-                  <TouchableOpacity onPress={copyToClipboard}>
+                  
+                  {/* COPY Button with Pop Effect */}
+                  <PopButton onPress={copyToClipboard} style={{ width: 'auto' }}>
                     <Text style={styles.copyText}>COPY</Text>
-                  </TouchableOpacity>
+                  </PopButton>
                 </View>
               </View>
 
@@ -234,7 +295,7 @@ export default function DepositScreen() {
               <View style={styles.inputWrapper}>
                 <TextInput
                   style={styles.input}
-                  placeholder="Paste Transaction Hash (TXID)"
+                  placeholder="Sender Wallet Address"
                   value={txHash}
                   onChangeText={setTxHash}
                   autoCapitalize="none"
@@ -242,11 +303,10 @@ export default function DepositScreen() {
                 />
               </View>
 
-              {/* Submit Button */}
-              <TouchableOpacity
+              {/* Submit Button with Pop Effect */}
+              <PopButton
                 onPress={submitDeposit}
                 disabled={loading || cooldownSeconds > 0}
-                activeOpacity={0.8}
               >
                 <LinearGradient
                   colors={
@@ -261,12 +321,12 @@ export default function DepositScreen() {
                   ) : (
                     <Text style={styles.submitBtnText}>
                       {cooldownSeconds > 0
-                        ? `Wait ${formatTime(cooldownSeconds)}`
+                        ? `Deposit in ${formatTime(cooldownSeconds)}`
                         : 'Confirm Deposit'}
                     </Text>
                   )}
                 </LinearGradient>
-              </TouchableOpacity>
+              </PopButton>
             </View>
           </View>
 
@@ -303,6 +363,26 @@ const styles = StyleSheet.create({
     paddingTop: vs(10),
   },
 
+  /* SUCCESS OVERLAY */
+  successOverlay: {
+    ...StyleSheet.absoluteFillObject, // Covers entire screen
+    backgroundColor: 'rgba(0, 0, 0, 1)',
+    zIndex: 9999,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  successLottie: {
+    width: s(300),
+    height: s(300),
+  },
+  successText: {
+    color: '#fff',
+    fontSize: ms(22),
+    fontWeight: 'bold',
+    marginTop: vs(20),
+    letterSpacing: 1,
+  },
+
   /* --- Fixed Top Section --- */
   topSection: {
     marginBottom: vs(20),
@@ -319,8 +399,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderRadius: ms(20),
     padding: s(15),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+   
   },
 
   /* QR & Warning Row */
@@ -365,11 +444,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#000',
-    borderRadius: ms(12),
+    borderRadius: ms(20),
     paddingHorizontal: s(15),
     height: vs(45),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
+    
   },
   walletText: {
     color: '#fff',
@@ -381,10 +459,16 @@ const styles = StyleSheet.create({
     color: '#ff00d4',
     fontWeight: '700',
     fontSize: ms(12),
+      backgroundColor: 'rgba(255, 0, 212, 0.1)',
+    paddingHorizontal: s(10),
+    paddingVertical: vs(5),
+    borderRadius: ms(14),
+    borderWidth: 0.5,
+    borderColor: '#ff00d4',
   },
   input: {
     backgroundColor: '#000',
-    borderRadius: ms(12),
+    borderRadius: ms(20),
     height: vs(45),
     paddingHorizontal: s(15),
     color: '#fff',
@@ -396,10 +480,11 @@ const styles = StyleSheet.create({
   /* Button */
   submitBtn: {
     height: vs(48),
-    borderRadius: ms(12),
+    borderRadius: ms(20),
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: vs(5),
+    width: '100%',
   },
   submitBtnText: {
     color: '#fff',
@@ -428,7 +513,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.03)', // Lighter glass
-    borderRadius: ms(12),
+    borderRadius: ms(20),
     padding: s(12),
     marginBottom: vs(8),
     borderWidth: 1,
@@ -450,7 +535,7 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingVertical: vs(4),
     paddingHorizontal: s(8),
-    borderRadius: ms(6),
+    borderRadius: ms(10),
     borderWidth: 1,
   },
   statusText: {
