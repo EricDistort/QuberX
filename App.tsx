@@ -37,6 +37,7 @@ import OrderListScreen from './screens/Store/OrderListScreen';
 import OnboardingScreen from './screens/Onboarding';
 import Register from './screens/Register';
 import ProfileScreen from './screens/home/ProfileScreen';
+import BrowserScreen from './screens/home/BrowserScreen';
 import TransactionDetailsScreen from './screens/home/TransactionDetailsScreen';
 
 const RootStack = createNativeStackNavigator();
@@ -127,6 +128,7 @@ function HomeStackScreen() {
         name="RecieveMoneyScreen"
         component={RecieveMoneyScreen}
       />
+      <HomeStack.Screen name="BrowserScreen" component={BrowserScreen} />
       <HomeStack.Screen name="DepositMoney" component={DepositScreen} />
       <HomeStack.Screen name="WithdrawalMoney" component={WithdrawalScreen} />
       <HomeStack.Screen

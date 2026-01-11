@@ -28,7 +28,8 @@
     "react-native-size-matters": "^0.4.2",
     "react-native-svg": "^15.14.0",
     "react-native-url-polyfill": "^2.0.0",
-    "react-native-video": "^6.16.1"
+    "react-native-video": "^6.16.1",
+    "react-native-webview": "^13.16.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

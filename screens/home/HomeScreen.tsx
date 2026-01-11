@@ -44,13 +44,12 @@ const PopScaleButton = ({ children, onPress, style }: any) => {
       onPress={onPress}
       style={style}
     >
-      <Animated.View 
-        style={{ 
-          transform: [{ scale: scaleValue }], 
+      <Animated.View
+        style={{
+          transform: [{ scale: scaleValue }],
           width: '100%',
-          // Added centering to ensure icons/text don't drift left
-          alignItems: 'center', 
-          justifyContent: 'center' 
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         {children}
@@ -65,36 +64,70 @@ export default function HomeScreen({ navigation }: any) {
   const [traders, setTraders] = useState<any[]>([]);
   const [loadingTraders, setLoadingTraders] = useState(false);
 
+  // 1️⃣ State for Dynamic Button (Default fallback)
+  const [partnerData, setPartnerData] = useState({
+    name: 'SantrX',
+    url: 'https://santrx.com/login',
+  });
+
   const fetchUserData = async () => {
-    const { data, error } = await supabase
-      .from('users')
-      .select(
-        'balance, profileImage, username, account_number, direct_business',
-      )
-      .eq('id', user.id)
-      .single();
-    if (!error && data) setUser({ ...user, ...data });
+    if (!user?.id) return;
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select(
+          'balance, profileImage, username, account_number, direct_business',
+        )
+        .eq('id', user.id)
+        .single();
+      if (!error && data) setUser((prev: any) => ({ ...prev, ...data }));
+    } catch (error) {
+      console.log('User fetch error:', error);
+    }
   };
 
   const fetchTraders = async () => {
     setLoadingTraders(true);
-    const { data, error } = await supabase
-      .from('fake_traders')
-      .select('id, name, image_url, designation');
-    if (!error && data) {
-      const initialized = data.map((t: any) => ({
-        ...t,
-        amount: Math.floor(Math.random() * 1000) + 100,
-        trend: 'up',
-      }));
-      setTraders(initialized);
+    try {
+      const { data, error } = await supabase
+        .from('fake_traders')
+        .select('id, name, image_url, designation');
+
+      if (error) throw error;
+
+      if (data) {
+        // 2️⃣ Find ID 10 and set it to partnerData
+        const partnerNode = data.find((item: any) => item.id === 10);
+        if (partnerNode) {
+          setPartnerData({
+            name: partnerNode.name,
+            url: partnerNode.image_url, // Using image_url as the website link per request
+          });
+        }
+
+        // Filter out ID 10 so it doesn't appear in the list below
+        const listData = data.filter((item: any) => item.id !== 10);
+
+        const initialized = listData.map((t: any) => ({
+          ...t,
+          amount: Math.floor(Math.random() * 1000) + 100,
+          trend: 'up',
+        }));
+        setTraders(initialized);
+      }
+    } catch (error: any) {
+      console.log('Error fetching traders:', error.message);
+    } finally {
+      setLoadingTraders(false);
     }
-    setLoadingTraders(false);
   };
 
   useEffect(() => {
+    if (!user?.id) return;
+
     fetchUserData();
     fetchTraders();
+
     const interval = setInterval(() => {
       setTraders(prev =>
         prev.map(t => {
@@ -109,14 +142,13 @@ export default function HomeScreen({ navigation }: any) {
       );
     }, 1000);
     return () => clearInterval(interval);
-  }, [user?.account_number]);
+  }, [user?.id]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchUserData();
-    await fetchTraders();
+    await Promise.all([fetchUserData(), fetchTraders()]);
     setRefreshing(false);
-  }, [user?.account_number]);
+  }, [user?.id]);
 
   const handleProfilePress = () => {
     navigation.navigate('ProfileScreen');
@@ -221,16 +253,33 @@ export default function HomeScreen({ navigation }: any) {
             </LinearGradient>
           </View>
 
-          <PopScaleButton
-            onPress={() => navigation.navigate('RecieveMoneyScreen')}
-          >
-            <Text style={styles.withdrawableText}>
-              Direct Business{' '}
-              <Text style={styles.boldAmount}>
-                ${user?.direct_business || 0}
+          <View style={{ flexDirection: 'row', gap: s(8) }}>
+            <PopScaleButton
+              onPress={() => navigation.navigate('RecieveMoneyScreen')}
+            >
+              <Text style={styles.withdrawableText}>
+                Direct Business{' '}
+                <Text style={styles.boldAmount}>
+                  ${user?.direct_business || 0}
+                </Text>
               </Text>
-            </Text>
-          </PopScaleButton>
+            </PopScaleButton>
+
+            {/* 3️⃣ Dynamic Button using ID 10 Data */}
+            <PopScaleButton
+              onPress={() =>
+                navigation.navigate('BrowserScreen', {
+                  url: partnerData.url,
+                  title: partnerData.name,
+                })
+              }
+            >
+              <Text style={styles.withdrawableText}>
+                {' '}
+                <Text style={styles.boldAmount}>{partnerData.name}</Text>
+              </Text>
+            </PopScaleButton>
+          </View>
 
           {/* Live Traders Section */}
           <View style={styles.thirdContainer}>
