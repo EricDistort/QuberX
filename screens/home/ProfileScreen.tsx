@@ -54,7 +54,9 @@ const PopButton = ({ onPress, children, style, disabled }: any) => {
       disabled={disabled}
       style={style}
     >
-      <Animated.View style={{ transform: [{ scale: scaleValue }], width: '100%' }}>
+      <Animated.View
+        style={{ transform: [{ scale: scaleValue }], width: '100%' }}
+      >
         {children}
       </Animated.View>
     </Pressable>
@@ -215,7 +217,10 @@ export default function ProfileScreen({ navigation }: any) {
             <View style={styles.heroSection}>
               <View style={styles.avatarRow}>
                 {/* Pop Effect on Avatar Click */}
-                <PopButton onPress={handleEditProfileImage} style={{ width: 'auto' }}>
+                <PopButton
+                  onPress={handleEditProfileImage}
+                  style={{ width: 'auto' }}
+                >
                   <LinearGradient
                     colors={THEME_GRADIENT}
                     style={styles.avatarGradient}
@@ -239,7 +244,7 @@ export default function ProfileScreen({ navigation }: any) {
                 <View style={styles.heroInfo}>
                   <Text style={styles.heroTitle}>Edit Profile</Text>
                   <Text style={styles.heroSubtitle}>
-                    ID: {user?.account_number}
+                    Account Number {user?.account_number}
                   </Text>
                 </View>
               </View>

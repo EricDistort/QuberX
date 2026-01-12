@@ -39,6 +39,7 @@ import Register from './screens/Register';
 import ProfileScreen from './screens/home/ProfileScreen';
 import BrowserScreen from './screens/home/BrowserScreen';
 import TransactionDetailsScreen from './screens/home/TransactionDetailsScreen';
+import IndirectReferralsScreen from './screens/home/IndirectReferralsScreen';
 
 const RootStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -128,6 +129,7 @@ function HomeStackScreen() {
         name="RecieveMoneyScreen"
         component={RecieveMoneyScreen}
       />
+      <HomeStack.Screen name="IndirectReferralsScreen" component={IndirectReferralsScreen} />
       <HomeStack.Screen name="BrowserScreen" component={BrowserScreen} />
       <HomeStack.Screen name="DepositMoney" component={DepositScreen} />
       <HomeStack.Screen name="WithdrawalMoney" component={WithdrawalScreen} />

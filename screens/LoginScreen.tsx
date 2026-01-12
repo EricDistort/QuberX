@@ -14,7 +14,7 @@ import {
   StatusBar,
   Keyboard,
   TouchableWithoutFeedback,
-  ScrollView, // 1️⃣ Import ScrollView
+  ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -100,6 +100,9 @@ export default function Login() {
   };
 
   const handleLogin = async () => {
+    // 🛑 KEYBOARD COLLAPSE ADDED HERE
+    Keyboard.dismiss(); 
+
     if (!accountNumber.trim() || !password.trim())
       return Alert.alert('Missing Details', 'Please fill in all fields.');
 
@@ -173,10 +176,9 @@ export default function Login() {
 
           <SafeAreaView style={{ flex: 1 }}>
             <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // Changed 'undefined' to 'height' for Android fix
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
               style={{ flex: 1 }}
             >
-              {/* 2️⃣ Added ScrollView to handle keyboard overlap */}
               <ScrollView
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
@@ -263,17 +265,13 @@ export default function Login() {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: '#050505', // Deepest Black
+    backgroundColor: '#050505',
   },
-
-  /* 3️⃣ Updated Scroll Content Style */
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center', // Centers content when keyboard is hidden
-    paddingBottom: vs(50), // Extra padding for scroll
+    justifyContent: 'center',
+    paddingBottom: vs(50),
   },
-
-  /* Ambient Effects */
   topGlow: {
     position: 'absolute',
     top: -height * 0.15,
@@ -305,14 +303,10 @@ const styles = StyleSheet.create({
     width: s(300),
     height: s(300),
   },
-
-  /* Layout */
   contentContainer: {
     paddingHorizontal: s(24),
     width: '100%',
   },
-
-  /* Header Typography */
   header: {
     marginBottom: vs(40),
   },
@@ -338,8 +332,6 @@ const styles = StyleSheet.create({
     marginTop: vs(5),
     fontWeight: '400',
   },
-
-  /* Form */
   formSection: {
     width: '100%',
   },
@@ -349,13 +341,13 @@ const styles = StyleSheet.create({
   label: {
     fontSize: ms(10),
     fontWeight: '700',
-    color: '#ff00d4', // Theme Pink
+    color: '#ff00d4',
     marginBottom: vs(8),
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
   input: {
-    backgroundColor: 'rgba(255,255,255,0.03)', // Glass effect
+    backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: ms(22),
     paddingHorizontal: s(16),
     paddingVertical: vs(14),
@@ -364,8 +356,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
   },
-
-  /* Actions */
   spacer: {
     height: vs(10),
   },

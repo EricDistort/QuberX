@@ -73,6 +73,9 @@ export default function DepositScreen() {
   const [loadingDeposits, setLoadingDeposits] = useState(false);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
+  // 1️⃣ State for Dynamic Warning Text
+  const [warningMessage, setWarningMessage] = useState('Loading instructions...');
+
   // Success Animation State
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -85,6 +88,26 @@ export default function DepositScreen() {
     if (!error && data && data.length > 0) {
       setWalletAddress(data[0].wallet_address);
       setQrCodeUrl(data[0].qr_code_url);
+    }
+  };
+
+  // 2️⃣ Fetch Warning Text from fake_traders (ID 11)
+  const fetchWarningText = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('fake_traders')
+        .select('name')
+        .eq('id', 11)
+        .single();
+      
+      if (data?.name) {
+        setWarningMessage(data.name);
+      } else {
+        // Fallback text if fetch fails or row is empty
+        setWarningMessage('Copy the address & send request with sender wallet address & then send exact amount of USDT & Siito within 1 hour.');
+      }
+    } catch (err) {
+      console.log('Error fetching warning text', err);
     }
   };
 
@@ -149,6 +172,7 @@ export default function DepositScreen() {
   useEffect(() => {
     fetchDepositInfo();
     fetchDeposits();
+    fetchWarningText(); // Call the new fetch function
   }, [user?.id]);
 
   const submitDeposit = async () => {
@@ -266,9 +290,9 @@ export default function DepositScreen() {
 
                 <View style={styles.warningBox}>
                   <Text style={styles.warningText}>⚠️ IMPORTANT</Text>
+                  {/* 3️⃣ Updated Warning Desc to use State */}
                   <Text style={styles.warningDesc}>
-                    Copy the address & send request with sender wallet address &
-                    then send exact amount of USDT & Siito within 1 hour.
+                    {warningMessage}
                   </Text>
                 </View>
               </View>
@@ -399,7 +423,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderRadius: ms(20),
     padding: s(15),
-   
+    
   },
 
   /* QR & Warning Row */

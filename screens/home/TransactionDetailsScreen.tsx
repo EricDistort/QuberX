@@ -32,17 +32,23 @@ export default function TransactionDetailsScreen() {
 
   // Formatted Data
   const formattedDate = new Date(transaction.created_at).toLocaleDateString();
-  const formattedTime = new Date(transaction.created_at).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-  });
+  const formattedTime = new Date(transaction.created_at).toLocaleTimeString(
+    [],
+    {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    },
+  );
 
   return (
     <ScreenWrapper>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
       <View style={styles.container}>
-        
         {/* 1️⃣ TOP CONTAINER (60%) - Animation Only */}
         <View style={styles.topContainer}>
           <LinearGradient
@@ -62,7 +68,6 @@ export default function TransactionDetailsScreen() {
 
         {/* 2️⃣ BOTTOM CONTAINER (40%) - All Text Info */}
         <View style={styles.bottomContainer}>
-          
           {/* Top Border Line */}
           <LinearGradient
             colors={THEME_GRADIENT}
@@ -72,30 +77,35 @@ export default function TransactionDetailsScreen() {
           />
 
           <View style={styles.textWrapper}>
-            
             {/* Main Status & Amount */}
             <View style={styles.headerTextContainer}>
               <Text style={styles.statusText}>TRANSACTION SUCCESSFUL</Text>
-              <Text style={[styles.amountText, { color: isSent ? '#ff4d4d' : '#00ff88' }]}>
+              <Text
+                style={[
+                  styles.amountText,
+                  { color: isSent ? '#ff4d4d' : '#00ff88' },
+                ]}
+              >
                 {isSent ? '-' : '+'}${Math.abs(transaction.amount).toFixed(2)}
               </Text>
             </View>
 
             {/* Details Grid */}
             <View style={styles.detailsGrid}>
-              
               {/* Row 1: Sender & Receiver */}
               <View style={styles.row}>
                 <View style={styles.colLeft}>
                   <Text style={styles.label}>Reciever</Text>
-                  <Text style={styles.value}>{isSent ? 'You' : transaction.sender?.username}</Text>
-                  <Text style={styles.subValue}>Acc: {transaction.sender_acc}</Text>
+                  <Text style={styles.value}>
+                    {isSent ? 'You' : transaction.sender?.username}
+                  </Text>
                 </View>
-                
+
                 <View style={styles.colRight}>
                   <Text style={styles.label}>Sender</Text>
-                  <Text style={styles.value}>{!isSent ? 'You' : transaction.receiver?.username}</Text>
-                  <Text style={styles.subValue}>Acc: {transaction.receiver_acc}</Text>
+                  <Text style={styles.value}>
+                    {!isSent ? 'You' : transaction.receiver?.username}
+                  </Text>
                 </View>
               </View>
 
@@ -109,14 +119,12 @@ export default function TransactionDetailsScreen() {
 
                 <View style={styles.colRight}>
                   <Text style={styles.label}>Ref ID</Text>
-                  <Text style={styles.valueMono}>#{transaction.id}</Text>
+                  <Text style={styles.valueMono}>{transaction.id}</Text>
                 </View>
               </View>
-
             </View>
           </View>
         </View>
-
       </View>
     </ScreenWrapper>
   );
@@ -205,7 +213,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'flex-end',
   },
-  
+
   /* Typography */
   label: {
     color: 'rgba(255,255,255,0.5)',

@@ -56,7 +56,9 @@ const PopButton = ({ onPress, children, style, disabled }: any) => {
       disabled={disabled}
       style={style}
     >
-      <Animated.View style={{ transform: [{ scale: scaleValue }], width: '100%' }}>
+      <Animated.View
+        style={{ transform: [{ scale: scaleValue }], width: '100%' }}
+      >
         {children}
       </Animated.View>
     </Pressable>
@@ -85,7 +87,10 @@ export default function StoreScreen({ navigation }: any) {
 
   const handleBuyPress = async (product: any) => {
     if (user.withdrawal_amount < product.price) {
-      Alert.alert('Insufficient Balance', 'You need more balance to claim this item.');
+      Alert.alert(
+        'Insufficient Balance',
+        'You need more balance to claim this item.',
+      );
       return;
     }
     setSelectedProduct(product);
@@ -93,7 +98,10 @@ export default function StoreScreen({ navigation }: any) {
 
   const confirmPurchase = async () => {
     if (!mobileNumber.trim() || !location.trim()) {
-      Alert.alert('Missing Details', 'Please fill in your mobile number and location.');
+      Alert.alert(
+        'Missing Details',
+        'Please fill in your mobile number and location.',
+      );
       return;
     }
 
@@ -132,12 +140,18 @@ export default function StoreScreen({ navigation }: any) {
         <View style={styles.cardInner}>
           {/* Product Image */}
           <View style={styles.imageContainer}>
-            <Image source={{ uri: item.image_url }} style={styles.image} resizeMode="cover" />
+            <Image
+              source={{ uri: item.image_url }}
+              style={styles.image}
+              resizeMode="cover"
+            />
           </View>
 
           {/* Product Info */}
           <View style={styles.cardContent}>
-            <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
+            <Text style={styles.name} numberOfLines={1}>
+              {item.name}
+            </Text>
             <Text style={styles.price}>${item.price}</Text>
           </View>
 
@@ -165,14 +179,13 @@ export default function StoreScreen({ navigation }: any) {
       <StatusBar barStyle="light-content" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          
           {/* Header */}
           <View style={styles.header}>
             <View>
               <Text style={styles.title}>Store</Text>
               <Text style={styles.subtitle}>Redeem your rewards</Text>
             </View>
-            <PopButton 
+            <PopButton
               onPress={() => navigation.navigate('OrderList')}
               style={styles.historyBtn}
             >
@@ -195,11 +208,11 @@ export default function StoreScreen({ navigation }: any) {
           <Modal visible={!!selectedProduct} transparent animationType="fade">
             <View style={styles.modalOverlay}>
               {/* Tap background to close */}
-              <Pressable 
-                style={styles.modalBackdrop} 
-                onPress={() => setSelectedProduct(null)} 
+              <Pressable
+                style={styles.modalBackdrop}
+                onPress={() => setSelectedProduct(null)}
               />
-              
+
               <View style={styles.modalContent}>
                 <LinearGradient
                   colors={['#1a1a1a', '#0d0d0d']}
@@ -222,8 +235,12 @@ export default function StoreScreen({ navigation }: any) {
                           style={styles.modalImage}
                         />
                         <View style={styles.summaryText}>
-                          <Text style={styles.summaryName}>{selectedProduct.name}</Text>
-                          <Text style={styles.summaryPrice}>${selectedProduct.price}</Text>
+                          <Text style={styles.summaryName}>
+                            {selectedProduct.name}
+                          </Text>
+                          <Text style={styles.summaryPrice}>
+                            ${selectedProduct.price}
+                          </Text>
                         </View>
                       </View>
 
@@ -264,7 +281,9 @@ export default function StoreScreen({ navigation }: any) {
                           {loading ? (
                             <ActivityIndicator color="#fff" size="small" />
                           ) : (
-                            <Text style={styles.buyNowText}>Confirm & Claim</Text>
+                            <Text style={styles.buyNowText}>
+                              Confirm & Claim
+                            </Text>
                           )}
                         </LinearGradient>
                       </PopButton>
@@ -274,7 +293,6 @@ export default function StoreScreen({ navigation }: any) {
               </View>
             </View>
           </Modal>
-
         </View>
       </SafeAreaView>
     </ScreenWrapper>
@@ -322,7 +340,7 @@ const styles = StyleSheet.create({
 
   /* Grid Layout */
   listContent: {
-    paddingBottom: vs(80),
+    paddingBottom: vs(200),
   },
   columnWrapper: {
     justifyContent: 'space-between',
@@ -406,9 +424,9 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     position: 'absolute',
-    top: 0, 
-    left: 0, 
-    right: 0, 
+    top: 0,
+    left: 0,
+    right: 0,
     bottom: 0,
   },
   modalContent: {
@@ -437,7 +455,7 @@ const styles = StyleSheet.create({
     fontSize: ms(20),
     fontWeight: 'bold',
   },
-  
+
   /* Product Summary in Modal */
   productSummary: {
     flexDirection: 'row',
@@ -493,7 +511,7 @@ const styles = StyleSheet.create({
     paddingVertical: vs(10),
     fontSize: ms(14),
   },
-  
+
   /* Confirm Button */
   confirmBtnContainer: {
     marginTop: vs(10),

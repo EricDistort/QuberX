@@ -1,11 +1,10 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Alert,
   ScrollView,
-  RefreshControl,
   ActivityIndicator,
   SafeAreaView,
   Dimensions,
@@ -64,7 +63,6 @@ export default function TradesScreen() {
   const { user, setUser } = useUser();
   const [trades, setTrades] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [endingTrade, setEndingTrade] = useState<number | null>(null);
   const [chartData, setChartData] = useState<number[]>([
     100, 102, 101, 103, 105,
@@ -146,13 +144,6 @@ export default function TradesScreen() {
     return () => clearInterval(interval);
   }, [hasActiveTrades]);
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await fetchUserData();
-    await fetchTrades();
-    setRefreshing(false);
-  }, [user?.id]);
-
   const endTrade = (tradeId: number) => {
     Alert.alert(
       'Restricted Action',
@@ -163,15 +154,9 @@ export default function TradesScreen() {
   return (
     <ScreenWrapper>
       <SafeAreaView style={styles.safeArea}>
+        {/* Removed refreshControl prop */}
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor="#ff00d4"
-            />
-          }
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.container}>
@@ -254,7 +239,9 @@ export default function TradesScreen() {
                 </View>
               ) : (
                 <ScrollView
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', height: vs(300) }}
+                  // Added padding to contentContainerStyle to prevent tab bar overlap
+                  contentContainerStyle={{ paddingBottom: vs(200) }}
                   showsVerticalScrollIndicator={false}
                 >
                   {trades.map(trade => (
@@ -376,7 +363,7 @@ const styles = StyleSheet.create({
     width: '92%',
     flex: 1,
     marginTop: vs(25),
-    paddingBottom: vs(20),
+    // Removed general paddingBottom here, added to the inner ScrollView instead
   },
   sectionHeader: {
     flexDirection: 'row',

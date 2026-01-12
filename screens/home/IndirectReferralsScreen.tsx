@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,10 @@ import {
   ScrollView,
   RefreshControl,
   StatusBar,
-  Pressable,
-  Animated,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { supabase } from '../../utils/supabaseClient';
-import { useUser } from '../../utils/UserContext';
 import ScreenWrapper from '../../utils/ScreenWrapper';
 import {
   scale as s,
@@ -22,43 +19,11 @@ import {
   moderateScale as ms,
 } from 'react-native-size-matters';
 
-// Simple Scale Animation for the Card Click
-const ScaleCard = ({ children, onPress, style }: any) => {
-  const scaleValue = useRef(new Animated.Value(1)).current;
+export default function IndirectReferralsScreen() {
+  const route = useRoute<any>();
+  // 1️⃣ Get params passed from the previous screen
+  const { accountNumber, name } = route.params || {};
 
-  const handlePressIn = () => {
-    Animated.spring(scaleValue, {
-      toValue: 0.96,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(scaleValue, {
-      toValue: 1,
-      friction: 4,
-      tension: 40,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  return (
-    <Pressable
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      onPress={onPress}
-      style={style}
-    >
-      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-        {children}
-      </Animated.View>
-    </Pressable>
-  );
-};
-
-export default function DirectReferralsScreen() {
-  const { user } = useUser();
-  const navigation = useNavigation<any>();
   const [referrals, setReferrals] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -66,13 +31,13 @@ export default function DirectReferralsScreen() {
   const THEME_GRADIENT = ['#7b0094ff', '#ff00d4ff'];
 
   const fetchReferrals = async () => {
-    if (!user?.account_number) return;
+    if (!accountNumber) return;
     setLoading(true);
-    // 1️⃣ Added 'account_number' to select so we can pass it to the next screen
+    // 2️⃣ Fetch users who were referred by the passed Account Number
     const { data, error } = await supabase
       .from('users')
-      .select('id, username, direct_business, account_number')
-      .eq('referrer_account_number', user.account_number);
+      .select('id, username, direct_business')
+      .eq('referrer_account_number', accountNumber);
 
     if (!error && data) setReferrals(data);
     setLoading(false);
@@ -80,23 +45,25 @@ export default function DirectReferralsScreen() {
 
   useEffect(() => {
     fetchReferrals();
-  }, [user?.account_number]);
+  }, [accountNumber]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await fetchReferrals();
     setRefreshing(false);
-  }, [user?.account_number]);
+  }, [accountNumber]);
 
   return (
     <ScreenWrapper>
       <StatusBar barStyle="light-content" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
+          
           {/* Header */}
           <View style={styles.headerContainer}>
-            <Text style={styles.headerTitle}>My Network</Text>
-            <Text style={styles.headerSubtitle}>Direct Referrals</Text>
+            <Text style={styles.headerTitle}>Team View</Text>
+            {/* 3️⃣ Dynamic Subtitle showing whose team this is */}
+            <Text style={styles.headerSubtitle}>Directs of {name || 'User'}</Text>
             <LinearGradient
               colors={THEME_GRADIENT}
               start={{ x: 0, y: 0 }}
@@ -111,7 +78,7 @@ export default function DirectReferralsScreen() {
             </View>
           ) : referrals.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.noReferrals}>No direct referrals found</Text>
+              <Text style={styles.noReferrals}>No active referrals found under {name}</Text>
             </View>
           ) : (
             <ScrollView
@@ -129,25 +96,14 @@ export default function DirectReferralsScreen() {
               }
             >
               {referrals.map((ref, index) => (
-                // 2️⃣ Wrapped in ScaleCard for navigation
-                <ScaleCard
-                  key={ref.id}
-                  style={styles.cardContainer}
-                  onPress={() =>
-                    navigation.navigate('IndirectReferralsScreen', {
-                      accountNumber: ref.account_number,
-                      name: ref.username,
-                    })
-                  }
-                >
+                <View key={ref.id} style={styles.cardContainer}>
                   <View style={styles.card}>
+                    
                     {/* Left: User Info */}
                     <View style={styles.userInfo}>
                       <View style={styles.avatarPlaceholder}>
                         <Text style={styles.avatarText}>
-                          {ref.username
-                            ? ref.username.charAt(0).toUpperCase()
-                            : 'U'}
+                          {ref.username ? ref.username.charAt(0).toUpperCase() : 'U'}
                         </Text>
                       </View>
                       <View>
@@ -155,7 +111,7 @@ export default function DirectReferralsScreen() {
                           {ref.username || `Trader ${index + 1}`}
                         </Text>
                         <View style={styles.statusBadge}>
-                          <Text style={styles.statusText}>VIEW NETWORK</Text>
+                          <Text style={styles.statusText}>INDIRECT MEMBER</Text>
                         </View>
                       </View>
                     </View>
@@ -167,8 +123,9 @@ export default function DirectReferralsScreen() {
                         ${ref.direct_business || 0}
                       </Text>
                     </View>
+
                   </View>
-                </ScaleCard>
+                </View>
               ))}
             </ScrollView>
           )}
@@ -247,15 +204,15 @@ const styles = StyleSheet.create({
     width: s(40),
     height: s(40),
     borderRadius: s(20),
-    backgroundColor: 'rgba(255, 0, 212, 0.1)',
+    backgroundColor: 'rgba(123, 0, 148, 0.3)', // Slightly darker for indirect
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: s(12),
     borderWidth: 1,
-    borderColor: 'rgba(255, 0, 212, 0.3)',
+    borderColor: 'rgba(123, 0, 148, 0.5)',
   },
   avatarText: {
-    color: '#ff00d4',
+    color: '#d000ff',
     fontSize: ms(16),
     fontWeight: '800',
   },
@@ -266,14 +223,14 @@ const styles = StyleSheet.create({
     marginBottom: vs(4),
   },
   statusBadge: {
-    backgroundColor: 'rgba(0, 230, 118, 0.1)',
+    backgroundColor: 'rgba(255, 170, 0, 0.1)', // Different color for indirect
     paddingHorizontal: s(6),
     paddingVertical: vs(2),
     borderRadius: ms(4),
     alignSelf: 'flex-start',
   },
   statusText: {
-    color: '#00e676',
+    color: '#ffaa00',
     fontSize: ms(9),
     fontWeight: '800',
     letterSpacing: 0.5,

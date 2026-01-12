@@ -265,7 +265,6 @@ export default function HomeScreen({ navigation }: any) {
               </Text>
             </PopScaleButton>
 
-            {/* 3️⃣ Dynamic Button using ID 10 Data */}
             <PopScaleButton
               onPress={() =>
                 navigation.navigate('BrowserScreen', {
@@ -291,7 +290,7 @@ export default function HomeScreen({ navigation }: any) {
                 <ScrollView
                   contentContainerStyle={{
                     alignItems: 'center',
-                    paddingBottom: vs(30),
+                    paddingBottom: vs(200),
                   }}
                   showsVerticalScrollIndicator={false}
                   nestedScrollEnabled={true}
@@ -348,10 +347,12 @@ const styles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', paddingVertical: vs(5) },
   firstContainer: {
     width: '95%',
-    height: '23%',
+    height: '11%',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: s(15),
+    paddingHorizontal: s(10),
+    marginTop: vs(25),
+    //backgroundColor: 'white',
   },
   userInfo: { flex: 1 },
   name: { fontSize: ms(18), fontWeight: 'bold', color: '#f3fcffff' },
@@ -361,15 +362,15 @@ const styles = StyleSheet.create({
 
   // Avatar Styles
   avatarContainer: {
-    width: s(60),
-    height: s(60),
-    borderRadius: ms(30),
+    width: s(70),
+    height: s(70),
+    borderRadius: ms(50),
     marginRight: s(12),
-    borderWidth: s(2),
-    borderColor: '#ff00d4',
+    borderWidth: s(5),
+    borderColor: '#ffffff28',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#333',
+    //backgroundColor: '#333',
     overflow: 'hidden',
   },
   avatarImage: { width: '100%', height: '100%' },
@@ -379,7 +380,7 @@ const styles = StyleSheet.create({
     height: '30%',
     justifyContent: 'center',
     overflow: 'hidden',
-    marginTop: vs(-32),
+    marginTop: vs(10),
     borderRadius: ms(50),
     backgroundColor: '#000',
     shadowColor: '#7b0094',
