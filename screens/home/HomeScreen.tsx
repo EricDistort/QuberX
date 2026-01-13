@@ -64,7 +64,7 @@ export default function HomeScreen({ navigation }: any) {
   const [traders, setTraders] = useState<any[]>([]);
   const [loadingTraders, setLoadingTraders] = useState(false);
 
-  // 1️⃣ State for Dynamic Button (Default fallback)
+  // 1️⃣ State for Dynamic Button
   const [partnerData, setPartnerData] = useState({
     name: 'SantrX',
     url: 'https://santrx.com/login',
@@ -73,14 +73,20 @@ export default function HomeScreen({ navigation }: any) {
   const fetchUserData = async () => {
     if (!user?.id) return;
     try {
-      const { data, error } = await supabase
+      // 1. Fetch current user data
+      // The DB trigger automatically ensures profileImage is correct based on direct_business
+      const { data: userData, error } = await supabase
         .from('users')
         .select(
           'balance, profileImage, username, account_number, direct_business',
         )
         .eq('id', user.id)
         .single();
-      if (!error && data) setUser((prev: any) => ({ ...prev, ...data }));
+
+      if (!error && userData) {
+        // Update Local State directly
+        setUser((prev: any) => ({ ...prev, ...userData }));
+      }
     } catch (error) {
       console.log('User fetch error:', error);
     }
@@ -89,7 +95,6 @@ export default function HomeScreen({ navigation }: any) {
   const fetchTraders = async () => {
     setLoadingTraders(true);
     try {
-      // Fetch all needed rows at once
       const { data, error } = await supabase
         .from('fake_traders')
         .select('id, name, image_url, designation');
@@ -375,15 +380,16 @@ const styles = StyleSheet.create({
 
   // Avatar Styles
   avatarContainer: {
-    width: s(70),
-    height: s(70),
+    width: s(60),
+    height: s(60),
     borderRadius: ms(50),
     marginRight: s(12),
-    borderWidth: s(5),
-    borderColor: '#ffffff28',
+    //borderWidth: s(5),
+    //borderColor: '#ffffff28',
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
+    //overflow: 'hidden',
+    backgroundColor: 'transparent',
   },
   avatarImage: { width: '100%', height: '100%' },
 
@@ -436,8 +442,8 @@ const styles = StyleSheet.create({
   buttonIcon: { width: s(50), height: s(45) },
   buttonLabel: { fontSize: ms(12), color: '#fff', textAlign: 'center' },
   withdrawableText: {
-    marginTop: vs(8),
-    marginBottom: vs(5),
+    marginTop: vs(10),
+    marginBottom: vs(3),
     fontSize: ms(13),
     color: '#d6d6d6ff',
     textAlign: 'center',

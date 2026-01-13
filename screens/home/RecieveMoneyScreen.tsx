@@ -10,6 +10,7 @@ import {
   StatusBar,
   Pressable,
   Animated,
+  Image, // 1️⃣ Import Image
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -68,10 +69,10 @@ export default function DirectReferralsScreen() {
   const fetchReferrals = async () => {
     if (!user?.account_number) return;
     setLoading(true);
-    // 1️⃣ Added 'account_number' to select so we can pass it to the next screen
+    // 2️⃣ Added 'profileImage' to the select query
     const { data, error } = await supabase
       .from('users')
-      .select('id, username, direct_business, account_number')
+      .select('id, username, direct_business, account_number, profileImage')
       .eq('referrer_account_number', user.account_number);
 
     if (!error && data) setReferrals(data);
@@ -129,7 +130,6 @@ export default function DirectReferralsScreen() {
               }
             >
               {referrals.map((ref, index) => (
-                // 2️⃣ Wrapped in ScaleCard for navigation
                 <ScaleCard
                   key={ref.id}
                   style={styles.cardContainer}
@@ -143,13 +143,27 @@ export default function DirectReferralsScreen() {
                   <View style={styles.card}>
                     {/* Left: User Info */}
                     <View style={styles.userInfo}>
-                      <View style={styles.avatarPlaceholder}>
-                        <Text style={styles.avatarText}>
-                          {ref.username
-                            ? ref.username.charAt(0).toUpperCase()
-                            : 'U'}
-                        </Text>
+                      
+                      {/* 3️⃣ Logic to show Image or Initial */}
+                      <View style={[
+                        styles.avatarPlaceholder, 
+                        ref.profileImage && { borderWidth: 0, backgroundColor: 'transparent' }
+                      ]}>
+                        {ref.profileImage ? (
+                          <Image 
+                            source={{ uri: ref.profileImage }} 
+                            style={styles.avatarImage} 
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <Text style={styles.avatarText}>
+                            {ref.username
+                              ? ref.username.charAt(0).toUpperCase()
+                              : 'U'}
+                          </Text>
+                        )}
                       </View>
+
                       <View>
                         <Text style={styles.username}>
                           {ref.username || `Trader ${index + 1}`}
@@ -244,15 +258,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatarPlaceholder: {
-    width: s(40),
-    height: s(40),
-    borderRadius: s(20),
+    width: s(50),
+    height: s(50),
+    borderRadius: s(25),
     backgroundColor: 'rgba(255, 0, 212, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: s(12),
     borderWidth: 1,
     borderColor: 'rgba(255, 0, 212, 0.3)',
+    overflow: 'hidden', // Ensures square images get clipped to circle
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
   },
   avatarText: {
     color: '#ff00d4',

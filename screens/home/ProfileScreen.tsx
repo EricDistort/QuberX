@@ -15,7 +15,6 @@ import {
   Animated,
   Pressable,
 } from 'react-native';
-import { launchImageLibrary } from 'react-native-image-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import {
   scale as s,
@@ -54,9 +53,7 @@ const PopButton = ({ onPress, children, style, disabled }: any) => {
       disabled={disabled}
       style={style}
     >
-      <Animated.View
-        style={{ transform: [{ scale: scaleValue }], width: '100%' }}
-      >
+      <Animated.View style={{ transform: [{ scale: scaleValue }], width: '100%' }}>
         {children}
       </Animated.View>
     </Pressable>
@@ -87,77 +84,46 @@ export default function ProfileScreen({ navigation }: any) {
 
   const fetchFullProfile = async () => {
     setLoading(true);
-    const { data: userData, error } = await supabase
-      .from('users')
-      .select(
-        'username, mobile, password, profileImage, referrer_account_number, deposits',
-      )
-      .eq('id', user.id)
-      .single();
-
-    if (error || !userData) {
-      setLoading(false);
-      return;
-    }
-
-    setUsername(userData.username || '');
-    setMobile(userData.mobile || '');
-    setActualStoredPassword(userData.password || '');
-    setTotalDeposit(userData.deposits || 0);
-
-    if (userData.referrer_account_number) {
-      const { data: refData } = await supabase
-        .from('users')
-        .select('username')
-        .eq('account_number', userData.referrer_account_number)
-        .maybeSingle();
-      if (refData) setReferrerName(refData.username);
-    }
-    setLoading(false);
-  };
-
-  const handleEditProfileImage = async () => {
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
-      quality: 0.7,
-    });
-    if (result.didCancel || !result.assets) return;
-
-    const file = result.assets[0];
-    const fileExt = file.fileName?.split('.').pop() || 'jpg';
-    const filePath = `avatars/${user.id}_${Date.now()}.${fileExt}`;
-
-    setSaving(true);
     try {
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(
-          filePath,
-          {
-            uri: file.uri!,
-            type: file.type || 'image/jpeg',
-            name: file.fileName,
-          },
-          { upsert: true },
-        );
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-
-      const { error: updateError } = await supabase
+      // 1. Fetch User Data
+      // Note: We don't need to fetch rank logic here anymore, the DB does it!
+      const { data: userData, error } = await supabase
         .from('users')
-        .update({ profileImage: data.publicUrl })
-        .eq('id', user.id);
+        .select(
+          'username, mobile, password, profileImage, referrer_account_number, deposits',
+        )
+        .eq('id', user.id)
+        .single();
 
-      if (updateError) throw updateError;
+      if (error || !userData) {
+        setLoading(false);
+        return;
+      }
 
-      setUser({ ...user, profileImage: data.publicUrl });
-      Alert.alert('Success', 'Image updated!');
-    } catch (err: any) {
-      Alert.alert('Error', err.message);
+      setUsername(userData.username || '');
+      setMobile(userData.mobile || '');
+      setActualStoredPassword(userData.password || '');
+      setTotalDeposit(userData.deposits || 0);
+      
+      // Update local context to ensure image is fresh
+      if (userData.profileImage !== user?.profileImage) {
+         setUser({ ...user, profileImage: userData.profileImage });
+      }
+
+      // 2. Fetch Referrer Name
+      if (userData.referrer_account_number) {
+        const { data: refData } = await supabase
+          .from('users')
+          .select('username')
+          .eq('account_number', userData.referrer_account_number)
+          .maybeSingle();
+        if (refData) setReferrerName(refData.username);
+      }
+
+    } catch (err) {
+      console.log('Profile Fetch Error:', err);
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
@@ -216,30 +182,24 @@ export default function ProfileScreen({ navigation }: any) {
             {/* 1. COMPACT HERO SECTION */}
             <View style={styles.heroSection}>
               <View style={styles.avatarRow}>
-                {/* Pop Effect on Avatar Click */}
-                <PopButton
-                  onPress={handleEditProfileImage}
-                  style={{ width: 'auto' }}
+                {/* Avatar Display Only (No Click/Edit) */}
+                <LinearGradient
+                  colors={THEME_GRADIENT}
+                  style={styles.avatarGradient}
                 >
-                  <LinearGradient
-                    colors={THEME_GRADIENT}
-                    style={styles.avatarGradient}
-                  >
-                    <View style={styles.avatarContainer}>
-                      {user?.profileImage ? (
-                        <Image
-                          source={{ uri: user.profileImage }}
-                          style={styles.avatar}
-                        />
-                      ) : (
-                        <Text style={styles.avatarPlaceholder}>+</Text>
-                      )}
-                    </View>
-                    <View style={styles.editIcon}>
-                      <Text style={{ color: '#fff', fontSize: 10 }}>✎</Text>
-                    </View>
-                  </LinearGradient>
-                </PopButton>
+                  <View style={styles.avatarContainer}>
+                    {user?.profileImage ? (
+                      <Image
+                        source={{ uri: user.profileImage }}
+                        style={styles.avatar}
+                      />
+                    ) : (
+                      <Text style={styles.avatarPlaceholder}>
+                         {username ? username.charAt(0).toUpperCase() : 'U'}
+                      </Text>
+                    )}
+                  </View>
+                </LinearGradient>
 
                 <View style={styles.heroInfo}>
                   <Text style={styles.heroTitle}>Edit Profile</Text>
@@ -389,17 +349,6 @@ const styles = StyleSheet.create({
   },
   avatar: { width: '100%', height: '100%' },
   avatarPlaceholder: { color: '#fff', fontSize: ms(24) },
-  editIcon: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#ff00d4',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   heroInfo: {
     marginLeft: s(18),
     justifyContent: 'center',

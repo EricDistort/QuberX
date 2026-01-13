@@ -14,6 +14,7 @@ import {
   KeyboardAvoidingView,
   Animated,
   Pressable,
+  Keyboard, // 1️⃣ Import Keyboard
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import LottieView from 'lottie-react-native';
@@ -55,7 +56,14 @@ const PopButton = ({ onPress, children, style, disabled }: any) => {
       disabled={disabled}
       style={style}
     >
-      <Animated.View style={{ transform: [{ scale: scaleValue }], width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+      <Animated.View
+        style={{
+          transform: [{ scale: scaleValue }],
+          width: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         {children}
       </Animated.View>
     </Pressable>
@@ -73,8 +81,10 @@ export default function DepositScreen() {
   const [loadingDeposits, setLoadingDeposits] = useState(false);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
-  // 1️⃣ State for Dynamic Warning Text
-  const [warningMessage, setWarningMessage] = useState('Loading instructions...');
+  // Warning Message State
+  const [warningMessage, setWarningMessage] = useState(
+    'Loading instructions...',
+  );
 
   // Success Animation State
   const [showSuccess, setShowSuccess] = useState(false);
@@ -91,7 +101,6 @@ export default function DepositScreen() {
     }
   };
 
-  // 2️⃣ Fetch Warning Text from fake_traders (ID 11)
   const fetchWarningText = async () => {
     try {
       const { data, error } = await supabase
@@ -99,12 +108,13 @@ export default function DepositScreen() {
         .select('name')
         .eq('id', 11)
         .single();
-      
+
       if (data?.name) {
         setWarningMessage(data.name);
       } else {
-        // Fallback text if fetch fails or row is empty
-        setWarningMessage('Copy the address & send request with sender wallet address & then send exact amount of USDT & Siito within 1 hour.');
+        setWarningMessage(
+          'Copy the address & send request with sender wallet address & then send exact amount of USDT & Siito within 1 hour.',
+        );
       }
     } catch (err) {
       console.log('Error fetching warning text', err);
@@ -113,7 +123,7 @@ export default function DepositScreen() {
 
   const copyToClipboard = () => {
     if (Platform.OS === 'web') {
-      // navigator.clipboard.writeText(walletAddress); // Typescript fix often needed here for web
+      // navigator.clipboard.writeText(walletAddress);
     } else {
       Clipboard.setString(walletAddress);
     }
@@ -172,10 +182,13 @@ export default function DepositScreen() {
   useEffect(() => {
     fetchDepositInfo();
     fetchDeposits();
-    fetchWarningText(); // Call the new fetch function
+    fetchWarningText();
   }, [user?.id]);
 
   const submitDeposit = async () => {
+    // 2️⃣ Dismiss Keyboard Immediately
+    Keyboard.dismiss();
+
     if (!txHash.trim()) {
       Alert.alert('Error', 'Please enter the transaction hash');
       return;
@@ -192,9 +205,7 @@ export default function DepositScreen() {
       ]);
       if (error) throw error;
 
-      // Show Animation instead of Alert
       setShowSuccess(true);
-
       setTxHash('');
       fetchDeposits();
     } catch (err: any) {
@@ -217,7 +228,6 @@ export default function DepositScreen() {
     }
   };
 
-  // Render History Item
   const renderHistoryItem = ({ item }: { item: any }) => (
     <View style={styles.historyCard}>
       <View style={styles.historyLeft}>
@@ -252,8 +262,6 @@ export default function DepositScreen() {
     <ScreenWrapper>
       <StatusBar barStyle="light-content" />
       <SafeAreaView style={styles.safeArea}>
-        
-        {/* Full Screen Success Animation Overlay */}
         {showSuccess && (
           <View style={styles.successOverlay}>
             <LottieView
@@ -271,12 +279,10 @@ export default function DepositScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.container}
         >
-          {/* 1️⃣ Fixed Top Section */}
           <View style={styles.topSection}>
             <Text style={styles.screenTitle}>Deposit Funds</Text>
 
             <View style={styles.formContainer}>
-              {/* Row: QR & Warning */}
               <View style={styles.qrRow}>
                 {qrCodeUrl ? (
                   <View style={styles.qrWrapper}>
@@ -290,14 +296,10 @@ export default function DepositScreen() {
 
                 <View style={styles.warningBox}>
                   <Text style={styles.warningText}>⚠️ IMPORTANT</Text>
-                  {/* 3️⃣ Updated Warning Desc to use State */}
-                  <Text style={styles.warningDesc}>
-                    {warningMessage}
-                  </Text>
+                  <Text style={styles.warningDesc}>{warningMessage}</Text>
                 </View>
               </View>
 
-              {/* Wallet Address Input */}
               <View style={styles.inputWrapper}>
                 <View style={styles.walletBox}>
                   <Text
@@ -307,15 +309,15 @@ export default function DepositScreen() {
                   >
                     {walletAddress || 'Loading...'}
                   </Text>
-                  
-                  {/* COPY Button with Pop Effect */}
-                  <PopButton onPress={copyToClipboard} style={{ width: 'auto' }}>
+                  <PopButton
+                    onPress={copyToClipboard}
+                    style={{ width: 'auto' }}
+                  >
                     <Text style={styles.copyText}>COPY</Text>
                   </PopButton>
                 </View>
               </View>
 
-              {/* TX Hash Input */}
               <View style={styles.inputWrapper}>
                 <TextInput
                   style={styles.input}
@@ -327,7 +329,6 @@ export default function DepositScreen() {
                 />
               </View>
 
-              {/* Submit Button with Pop Effect */}
               <PopButton
                 onPress={submitDeposit}
                 disabled={loading || cooldownSeconds > 0}
@@ -354,7 +355,6 @@ export default function DepositScreen() {
             </View>
           </View>
 
-          {/* 2️⃣ Scrollable History Section (Fills remaining space) */}
           <View style={styles.historyContainer}>
             <Text style={styles.historyHeader}>Recent History</Text>
 
@@ -367,6 +367,8 @@ export default function DepositScreen() {
                 renderItem={renderHistoryItem}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
+                // 3️⃣ Handles taps correctly when keyboard is open
+                keyboardShouldPersistTaps="handled"
                 ListEmptyComponent={
                   <Text style={styles.emptyText}>No deposit history found</Text>
                 }
@@ -389,7 +391,7 @@ const styles = StyleSheet.create({
 
   /* SUCCESS OVERLAY */
   successOverlay: {
-    ...StyleSheet.absoluteFillObject, // Covers entire screen
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 1)',
     zIndex: 9999,
     justifyContent: 'center',
@@ -398,13 +400,6 @@ const styles = StyleSheet.create({
   successLottie: {
     width: s(300),
     height: s(300),
-  },
-  successText: {
-    color: '#fff',
-    fontSize: ms(22),
-    fontWeight: 'bold',
-    marginTop: vs(20),
-    letterSpacing: 1,
   },
 
   /* --- Fixed Top Section --- */
@@ -423,7 +418,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderRadius: ms(20),
     padding: s(15),
-    
   },
 
   /* QR & Warning Row */
@@ -471,7 +465,6 @@ const styles = StyleSheet.create({
     borderRadius: ms(20),
     paddingHorizontal: s(15),
     height: vs(45),
-    
   },
   walletText: {
     color: '#fff',
@@ -483,7 +476,7 @@ const styles = StyleSheet.create({
     color: '#ff00d4',
     fontWeight: '700',
     fontSize: ms(12),
-      backgroundColor: 'rgba(255, 0, 212, 0.1)',
+    backgroundColor: 'rgba(255, 0, 212, 0.1)',
     paddingHorizontal: s(10),
     paddingVertical: vs(5),
     borderRadius: ms(14),
@@ -519,7 +512,7 @@ const styles = StyleSheet.create({
 
   /* --- Scrollable Bottom Section --- */
   historyContainer: {
-    flex: 1, // Takes remaining space
+    flex: 1,
   },
   historyHeader: {
     fontSize: ms(18),
@@ -536,7 +529,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.03)', // Lighter glass
+    backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: ms(20),
     padding: s(12),
     marginBottom: vs(8),
