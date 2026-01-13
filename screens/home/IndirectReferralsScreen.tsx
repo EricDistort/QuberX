@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,10 @@ import {
   ScrollView,
   RefreshControl,
   StatusBar,
+  Animated,
+  Pressable,
 } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { supabase } from '../../utils/supabaseClient';
 import ScreenWrapper from '../../utils/ScreenWrapper';
@@ -19,8 +21,44 @@ import {
   moderateScale as ms,
 } from 'react-native-size-matters';
 
+// Reusing ScaleCard for touch animation
+const ScaleCard = ({ children, onPress, style }: any) => {
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.96,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      friction: 4,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Pressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={onPress}
+      style={style}
+    >
+      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+        {children}
+      </Animated.View>
+    </Pressable>
+  );
+};
+
 export default function IndirectReferralsScreen() {
   const route = useRoute<any>();
+  const navigation = useNavigation<any>();
+
   // 1️⃣ Get params passed from the previous screen
   const { accountNumber, name } = route.params || {};
 
@@ -33,10 +71,12 @@ export default function IndirectReferralsScreen() {
   const fetchReferrals = async () => {
     if (!accountNumber) return;
     setLoading(true);
-    // 2️⃣ Fetch users who were referred by the passed Account Number
+
+    // 2️⃣ Fetch users referred by THIS account number
+    // We MUST select 'account_number' to pass it to the next screen in the loop
     const { data, error } = await supabase
       .from('users')
-      .select('id, username, direct_business')
+      .select('id, username, direct_business, account_number')
       .eq('referrer_account_number', accountNumber);
 
     if (!error && data) setReferrals(data);
@@ -58,12 +98,13 @@ export default function IndirectReferralsScreen() {
       <StatusBar barStyle="light-content" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          
           {/* Header */}
           <View style={styles.headerContainer}>
             <Text style={styles.headerTitle}>Team View</Text>
-            {/* 3️⃣ Dynamic Subtitle showing whose team this is */}
-            <Text style={styles.headerSubtitle}>Directs of {name || 'User'}</Text>
+            {/* Dynamic Subtitle showing whose team this is */}
+            <Text style={styles.headerSubtitle}>
+              Directs of {name || 'User'}
+            </Text>
             <LinearGradient
               colors={THEME_GRADIENT}
               start={{ x: 0, y: 0 }}
@@ -78,7 +119,9 @@ export default function IndirectReferralsScreen() {
             </View>
           ) : referrals.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.noReferrals}>No active referrals found under {name}</Text>
+              <Text style={styles.noReferrals}>
+                No active referrals found under {name}
+              </Text>
             </View>
           ) : (
             <ScrollView
@@ -96,14 +139,27 @@ export default function IndirectReferralsScreen() {
               }
             >
               {referrals.map((ref, index) => (
-                <View key={ref.id} style={styles.cardContainer}>
+                // 3️⃣ Infinite Loop Logic:
+                // We wrap the item in ScaleCard and use navigation.push()
+                // 'push' adds a NEW instance of this screen to the stack
+                <ScaleCard
+                  key={ref.id}
+                  style={styles.cardContainer}
+                  onPress={() =>
+                    navigation.push('IndirectReferralsScreen', {
+                      accountNumber: ref.account_number,
+                      name: ref.username,
+                    })
+                  }
+                >
                   <View style={styles.card}>
-                    
                     {/* Left: User Info */}
                     <View style={styles.userInfo}>
                       <View style={styles.avatarPlaceholder}>
                         <Text style={styles.avatarText}>
-                          {ref.username ? ref.username.charAt(0).toUpperCase() : 'U'}
+                          {ref.username
+                            ? ref.username.charAt(0).toUpperCase()
+                            : 'U'}
                         </Text>
                       </View>
                       <View>
@@ -111,7 +167,7 @@ export default function IndirectReferralsScreen() {
                           {ref.username || `Trader ${index + 1}`}
                         </Text>
                         <View style={styles.statusBadge}>
-                          <Text style={styles.statusText}>INDIRECT MEMBER</Text>
+                          <Text style={styles.statusText}>VIEW DOWNLINE</Text>
                         </View>
                       </View>
                     </View>
@@ -123,9 +179,8 @@ export default function IndirectReferralsScreen() {
                         ${ref.direct_business || 0}
                       </Text>
                     </View>
-
                   </View>
-                </View>
+                </ScaleCard>
               ))}
             </ScrollView>
           )}
@@ -173,7 +228,7 @@ const styles = StyleSheet.create({
 
   /* List */
   scroll: { width: '100%' },
-  scrollContent: { paddingBottom: vs(200) },
+  scrollContent: { paddingBottom: vs(40) },
 
   /* Card */
   cardContainer: {
@@ -223,7 +278,7 @@ const styles = StyleSheet.create({
     marginBottom: vs(4),
   },
   statusBadge: {
-    backgroundColor: 'rgba(255, 170, 0, 0.1)', // Different color for indirect
+    backgroundColor: 'rgba(255, 170, 0, 0.1)',
     paddingHorizontal: s(6),
     paddingVertical: vs(2),
     borderRadius: ms(4),

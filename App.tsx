@@ -131,7 +131,10 @@ function HomeStackScreen() {
         name="RecieveMoneyScreen"
         component={RecieveMoneyScreen}
       />
-      <HomeStack.Screen name="IndirectReferralsScreen" component={IndirectReferralsScreen} />
+      <HomeStack.Screen
+        name="IndirectReferralsScreen"
+        component={IndirectReferralsScreen}
+      />
       <HomeStack.Screen name="BrowserScreen" component={BrowserScreen} />
       <HomeStack.Screen name="DepositMoney" component={DepositScreen} />
       <HomeStack.Screen name="WithdrawalMoney" component={WithdrawalScreen} />
