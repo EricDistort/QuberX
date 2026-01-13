@@ -370,9 +370,9 @@ const styles = StyleSheet.create({
   /* INPUT AREA */
   inputWrapper: {
     padding: s(15),
-    backgroundColor: '#050505',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: '#000000',
+   
+    borderRadius: ms(30),
   },
   inputRow: {
     flexDirection: 'row',

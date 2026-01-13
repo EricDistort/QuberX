@@ -124,7 +124,7 @@ export default function OnboardingScreen({ navigation }: any) {
                 <Text style={styles.desc}>{item.desc}</Text>
               </View>
             )}
-            keyExtractor={(item) => item.id}
+            keyExtractor={item => item.id}
             onViewableItemsChanged={onViewableItemsChanged.current}
             viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
           />
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     marginBottom: vs(12),
   },
   desc: {
-    color: '#e0e0e0',
+    color: '#ffffff93',
     fontSize: ms(16),
     width: '85%',
     textAlign: 'center',

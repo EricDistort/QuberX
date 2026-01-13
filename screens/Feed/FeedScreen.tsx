@@ -13,6 +13,7 @@ import {
   Animated,
   Pressable,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native'; // 1️⃣ Import Navigation
 import { supabase } from '../../utils/supabaseClient';
 import ScreenWrapper from '../../utils/ScreenWrapper';
 import {
@@ -25,47 +26,42 @@ import LinearGradient from 'react-native-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
-// --- POP CARD COMPONENT ---
+// --- POP COMPONENT (Reused for consistency) ---
+const PopButton = ({ onPress, children, style }: any) => {
+  const scaleValue = useRef(new Animated.Value(1)).current;
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, { toValue: 0.95, useNativeDriver: true }).start();
+  };
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, { toValue: 1, friction: 4, tension: 40, useNativeDriver: true }).start();
+  };
+  return (
+    <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} onPress={onPress} style={style}>
+      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>{children}</Animated.View>
+    </Pressable>
+  );
+};
+
 const PopCard = ({ children, style }: any) => {
   const scaleValue = useRef(new Animated.Value(1)).current;
-
   const handlePressIn = () => {
-    Animated.spring(scaleValue, {
-      toValue: 0.97, // Very subtle shrink for large cards
-      useNativeDriver: true,
-    }).start();
+    Animated.spring(scaleValue, { toValue: 0.97, useNativeDriver: true }).start();
   };
-
   const handlePressOut = () => {
-    Animated.spring(scaleValue, {
-      toValue: 1,
-      friction: 4,
-      tension: 40,
-      useNativeDriver: true,
-    }).start();
+    Animated.spring(scaleValue, { toValue: 1, friction: 4, tension: 40, useNativeDriver: true }).start();
   };
-
   return (
-    <Pressable
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      // onPress event can be added here later for navigation
-      style={style}
-    >
-      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-        {children}
-      </Animated.View>
+    <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} style={style}>
+      <Animated.View style={{ transform: [{ scale: scaleValue }] }}>{children}</Animated.View>
     </Pressable>
   );
 };
 
 export default function FeedScreen() {
+  const navigation = useNavigation<any>(); // 2️⃣ Initialize Navigation
   const [feeds, setFeeds] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
-  // Theme Colors
-  const THEME_SHADOW = '#ff00d4'; 
 
   const fetchFeeds = async () => {
     setLoading(true);
@@ -99,11 +95,8 @@ export default function FeedScreen() {
 
     return (
       <PopCard style={styles.cardContainer}>
-        {/* Shadow Layer */}
         <View style={styles.cardShadow} />
-
         <View style={styles.card}>
-          {/* Media Section (Full Bleed) */}
           <View style={styles.mediaContainer}>
             {isVideo ? (
               <Video
@@ -121,31 +114,22 @@ export default function FeedScreen() {
                 resizeMode="cover"
               />
             )}
-
-            {/* Gradient Scrim (Overlay) for Text Readability */}
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.8)', '#0a0a0a']}
               start={{ x: 0, y: 0.4 }}
               end={{ x: 0, y: 1 }}
               style={styles.gradientOverlay}
             />
-
-            {/* Date Badge (Floating) */}
             <View style={styles.dateBadge}>
               <Text style={styles.dateText}>{formattedDate}</Text>
             </View>
-
-            {/* Title Overlay (Immersive) */}
             <View style={styles.titleOverlay}>
               <Text style={styles.title} numberOfLines={2}>
                 {item.title}
               </Text>
             </View>
           </View>
-
-          {/* Body Content */}
           <View style={styles.contentContainer}>
-             {/* Accent Line */}
              <LinearGradient 
                 colors={['#7b0094', '#ff00d4']}
                 start={{x:0, y:0}} end={{x:1, y:0}}
@@ -166,9 +150,20 @@ export default function FeedScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           
-          {/* Clean Header */}
+          {/* 3️⃣ Updated Header with Webinar Button */}
           <View style={styles.header}>
             <Text style={styles.mainTitle}>Trending News</Text>
+            
+            <PopButton onPress={() => navigation.navigate('WebinarScreen')}>
+              <LinearGradient
+                colors={['#7b0094', '#ff00d4']}
+                start={{x:0, y:0}} end={{x:1, y:0}}
+                style={styles.webinarButton}
+              >
+                
+                <Text style={styles.webinarText}>Live Webinar</Text>
+              </LinearGradient>
+            </PopButton>
           </View>
 
           {loading && !refreshing ? (
@@ -213,14 +208,40 @@ const styles = StyleSheet.create({
 
   /* Header */
   header: {
-    marginTop: vs(20),
+    marginTop: vs(30),
     marginBottom: vs(15),
+    flexDirection: 'row', // Align title and button
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   mainTitle: {
-    fontSize: ms(32),
+    fontSize: ms(28), // Slightly smaller to fit button
     fontWeight: '800',
     color: '#fff',
     letterSpacing: -1,
+  },
+  /* Webinar Button Styles */
+  webinarButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: vs(6),
+    paddingHorizontal: s(12),
+    borderRadius: ms(20),
+    shadowColor: '#ff00d4',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  webinarIcon: {
+    fontSize: ms(14),
+    marginRight: s(6),
+    color: '#fff'
+  },
+  webinarText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: ms(12),
   },
 
   /* Card Layout */
@@ -239,20 +260,20 @@ const styles = StyleSheet.create({
     bottom: -vs(5),
     backgroundColor: '#ff00d4',
     borderRadius: ms(24),
-    opacity: 0.15, // Subtle glowing shadow behind the card
+    opacity: 0.15, 
     transform: [{ scale: 0.95 }],
   },
   card: {
-    backgroundColor: '#121212', // Deep dark grey
+    backgroundColor: '#121212', 
     borderRadius: ms(24),
     overflow: 'hidden',
-    elevation: 10, // Android shadow
+    elevation: 10,
   },
 
   /* Media Section */
   mediaContainer: {
     width: '100%',
-    height: vs(240), // Tall, immersive image
+    height: vs(240), 
     position: 'relative',
   },
   media: {
@@ -264,7 +285,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: '60%', // Fades from bottom up
+    height: '60%', 
   },
   
   /* Date Badge */
@@ -292,7 +313,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: s(20),
-    paddingBottom: vs(10), // Pushes title slightly up into the image area
+    paddingBottom: vs(10), 
   },
   title: {
     fontSize: ms(22),

@@ -89,6 +89,7 @@ export default function HomeScreen({ navigation }: any) {
   const fetchTraders = async () => {
     setLoadingTraders(true);
     try {
+      // Fetch all needed rows at once
       const { data, error } = await supabase
         .from('fake_traders')
         .select('id, name, image_url, designation');
@@ -96,17 +97,19 @@ export default function HomeScreen({ navigation }: any) {
       if (error) throw error;
 
       if (data) {
-        // 2️⃣ Find ID 10 and set it to partnerData
+        // Find ID 10 for the Partner Button
         const partnerNode = data.find((item: any) => item.id === 10);
         if (partnerNode) {
           setPartnerData({
             name: partnerNode.name,
-            url: partnerNode.image_url, // Using image_url as the website link per request
+            url: partnerNode.image_url,
           });
         }
 
-        // Filter out ID 10 so it doesn't appear in the list below
-        const listData = data.filter((item: any) => item.id !== 10);
+        // Filter for IDs 1 to 8 ONLY for the Live Traders list
+        const listData = data.filter(
+          (item: any) => item.id >= 1 && item.id <= 8,
+        );
 
         const initialized = listData.map((t: any) => ({
           ...t,
@@ -141,6 +144,7 @@ export default function HomeScreen({ navigation }: any) {
         }),
       );
     }, 1000);
+
     return () => clearInterval(interval);
   }, [user?.id]);
 
@@ -229,7 +233,7 @@ export default function HomeScreen({ navigation }: any) {
                       onPress: () => navigation.navigate('StoreMain'),
                     },
                     {
-                      name: 'News',
+                      name: 'Webiner',
                       icon: require('../homeMedia/recieve.webp'),
                       onPress: () => navigation.navigate('RecieveMoney'),
                     },
@@ -282,7 +286,17 @@ export default function HomeScreen({ navigation }: any) {
 
           {/* Live Traders Section */}
           <View style={styles.thirdContainer}>
-            <Text style={styles.transactionsTitle}>Live Traders</Text>
+            {/* ✨ Header with Slick Line */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.transactionsTitle}>Live Traders</Text>
+              <LinearGradient
+                colors={['#ff00d4', '#7b009400']} // Fades to transparent
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={styles.slickLine}
+              />
+            </View>
+
             {loadingTraders ? (
               <ActivityIndicator size="small" color="#ff00d4" />
             ) : (
@@ -352,7 +366,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: s(10),
     marginTop: vs(25),
-    //backgroundColor: 'white',
   },
   userInfo: { flex: 1 },
   name: { fontSize: ms(18), fontWeight: 'bold', color: '#f3fcffff' },
@@ -370,7 +383,6 @@ const styles = StyleSheet.create({
     borderColor: '#ffffff28',
     justifyContent: 'center',
     alignItems: 'center',
-    //backgroundColor: '#333',
     overflow: 'hidden',
   },
   avatarImage: { width: '100%', height: '100%' },
@@ -443,12 +455,26 @@ const styles = StyleSheet.create({
     padding: s(10),
     marginBottom: vs(30),
   },
+
+  /* --- New Styles for Slick Line Header --- */
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: vs(10),
+  },
   transactionsTitle: {
     fontSize: ms(18),
     fontWeight: 'bold',
     color: '#ff00d4',
-    marginBottom: vs(10),
   },
+  slickLine: {
+    flex: 1, // Takes remaining width
+    height: vs(0.5),
+    marginLeft: s(12),
+    borderRadius: ms(2),
+    opacity: 0.8,
+  },
+
   traderCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.07)',
     borderRadius: ms(25),
