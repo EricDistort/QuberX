@@ -183,8 +183,8 @@ export default function ProfileScreen({ navigation }: any) {
             <View style={styles.heroSection}>
               <View style={styles.avatarRow}>
                 {/* Avatar Display Only (No Click/Edit) */}
-                <LinearGradient
-                  colors={THEME_GRADIENT}
+                <View
+                  
                   style={styles.avatarGradient}
                 >
                   <View style={styles.avatarContainer}>
@@ -199,7 +199,7 @@ export default function ProfileScreen({ navigation }: any) {
                       </Text>
                     )}
                   </View>
-                </LinearGradient>
+                </View>
 
                 <View style={styles.heroInfo}>
                   <Text style={styles.heroTitle}>Edit Profile</Text>
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
+   
   },
   avatar: { width: '100%', height: '100%' },
   avatarPlaceholder: { color: '#fff', fontSize: ms(24) },

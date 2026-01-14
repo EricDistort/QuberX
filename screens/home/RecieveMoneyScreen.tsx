@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   statusText: {
-    color: '#00e676',
+    color: '#00ff84',
     fontSize: ms(9),
     fontWeight: '800',
     letterSpacing: 0.5,
