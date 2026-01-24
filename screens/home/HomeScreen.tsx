@@ -342,7 +342,7 @@ export default function HomeScreen({ navigation }: any) {
                               color:
                                 trader.trend === 'up'
                                   ? '#48ff00ff'
-                                  : '#ff0000ff',
+                                  : '#00eeff',
                             },
                           ]}
                         >

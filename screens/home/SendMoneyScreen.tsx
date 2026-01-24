@@ -265,7 +265,7 @@ export default function TradesScreen() {
                                 color:
                                   trade.trend === 'up'
                                     ? '#48ff00ff'
-                                    : '#ff0000ff',
+                                    : '#00eeff',
                               },
                             ]}
                           >
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
   },
   liveAmount: {
     fontSize: ms(14),
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
 
   /* Buttons */

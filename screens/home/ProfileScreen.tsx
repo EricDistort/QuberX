@@ -53,7 +53,9 @@ const PopButton = ({ onPress, children, style, disabled }: any) => {
       disabled={disabled}
       style={style}
     >
-      <Animated.View style={{ transform: [{ scale: scaleValue }], width: '100%' }}>
+      <Animated.View
+        style={{ transform: [{ scale: scaleValue }], width: '100%' }}
+      >
         {children}
       </Animated.View>
     </Pressable>
@@ -68,13 +70,14 @@ export default function ProfileScreen({ navigation }: any) {
   // Form States
   const [username, setUsername] = useState('');
   const [mobile, setMobile] = useState('');
+  const [senderWallet, setSenderWallet] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [currentPasswordInput, setCurrentPasswordInput] = useState('');
   const [actualStoredPassword, setActualStoredPassword] = useState('');
 
   // Read-Only Data
   const [referrerName, setReferrerName] = useState('N/A');
-  const [totalDeposit, setTotalDeposit] = useState(0);
+  const [referrerAccNum, setReferrerAccNum] = useState<string | null>(null); // New state for account number
 
   const THEME_GRADIENT = ['#7b0094ff', '#ff00d4ff'];
 
@@ -86,11 +89,10 @@ export default function ProfileScreen({ navigation }: any) {
     setLoading(true);
     try {
       // 1. Fetch User Data
-      // Note: We don't need to fetch rank logic here anymore, the DB does it!
       const { data: userData, error } = await supabase
         .from('users')
         .select(
-          'username, mobile, password, profileImage, referrer_account_number, deposits',
+          'username, mobile, password, profileImage, referrer_account_number, deposits, sender_wallet_address',
         )
         .eq('id', user.id)
         .single();
@@ -102,12 +104,16 @@ export default function ProfileScreen({ navigation }: any) {
 
       setUsername(userData.username || '');
       setMobile(userData.mobile || '');
+      setSenderWallet(userData.sender_wallet_address || '');
       setActualStoredPassword(userData.password || '');
-      setTotalDeposit(userData.deposits || 0);
-      
-      // Update local context to ensure image is fresh
+      setReferrerAccNum(
+        userData.referrer_account_number
+          ? userData.referrer_account_number.toString()
+          : 'N/A',
+      ); // Store ID directly
+
       if (userData.profileImage !== user?.profileImage) {
-         setUser({ ...user, profileImage: userData.profileImage });
+        setUser({ ...user, profileImage: userData.profileImage });
       }
 
       // 2. Fetch Referrer Name
@@ -119,7 +125,6 @@ export default function ProfileScreen({ navigation }: any) {
           .maybeSingle();
         if (refData) setReferrerName(refData.username);
       }
-
     } catch (err) {
       console.log('Profile Fetch Error:', err);
     } finally {
@@ -140,6 +145,7 @@ export default function ProfileScreen({ navigation }: any) {
     const finalPassword = newPassword.trim()
       ? newPassword.trim()
       : actualStoredPassword;
+
     setSaving(true);
     try {
       const { error } = await supabase
@@ -147,6 +153,7 @@ export default function ProfileScreen({ navigation }: any) {
         .update({
           username: username.trim(),
           mobile: mobile.trim(),
+          sender_wallet_address: senderWallet.trim(),
           password: finalPassword,
         })
         .eq('id', user.id);
@@ -182,11 +189,7 @@ export default function ProfileScreen({ navigation }: any) {
             {/* 1. COMPACT HERO SECTION */}
             <View style={styles.heroSection}>
               <View style={styles.avatarRow}>
-                {/* Avatar Display Only (No Click/Edit) */}
-                <View
-                  
-                  style={styles.avatarGradient}
-                >
+                <View style={styles.avatarGradient}>
                   <View style={styles.avatarContainer}>
                     {user?.profileImage ? (
                       <Image
@@ -195,7 +198,7 @@ export default function ProfileScreen({ navigation }: any) {
                       />
                     ) : (
                       <Text style={styles.avatarPlaceholder}>
-                         {username ? username.charAt(0).toUpperCase() : 'U'}
+                        {username ? username.charAt(0).toUpperCase() : 'U'}
                       </Text>
                     )}
                   </View>
@@ -217,10 +220,11 @@ export default function ProfileScreen({ navigation }: any) {
                     {referrerName}
                   </Text>
                 </View>
+                {/* UPDATED BOX: Showing Referrer Account Number instead of Total Deposit */}
                 <View style={styles.statBox}>
-                  <Text style={styles.statLabel}>Total Deposit</Text>
+                  <Text style={styles.statLabel}>Referrer Acc</Text>
                   <Text style={[styles.statValue, { color: '#00e676' }]}>
-                    ${totalDeposit}
+                    {referrerAccNum || 'N/A'}
                   </Text>
                 </View>
               </View>
@@ -253,7 +257,18 @@ export default function ProfileScreen({ navigation }: any) {
                 </View>
               </View>
 
-              {/* Increased Spacer */}
+              <View style={styles.spacer} />
+
+              {/* SENDER WALLET ADDRESS INPUT */}
+              <Text style={styles.label}>SENDER WALLET ADDRESS</Text>
+              <TextInput
+                style={styles.input}
+                value={senderWallet}
+                onChangeText={setSenderWallet}
+                placeholder="Paste your wallet address"
+                placeholderTextColor="#666"
+              />
+
               <View style={styles.spacer} />
 
               {/* New Password */}
@@ -267,7 +282,6 @@ export default function ProfileScreen({ navigation }: any) {
                 placeholderTextColor="#666"
               />
 
-              {/* Increased Spacer */}
               <View style={styles.spacer} />
 
               {/* Current Password */}
@@ -323,7 +337,7 @@ const styles = StyleSheet.create({
 
   /* 1. HERO SECTION */
   heroSection: {
-    marginBottom: vs(25),
+    marginBottom: vs(10),
   },
   avatarRow: {
     flexDirection: 'row',
@@ -345,7 +359,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
-   
   },
   avatar: { width: '100%', height: '100%' },
   avatarPlaceholder: { color: '#fff', fontSize: ms(24) },
@@ -426,21 +439,24 @@ const styles = StyleSheet.create({
 
   /* SPACER */
   spacer: {
-    height: vs(20),
+    height: vs(10),
   },
 
   /* BUTTON */
   buttonWrapper: {
-    marginTop: vs(30),
+    marginTop: vs(15),
     shadowColor: '#ff00d4',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 8,
     width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: s(30),
   },
   saveBtn: {
-    height: vs(52),
+    height: vs(40),
     borderRadius: ms(26),
     justifyContent: 'center',
     alignItems: 'center',

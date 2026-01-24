@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     marginRight: s(12),
     borderWidth: 1,
     borderColor: 'rgba(255, 0, 212, 0.3)',
-    overflow: 'hidden', // Ensures square images get clipped to circle
+    //overflow: 'hidden', // Ensures square images get clipped to circle
   },
   avatarImage: {
     width: '100%',

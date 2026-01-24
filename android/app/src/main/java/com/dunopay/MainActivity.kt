@@ -1,5 +1,7 @@
 package com.dunopay
 
+import android.os.Bundle // 1. Add this import
+import android.view.WindowManager // 2. Add this import
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
@@ -12,6 +14,16 @@ class MainActivity : ReactActivity() {
    * rendering of the component.
    */
   override fun getMainComponentName(): String = "DunoPay"
+
+  /**
+   * 🚨 NEW: Override onCreate to force-enable screen mirroring
+   */
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    
+    // This command explicitly removes the "Secure" flag, allowing screenshots & mirroring
+    window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+  }
 
   /**
    * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]

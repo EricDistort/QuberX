@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     marginRight: s(12),
     borderWidth: 1,
     borderColor: 'rgba(123, 0, 148, 0.5)',
-    overflow: 'hidden',
+    //overflow: 'hidden',
   },
   avatarImage: {
     width: '100%',

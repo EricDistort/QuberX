@@ -156,6 +156,10 @@ function FeedStackScreen() {
         name="TransactionDetailsScreen"
         component={TransactionDetailsScreen}
       />
+      <FeedStack.Screen name="RecieveMoney" component={FeedScreen} />
+      <FeedStack.Screen name="WebinarScreen" component={WebinarScreen} />
+      <FeedStack.Screen name="StoreMain" component={StoreScreen} />
+      <FeedStack.Screen name="OrderList" component={OrderListScreen} />
     </FeedStack.Navigator>
   );
 }
@@ -308,6 +312,7 @@ const styles = StyleSheet.create({
     elevation: 0,
     marginHorizontal: s(30),
     paddingHorizontal: s(15),
+    paddingTop: vs(10),
   },
   gradientBackground: {
     flex: 1,
@@ -319,18 +324,25 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+   
+    
+   
   },
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
     width: '100%',
-    top: vs(10),
+    gap: vs(4),
+    
+    
+    //top: vs(10),
   },
   icon: {
     width: s(27),
     height: s(27),
-    marginBottom: vs(4),
+    
+    //marginBottom: vs(4),
   },
   activeIcon: {
     width: s(32),
@@ -341,16 +353,13 @@ const styles = StyleSheet.create({
     tintColor: 'rgba(255, 255, 255, 0.5)',
   },
   activeDot: {
-    bottom: vs(8),
+    //bottom: vs(8),
     width: s(15),
     height: s(4),
     borderRadius: s(2.5),
-    marginTop: vs(7),
+    //marginTop: vs(7),
     backgroundColor: '#fff',
-    shadowColor: '#fff',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 3,
-    elevation: 5,
+
+ 
   },
 });

@@ -1,0 +1,41 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "android/app/src/main/assets/fonts/OrbitronBlack-n6dV.ttf",
+      "sha1": "074b50efd47efe5f1748cdf5fc2a40c0176a1e3a"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/OrbitronBlack-y4XZ.otf",
+      "sha1": "ca608b783bd943011b0a695596638361f1e884ca"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/OrbitronBold-10M0.ttf",
+      "sha1": "267a8c11e383a87ee5d36cbf382ec4b33588e712"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/OrbitronBold-93z0.otf",
+      "sha1": "3484fb0dc8b2a66a050422755b349da814053b84"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/OrbitronLight-lqBq.otf",
+      "sha1": "7b2034cb853ec57e6cc33a75a6ae376370906bd0"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/OrbitronLight-R7GV.ttf",
+      "sha1": "d1d5e1ffa075337921934c494ff7c7c7aa2bd41f"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/OrbitronMedium-Bz9B.ttf",
+      "sha1": "e306b9a2f0ca54faa33c8f116109d7d08e379446"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/OrbitronMedium-naY4.otf",
+      "sha1": "456ad0c5f4ca3d20143b7c922bf7f7132f9f515b"
+    },
+    {
+      "path": "android/app/src/main/assets/fonts/VersatyloRounded-JR1ma.ttf",
+      "sha1": "aae34e73eecb44f603f526c1f8b79cd7ca268c4e"
+    }
+  ]
+}
